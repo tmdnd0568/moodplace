@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>my MoodPlace — 근처 카페 찾기</title>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap"
+    rel="stylesheet" />
+
+  <!-- 공통 스타일 + 근처 카페 찾기 화면 전용 스타일 (index.html 과 동일한 common.css 를 그대로 재사용) -->
+  <link rel="stylesheet" href="css/common.css" />
+  <link rel="stylesheet" href="css/find.css" />
+</head>
+
+<body>
+  <div class="app-shell" id="app">
+    <!-- 근처 카페 찾기 화면 (STEP 7) — 단독 페이지로 분리 -->
+    <section class="screen is-active" id="screen-find" data-screen="find">
+      <!-- find.js 가 이 컨테이너 내부를 렌더링합니다 -->
+    </section>
+  </div>
+
+  <!-- 공통 데이터/스토어 + 근처 카페 찾기 화면 로직 (index.html 과 동일한 data.js 를 그대로 재사용, 새로 작성하지 않음) -->
+  <script src="js/data.js"></script>
+  <script src="js/find.js"></script>
+
+  <!-- 이 페이지(find.html) 전용 부트스트랩: 화면을 'find'로 바로 진입시킨다. -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      var store = window.MoodPlaceData.store;
+
+      // find.js 초기화 (이벤트 바인딩 + store 구독)
+      window.MoodPlaceFind.init();
+
+      // 화면 상태를 'find'로 전환 → find.js 의 render() 트리거
+      store.dispatch({ type: 'GO_TO_SCREEN', payload: 'find' });
+    });
+  </script>
+</body>
+
+</html>

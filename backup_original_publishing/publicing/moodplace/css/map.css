@@ -1,0 +1,437 @@
+/* ==========================================================
+   map.css
+   지도 / 길찾기 안내 화면(Map Screen) 전용 스타일
+   컴포넌트 단위로 블록을 분리 — 각 블록은 React 컴포넌트 1개에 대응 예정
+   ========================================================== */
+
+#screen-map {
+  background: var(--color-bg);
+  padding-bottom: 96px; /* 하단 고정 CTA 높이만큼 여백 */
+  position: relative;
+}
+
+/* ---------- 1) Header (지도 위 오버레이) ---------- */
+.map-header {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-4) var(--space-4);
+}
+
+.map-icon-btn {
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: var(--radius-pill);
+  background: rgba(255, 255, 255, 0.9);
+  color: var(--color-text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(26, 26, 26, 0.12);
+  flex-shrink: 0;
+  transition: background 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+}
+
+.map-icon-btn:hover {
+  background: linear-gradient(135deg, #ffffff 0%, #cfe6cb 100%);
+  box-shadow: 0 4px 12px rgba(45, 82, 68, 0.2);
+  transform: scale(1.05);
+}
+
+.map-icon-btn .icon {
+  width: 19px;
+  height: 19px;
+}
+
+.map-logo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1.1;
+}
+
+.map-logo-sub {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-text);
+}
+
+.map-logo-main {
+  font-size: 19px;
+  font-weight: 800;
+  color: var(--color-text);
+  letter-spacing: -0.3px;
+}
+
+/* ---------- 2) Map canvas (정적 스타일라이즈 지도) ---------- */
+.map-canvas {
+  width: 100%;
+  height: 320px;
+  position: relative;
+  overflow: hidden;
+  background: #e9efe4;
+}
+
+.map-canvas svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.map-marker {
+  position: absolute;
+  transform: translate(-50%, -100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.map-marker.is-origin {
+  transform: translate(-50%, -50%);
+}
+
+.map-marker-dot {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  border: 3px solid #ffffff;
+  box-shadow: 0 2px 6px rgba(26, 26, 26, 0.25);
+}
+
+.map-marker-pin {
+  width: 34px;
+  height: 34px;
+  color: var(--color-primary);
+  filter: drop-shadow(0 3px 5px rgba(26, 26, 26, 0.25));
+}
+
+/* ---------- 3) Bottom sheet ---------- */
+.map-sheet {
+  background: var(--color-surface);
+  border-radius: 24px 24px 0 0;
+  margin-top: -20px;
+  position: relative;
+  z-index: 2;
+  padding: var(--space-3) var(--space-5) var(--space-6);
+  box-shadow: 0 -4px 16px rgba(26, 26, 26, 0.06);
+}
+
+.map-sheet-handle {
+  width: 40px;
+  height: 4px;
+  border-radius: var(--radius-pill);
+  background: var(--color-border);
+  margin: 0 auto var(--space-5);
+}
+
+/* ---------- 4) 출발지 / 도착지 입력행 ---------- */
+.map-route-inputs {
+  display: flex;
+  gap: var(--space-3);
+  margin-bottom: var(--space-5);
+}
+
+.map-route-icons {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 4px;
+}
+
+.map-route-icons .map-marker-dot {
+  width: 14px;
+  height: 14px;
+}
+
+.map-route-icons .map-dashed-line {
+  flex: 1;
+  width: 0;
+  min-height: 28px;
+  border-left: 1.5px dashed var(--color-border);
+  margin: 6px 0;
+}
+
+.map-route-icons .icon {
+  width: 20px;
+  height: 20px;
+  color: var(--color-primary);
+}
+
+.map-route-fields {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.map-route-field {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.map-route-field-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.map-route-field-label {
+  font-size: 12px;
+  color: var(--color-text-muted);
+  margin-bottom: 2px;
+}
+
+.map-route-field-value {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--color-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.map-swap-btn {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface);
+  color: var(--color-text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.map-swap-btn .icon {
+  width: 15px;
+  height: 15px;
+}
+
+/* ---------- 5) 이동수단 토글 ---------- */
+.map-mode-toggle {
+  display: flex;
+  gap: var(--space-2);
+  margin-bottom: var(--space-6);
+}
+
+.map-mode-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 44px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.map-mode-btn .icon {
+  width: 17px;
+  height: 17px;
+}
+
+.map-mode-btn.is-active {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: #ffffff;
+}
+
+/* ---------- 6) 추천 경로 섹션 ---------- */
+.map-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-4);
+}
+
+.map-section-title {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--color-text);
+}
+
+.map-section-hint {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
+
+.map-section-hint .icon {
+  width: 13px;
+  height: 13px;
+}
+
+/* Recommended (featured) route card */
+.map-route-featured {
+  border: 1.5px solid var(--color-primary);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4) var(--space-5);
+  margin-bottom: var(--space-3);
+  background: var(--color-surface);
+}
+
+.map-route-featured-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: var(--space-3);
+}
+
+.map-route-badge {
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--color-primary-dark);
+  background: var(--color-primary-light);
+  padding: 4px 12px;
+  border-radius: var(--radius-pill);
+}
+
+.map-route-featured-meta {
+  text-align: right;
+  font-size: 12px;
+  color: var(--color-text-muted);
+  line-height: 1.5;
+}
+
+.map-route-featured-time {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  margin-bottom: var(--space-3);
+}
+
+.map-route-featured-time .num {
+  font-size: 34px;
+  font-weight: 800;
+  color: var(--color-text);
+  letter-spacing: -0.5px;
+}
+
+.map-route-featured-time .unit {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--color-text-muted);
+}
+
+.map-route-progress {
+  height: 6px;
+  border-radius: var(--radius-pill);
+  background: var(--color-bg);
+  overflow: hidden;
+  margin-bottom: var(--space-3);
+}
+
+.map-route-progress-fill {
+  height: 100%;
+  background: var(--color-primary);
+  border-radius: var(--radius-pill);
+}
+
+.map-route-desc {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--color-text-muted);
+}
+
+.map-route-desc .icon {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  margin-top: 2px;
+  color: var(--color-primary);
+}
+
+/* Alternative route cards */
+.map-route-alt {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  margin-bottom: var(--space-3);
+  background: var(--color-surface);
+}
+
+.map-route-alt:last-child {
+  margin-bottom: 0;
+}
+
+.map-route-alt-time {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  margin-bottom: 4px;
+}
+
+.map-route-alt-time .num {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--color-text);
+}
+
+.map-route-alt-time .unit {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-text-muted);
+}
+
+.map-route-alt-meta {
+  font-size: 12.5px;
+  color: var(--color-text-muted);
+}
+
+.map-route-alt-arrow {
+  width: 18px;
+  height: 18px;
+  color: var(--color-text-muted);
+  flex-shrink: 0;
+}
+
+/* ---------- 7) 하단 고정 CTA ---------- */
+.map-cta-bar {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: var(--app-max-width);
+  padding: var(--space-4) var(--space-5);
+  background: var(--color-surface);
+  border-top: 1px solid var(--color-border);
+  z-index: 20;
+}
+
+.map-cta-btn {
+  width: 100%;
+  height: 52px;
+  border: none;
+  border-radius: var(--radius-md);
+  background: var(--color-primary);
+  color: #ffffff;
+  font-size: 15.5px;
+  font-weight: 700;
+}
+
+.map-cta-btn:hover {
+  background: var(--color-primary-dark);
+}

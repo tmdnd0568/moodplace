@@ -1,0 +1,314 @@
+/* ==========================================================
+   find.css
+   근처 카페 찾기 화면(Find Screen) 전용 스타일
+   컴포넌트 단위로 블록을 분리 — 각 블록은 React 컴포넌트 1개에 대응 예정
+   ========================================================== */
+
+#screen-find {
+  background: var(--color-bg);
+  padding-bottom: calc(var(--bottom-nav-height) + var(--space-4));
+  position: relative;
+}
+
+/* ---------- 1) Header (지도 위 오버레이) ---------- */
+.find-header {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-4) var(--space-4);
+}
+
+.find-icon-btn {
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: var(--radius-pill);
+  background: rgba(255, 255, 255, 0.9);
+  color: var(--color-text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(26, 26, 26, 0.12);
+  flex-shrink: 0;
+  transition: background 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+}
+
+.find-icon-btn:hover {
+  background: linear-gradient(135deg, #ffffff 0%, #cfe6c8 100%);
+  box-shadow: 0 4px 12px rgba(45, 82, 68, 0.2);
+  transform: scale(1.05);
+}
+
+.find-icon-btn .icon {
+  width: 19px;
+  height: 19px;
+}
+
+/* ---------- 2) Map canvas (정적 스타일라이즈 지도) ---------- */
+.find-map-canvas {
+  width: 100%;
+  height: 340px;
+  position: relative;
+  overflow: hidden;
+  background: #e9efe4;
+}
+
+.find-map-canvas svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.find-locate-btn {
+  position: absolute;
+  top: var(--space-5);
+  right: var(--space-4);
+  z-index: 4;
+  width: 42px;
+  height: 42px;
+  border: none;
+  border-radius: var(--radius-pill);
+  background: var(--color-primary);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 3px 10px rgba(26, 26, 26, 0.2);
+}
+
+.find-locate-btn .icon {
+  width: 19px;
+  height: 19px;
+}
+
+/* Marker (button so it's keyboard/tap accessible) */
+.find-marker {
+  position: absolute;
+  transform: translate(-50%, -100%);
+  border: none;
+  background: none;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+}
+
+.find-marker-pin {
+  width: 32px;
+  height: 32px;
+  color: var(--color-text-muted);
+  filter: drop-shadow(0 3px 5px rgba(26, 26, 26, 0.2));
+  transition: color 0.2s ease, transform 0.2s ease;
+}
+
+.find-marker.is-active .find-marker-pin {
+  color: var(--color-primary);
+  transform: scale(1.15);
+}
+
+.find-marker-label {
+  position: absolute;
+  bottom: calc(100% + 4px);
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: 12px;
+  font-weight: 700;
+  padding: 5px 12px;
+  border-radius: var(--radius-pill);
+  box-shadow: 0 2px 8px rgba(26, 26, 26, 0.15);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease;
+}
+
+.find-marker.is-active .find-marker-label {
+  opacity: 1;
+}
+
+/* ---------- 3) Bottom sheet (선택된 장소 요약) ---------- */
+.find-sheet {
+  background: var(--color-surface);
+  border-radius: 24px 24px 0 0;
+  margin-top: -20px;
+  position: relative;
+  z-index: 2;
+  padding: var(--space-3) var(--space-5) var(--space-6);
+  box-shadow: 0 -4px 16px rgba(26, 26, 26, 0.06);
+}
+
+.find-sheet-handle {
+  width: 40px;
+  height: 4px;
+  border-radius: var(--radius-pill);
+  background: var(--color-border);
+  margin: 0 auto var(--space-5);
+}
+
+.find-place-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-bottom: var(--space-2);
+}
+
+.find-place-name {
+  font-size: 21px;
+  font-weight: 800;
+  color: var(--color-text);
+  letter-spacing: -0.3px;
+}
+
+.find-save-btn {
+  flex-shrink: 0;
+  width: 38px;
+  height: 38px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface);
+  color: var(--color-text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.find-save-btn .icon {
+  width: 18px;
+  height: 18px;
+}
+
+.find-save-btn.is-saved {
+  color: var(--color-primary);
+  border-color: var(--color-primary);
+  background: var(--color-primary-light);
+}
+
+.find-address {
+  font-size: 13.5px;
+  color: var(--color-text-muted);
+  margin-bottom: var(--space-4);
+}
+
+.find-tag-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: var(--space-4);
+}
+
+.find-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--color-primary-dark);
+  background: var(--color-primary-light);
+  padding: 6px 12px;
+  border-radius: var(--radius-pill);
+}
+
+.find-description-box {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  margin-bottom: var(--space-4);
+}
+
+.find-description-box p {
+  font-size: 13.5px;
+  line-height: 1.65;
+  color: var(--color-text);
+}
+
+.find-photo-row {
+  display: flex;
+  gap: var(--space-3);
+  margin-bottom: var(--space-5);
+}
+
+.find-photo-thumb {
+  flex: 1;
+  height: 120px;
+  border-radius: var(--radius-md);
+  background-size: cover;
+  background-position: center;
+}
+
+.find-cta-btn {
+  width: 100%;
+  height: 52px;
+  border: 1.5px solid var(--color-text);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: 15px;
+  font-weight: 700;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.find-cta-btn:hover {
+  background: var(--color-text);
+  color: #ffffff;
+}
+
+/* ---------- 4) Bottom navigation (main.js 의 하단 탭바와 동일 — 독립 페이지라 자체 포함) ---------- */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: var(--app-max-width);
+  height: var(--bottom-nav-height);
+  background: var(--color-surface);
+  border-top: 1px solid var(--color-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  z-index: 20;
+}
+
+.nav-tab {
+  border: none;
+  background: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  height: 60px;
+  border-radius: 0;
+  color: var(--color-text-muted);
+  position: relative;
+}
+
+.nav-tab .icon {
+  width: 22px;
+  height: 22px;
+  position: relative;
+  z-index: 1;
+}
+
+.nav-tab.is-active {
+  color: #1a1a1a;
+}
+
+.nav-tab.is-active::before {
+  content: '';
+  position: absolute;
+  width: 44px;
+  height: 36px;
+  border: 1px solid #1a1a1a;
+  border-radius: 10px;
+  pointer-events: none;
+}

@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>my MoodPlace — 길찾기</title>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap"
+    rel="stylesheet" />
+
+  <!-- 공통 스타일 + 지도/길찾기 화면 전용 스타일 (index.html 과 동일한 파일을 그대로 재사용) -->
+  <link rel="stylesheet" href="css/common.css" />
+  <link rel="stylesheet" href="css/map.css" />
+</head>
+
+<body>
+  <div class="app-shell" id="app">
+    <!-- 지도 / 길찾기 안내 화면 (STEP 6) — 단독 페이지로 분리 -->
+    <section class="screen is-active" id="screen-map" data-screen="map">
+      <!-- map.js 가 이 컨테이너 내부를 렌더링합니다 -->
+    </section>
+  </div>
+
+  <!-- 공통 데이터/스토어 + 지도 화면 로직 (index.html 과 동일한 파일을 그대로 재사용, 새로 작성하지 않음) -->
+  <script src="js/data.js"></script>
+  <script src="js/map.js"></script>
+
+  <!-- 이 페이지(map_rode.html) 전용 부트스트랩: 화면을 'map'으로 바로 진입시키고,
+       뒤로가기 버튼은 SPA 라우팅 대신 index.html 로 이동하도록 연결한다. -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      var store = window.MoodPlaceData.store;
+
+      // map.js 초기화 (이벤트 바인딩 + store 구독)
+      window.MoodPlaceMap.init();
+
+      // 데모용 기본 진입 카페 선택 → 도보 탭 → 지도 화면 표시
+      store.dispatch({ type: 'SELECT_CAFE', payload: 'forest-lounge' });
+      store.dispatch({ type: 'SET_TRAVEL_MODE', payload: 'walk' });
+      store.dispatch({ type: 'GO_TO_SCREEN', payload: 'map' });
+
+      // 뒤로가기 버튼: 이 페이지에는 예약/리뷰 화면이 없으므로 index.html(SPA)로 이동
+      document.getElementById('screen-map').addEventListener('click', function (e) {
+        var backBtn = e.target.closest('[data-action="go-back"]');
+        if (backBtn) {
+          window.location.href = 'index.html';
+        }
+      });
+    });
+  </script>
+</body>
+
+</html>

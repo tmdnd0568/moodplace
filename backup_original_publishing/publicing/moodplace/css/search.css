@@ -1,0 +1,349 @@
+/* ==========================================================
+   search.css
+   무드 탐색 모달(Search / Add Screen) 전용 스타일
+   메인 화면 위에 뜨는 바텀시트 형태의 오버레이
+   ========================================================== */
+
+/* ---------- Overlay (backdrop) ---------- */
+.search-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: var(--app-max-width);
+  height: 100%;
+  background: var(--color-overlay);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+  z-index: 40;
+  display: flex;
+  align-items: flex-end;
+}
+
+.search-modal-overlay.is-open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* ---------- Bottom sheet ---------- */
+.search-modal-sheet {
+  width: 100%;
+  max-height: 88vh;
+  overflow-y: auto;
+  background: var(--color-surface);
+  border-radius: 26px 26px 0 0;
+  padding: var(--space-3) var(--space-5) var(--space-6);
+  transform: translateY(100%);
+  transition: transform 0.32s cubic-bezier(0.22, 1, 0.36, 1);
+  box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.18);
+}
+
+.search-modal-overlay.is-open .search-modal-sheet {
+  transform: translateY(0);
+}
+
+/* Drag handle */
+.modal-handle {
+  width: 40px;
+  height: 4px;
+  border-radius: var(--radius-pill);
+  background: var(--color-border);
+  margin: var(--space-2) auto var(--space-5);
+}
+
+/* ---------- Title / subtitle ---------- */
+.modal-title {
+  font-family: 'Noto Sans KR', sans-serif;
+  font-size: 20px;
+  font-weight: 300;
+  color: var(--color-text);
+  margin-bottom: 6px;
+  letter-spacing: -0.2px;
+}
+
+.modal-subtitle {
+  font-size: 13.5px;
+  color: var(--color-text-muted);
+  margin-bottom: var(--space-6);
+  line-height: 1.5;
+}
+
+/* ---------- Section label ---------- */
+.modal-section {
+  margin-bottom: var(--space-6);
+}
+
+.modal-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--color-text);
+  margin-bottom: var(--space-3);
+}
+
+.modal-label .icon-inline {
+  width: 15px;
+  height: 15px;
+  color: var(--color-primary);
+  display: inline-flex;
+}
+.modal-label .icon-inline svg {
+  width: 100%;
+  height: 100%;
+}
+
+/* ---------- Modal mood chips (multi-select, 7 items) ---------- */
+.modal-mood-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.modal-mood-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 16px;
+  border-radius: var(--radius-pill);
+  border: 1.5px solid transparent;
+  background: var(--color-primary-light);
+  color: var(--color-primary-dark);
+  font-size: 14px;
+  font-weight: 600;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.modal-mood-chip .chip-icon {
+  font-size: 14px;
+  line-height: 1;
+}
+
+.modal-mood-chip.is-active {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: #ffffff;
+}
+
+/* ---------- Textarea ---------- */
+.modal-textarea {
+  width: 100%;
+  min-height: 92px;
+  resize: none;
+  border: 0.5px solid #000000;
+  border-radius: var(--radius-md);
+  background: var(--color-bg);
+  padding: var(--space-4);
+  font-size: 14px;
+  color: var(--color-text);
+  line-height: 1.55;
+  transition: border-color 0.15s ease;
+}
+
+.modal-textarea:focus {
+  outline: none;
+  border-color: #000000;
+}
+
+.modal-textarea::placeholder {
+  color: #a7a7a2;
+}
+
+/* ---------- CTA button ---------- */
+.modal-cta {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 0.5px solid #000000;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: #000000;
+  font-size: 15.5px;
+  font-weight: 700;
+  padding: 15px var(--space-5);
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.modal-cta:hover {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+.modal-cta .icon {
+  width: 18px;
+  height: 18px;
+}
+
+.modal-cta:disabled {
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+.modal-cta--outline {
+  background: transparent;
+  border: 1.5px solid var(--color-primary);
+  color: var(--color-primary);
+  margin-top: var(--space-2);
+}
+
+/* ---------- Loading phase ---------- */
+.modal-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-8) var(--space-4) var(--space-8);
+  gap: var(--space-5);
+  text-align: center;
+}
+
+.loading-spinner {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  border: 4px solid var(--color-primary-light);
+  border-top-color: var(--color-primary);
+  animation: spin 0.85s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.loading-text {
+  font-size: 14.5px;
+  font-weight: 600;
+  color: var(--color-text);
+  line-height: 1.6;
+}
+
+.loading-subtext {
+  font-size: 12.5px;
+  color: var(--color-text-muted);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .loading-spinner {
+    animation: none;
+    border-top-color: var(--color-primary-light);
+  }
+}
+
+/* ---------- Result phase ---------- */
+.modal-result-header {
+  margin-bottom: var(--space-5);
+}
+
+.result-label {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--color-primary);
+  margin-bottom: 4px;
+}
+
+.modal-result-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin-bottom: var(--space-5);
+}
+
+.result-card {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  transition: background 0.15s ease, border-color 0.18s ease, transform 0.15s ease;
+}
+
+.result-card.is-clickable {
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.result-card.is-clickable:hover {
+  background: var(--color-primary-light);
+  border-color: var(--color-primary);
+  transform: translateY(-1px);
+}
+
+.result-card.is-clickable:active {
+  transform: translateY(0);
+  background: rgba(45, 82, 68, 0.12);
+}
+
+.result-card-arrow {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  color: var(--color-text-muted);
+  opacity: 0;
+  transform: translateX(-4px);
+  transition: opacity 0.15s ease, transform 0.15s ease, color 0.15s ease;
+}
+
+.result-card-arrow svg {
+  width: 100%;
+  height: 100%;
+}
+
+.result-card.is-clickable:hover .result-card-arrow {
+  opacity: 1;
+  transform: translateX(0);
+  color: var(--color-primary);
+}
+
+.result-thumb {
+  width: 60px;
+  height: 60px;
+  border-radius: var(--radius-sm);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  background-size: cover;
+  background-position: center;
+}
+
+.result-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.result-match {
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--color-primary);
+  margin-bottom: 2px;
+}
+
+.result-name {
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--color-text);
+  margin-bottom: 2px;
+}
+
+.result-desc {
+  font-size: 12.5px;
+  color: var(--color-text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .search-modal-overlay,
+  .search-modal-sheet {
+    transition: none;
+  }
+}

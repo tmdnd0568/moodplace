@@ -1,0 +1,253 @@
+/* ==========================================================
+   keep.css
+   저장한 장소 화면(Keep Screen) 전용 스타일
+   컴포넌트 단위로 블록을 분리 — 각 블록은 React 컴포넌트 1개에 대응 예정
+   ========================================================== */
+
+#screen-keep {
+  background: var(--color-bg);
+  padding-bottom: calc(var(--bottom-nav-height) + var(--space-4));
+}
+
+/* ---------- 1) Header ---------- */
+.keep-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-5) var(--space-5) var(--space-4);
+}
+
+.keep-logo {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.05;
+}
+
+.keep-logo-sub {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-primary);
+}
+
+.keep-logo-main {
+  font-size: 21px;
+  font-weight: 800;
+  color: var(--color-text);
+  letter-spacing: -0.4px;
+}
+
+.keep-avatar-btn {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: none;
+  padding: 0;
+  overflow: hidden;
+  background: var(--color-primary);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 6px rgba(26, 26, 26, 0.12);
+}
+
+.keep-avatar-btn .icon {
+  width: 20px;
+  height: 20px;
+}
+
+/* ---------- 2) Title ---------- */
+.keep-title-section {
+  padding: 0 var(--space-5) var(--space-5);
+}
+
+.keep-title {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--color-primary-dark);
+  margin-bottom: 4px;
+}
+
+.keep-subtitle {
+  font-size: 13.5px;
+  color: var(--color-text-muted);
+}
+
+/* ---------- 3) Category filter chips ---------- */
+.keep-filter-row {
+  display: flex;
+  gap: var(--space-2);
+  padding: 0 var(--space-5);
+  margin-bottom: var(--space-5);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.keep-filter-row::-webkit-scrollbar {
+  display: none;
+}
+
+.keep-filter-chip {
+  flex-shrink: 0;
+  padding: 9px 18px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text-muted);
+  font-size: 13.5px;
+  font-weight: 600;
+}
+
+.keep-filter-chip.is-active {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: #ffffff;
+  font-weight: 700;
+}
+
+/* ---------- 4) Saved place cards ---------- */
+.keep-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: 0 var(--space-5);
+}
+
+.keep-card {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  background: var(--color-surface);
+  border: 1px solid var(--color-text);
+  border-radius: var(--radius-lg);
+  padding: var(--space-3);
+}
+
+.keep-card-thumb {
+  flex-shrink: 0;
+  width: 88px;
+  height: 88px;
+  border-radius: var(--radius-md);
+  background-size: cover;
+  background-position: center;
+}
+
+.keep-card-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.keep-card-name {
+  font-size: 17px;
+  font-weight: 800;
+  color: var(--color-text);
+  margin-bottom: 3px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.keep-card-address {
+  font-size: 12.5px;
+  color: var(--color-text-muted);
+  margin-bottom: var(--space-2);
+}
+
+.keep-card-tag-row {
+  display: flex;
+  gap: 6px;
+}
+
+.keep-tag {
+  font-size: 11.5px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+}
+
+.keep-tag--pink {
+  background: #f7dce1;
+  color: #a8506a;
+}
+
+.keep-tag--teal {
+  background: #d9efe6;
+  color: #2b6357;
+}
+
+.keep-heart-btn {
+  flex-shrink: 0;
+  width: 34px;
+  height: 34px;
+  border: none;
+  background: none;
+  color: #d64545;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.keep-heart-btn .icon {
+  width: 24px;
+  height: 24px;
+}
+
+/* ---------- 5) Empty state ---------- */
+.keep-empty {
+  text-align: center;
+  padding: var(--space-8) var(--space-5);
+  color: var(--color-text-muted);
+  font-size: 14px;
+}
+
+/* ---------- 6) Bottom navigation (main.js 의 하단 탭바와 동일 — 독립 페이지라 자체 포함) ---------- */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: var(--app-max-width);
+  height: var(--bottom-nav-height);
+  background: var(--color-surface);
+  border-top: 1px solid var(--color-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  z-index: 20;
+}
+
+.nav-tab {
+  border: none;
+  background: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  height: 60px;
+  border-radius: 0;
+  color: var(--color-text-muted);
+  position: relative;
+}
+
+.nav-tab .icon {
+  width: 22px;
+  height: 22px;
+  position: relative;
+  z-index: 1;
+}
+
+.nav-tab.is-active {
+  color: #1a1a1a;
+}
+
+.nav-tab.is-active::before {
+  content: '';
+  position: absolute;
+  width: 44px;
+  height: 36px;
+  border: 1px solid #1a1a1a;
+  border-radius: 10px;
+  pointer-events: none;
+}

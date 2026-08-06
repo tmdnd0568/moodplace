@@ -1,0 +1,571 @@
+import type { Cafe, NearbyPlace, SavedPlace } from '../store/types';
+
+export const MOOD_TAGS = [
+  { id: 'cozy', label: 'Cozy', icon: '☕' },
+  { id: 'calm', label: 'Calm', icon: '🌿' },
+  { id: 'energetic', label: 'Energetic', icon: '⚡' },
+  { id: 'dreamy', label: 'Dreamy', icon: '✨' },
+  { id: 'minimal', label: 'Minimal', icon: '◻' },
+  { id: 'vintage', label: 'Vintage', icon: '📻' },
+  { id: 'warm', label: 'Warm', icon: '☀' },
+];
+
+export const MAIN_MOOD_TAGS = MOOD_TAGS.slice(0, 4);
+
+export const THEME_FILTERS = [
+  { id: 'reading', label: '독서하기 좋은', icon: 'coffee' },
+  { id: 'music', label: '음악이 맛있는', icon: 'headphones' },
+  { id: 'sunlight', label: '채광이 가득한', icon: 'sun' },
+  { id: 'night', label: '밤의 무드', icon: 'moon' },
+];
+
+export const FACILITY_META: Record<string, { label: string; icon: string }> = {
+  wifi: { label: '무선 인터넷', icon: 'wifi' },
+  parking: { label: '대형 주차장', icon: 'parking' },
+  kids: { label: '키즈존', icon: 'kids' },
+  pet: { label: '반려동물 동반', icon: 'pet' },
+  group: { label: '단체석 완비', icon: 'group' },
+  accessible: { label: '장애인 편의', icon: 'accessible' },
+};
+
+export const TRAVEL_MODES = [
+  { id: 'walk', label: '도보', icon: 'walk' },
+  { id: 'transit', label: '대중교통', icon: 'transit' },
+  { id: 'taxi', label: '택시', icon: 'taxi' },
+];
+
+export const MAP_ORIGIN_LABEL = '현 위치 (서울시 종로구)';
+
+export const NEARBY_TAG_ICON_META: Record<string, string> = {
+  warm: '☀',
+  leaf: '🌿',
+  quiet: '🤫',
+  sun: '🔆',
+  camera: '📷',
+  tea: '🍵',
+  group: '👥',
+};
+
+export const NEARBY_PLACES: NearbyPlace[] = [
+  {
+    id: 'calm-forest',
+    name: '온화한 숲',
+    address: '서울 성동구 성수이로 78',
+    tags: [
+      { icon: 'warm', label: '포근한' },
+      { icon: 'leaf', label: '자연친화적' },
+      { icon: 'quiet', label: '조용한' },
+    ],
+    description: '따뜻한 나무 소재와 풍성한 식물들이 조화를 이루는 공간입니다. 깊은 숲속에 들어온 듯한 안정감을 주며, 나만의 시간을 갖기에 최적화된 차분한 무드를 제공합니다.',
+    photos: ['/assets/cafe_calm_forest.jpg', '/assets/menu_wood_americano.jpg'],
+    position: { top: '55%', left: '40%' },
+    isDefault: true,
+  },
+  {
+    id: 'vivid-garden',
+    name: '비비드 가든',
+    address: '서울 성동구 성수이로7가길 9',
+    tags: [
+      { icon: 'sun', label: '화사한' },
+      { icon: 'leaf', label: '플랜테리어' },
+      { icon: 'camera', label: '포토스팟' },
+    ],
+    description: '컬러풀한 화초와 큰 창으로 쏟아지는 햇살이 어우러진 비비드한 무드의 온실 카페입니다. 사진 찍기 좋은 포인트가 곳곳에 있어요.',
+    photos: ['/assets/cafe_vivid_garden.jpg', '/assets/menu_grapefruit_ade.jpg'],
+    position: { top: '22%', left: '62%' },
+  },
+  {
+    id: 'quiet-tea-room',
+    name: '고요다반',
+    address: '서울 성동구 서울숲2길 18-11 1층',
+    tags: [
+      { icon: 'quiet', label: '조용한' },
+      { icon: 'tea', label: '티하우스' },
+      { icon: 'warm', label: '아늑한' },
+    ],
+    description: '전통차와 다과를 즐기며 조용히 사색할 수 있는 한옥 스타일의 티하우스입니다.',
+    photos: ['/assets/cafe_quiet_tea_room.jpg', '/assets/menu_matcha_tea.jpg'],
+    position: { top: '70%', left: '68%' },
+  },
+  {
+    id: 'brick-atelier',
+    name: '브릭 아틀리에',
+    address: '서울 성동구 서울숲2길 28-11',
+    tags: [
+      { icon: 'sun', label: '채광좋은' },
+      { icon: 'group', label: '단체석' },
+      { icon: 'camera', label: '포토스팟' },
+    ],
+    description: '붉은 벽돌과 큰 창이 어우러진 갤러리형 카페로, 그룹 모임이나 사진 촬영에도 좋아요.',
+    photos: ['/assets/cafe_brick_atelier.jpg', '/assets/menu_croffle.jpg'],
+    position: { top: '38%', left: '20%' },
+  },
+];
+
+export const MOCK_CAFES: Cafe[] = [
+  {
+    id: 'forest-lounge',
+    name: '포레스트 인 더 시티',
+    location: '서울 성동구 서울숲4길 12-8 1층',
+    description: '도심 속 숲의 평온함',
+    match: 98,
+    tags: ['Cozy', 'Quiet'],
+    mood: ['cozy'],
+    bookmarked: false,
+    hero: true,
+    photo: { type: 'image', image: '/assets/cafe_forest_lounge.jpg', from: '#6b8f71', to: '#2d5244', emoji: '🌿' },
+    detail: {
+      detailTags: ['고요한 숲', '성수동'],
+      description: '도심 속에서 찾은 작은 숲속의 휴식처. 정교하게 큐레이션된 식물들과 따뜻한 우드 톤의 인테리어가 어우러져 최상의 고요함을 선사합니다.',
+      rating: 4.9,
+      hoursLabel: '10:00 - 21:00',
+      reviewCount: 128,
+      menu: [
+        {
+          id: 'forest-lounge-m1',
+          name: '시그니처 숲 라떼',
+          price: '7,500원',
+          desc: '직접 로스팅한 원두의 고소함과 수제 쑥 크림의 달콤함이 조화를 이루는 시그니처 메뉴',
+          image: '/assets/menu_forest_latte.jpg',
+        },
+        {
+          id: 'forest-lounge-m2',
+          name: '얼그레이 쉬폰 케이크',
+          price: '8,000원',
+          desc: '향긋한 얼그레이 향이 가득한 폭신한 시트와 가벼운 생크림의 조화',
+          image: '/assets/menu_earlgrey_cake.jpg',
+        },
+      ],
+      reviews: [
+        {
+          id: 'forest-lounge-r1',
+          author: '김지수',
+          initial: 'K',
+          rating: 5,
+          date: '2일 전',
+          text: '인테리어가 정말 예뻐요. 조용하게 작업하기 좋고 커피도 맛있습니다. 특히 시그니처 라떼 강력추천해요!',
+          tags: ['#작업하기좋은', '#커피맛집'],
+        }
+      ],
+      reservation: {
+        rating: 4.8,
+        reviewCountLabel: '리뷰 1,240+',
+        description: '자연 친화적 조망과 전문 바리스타의 드립 커피 서비스를 프라이빗하게 누릴 수 있는 성수동 무드 플레이스입니다.',
+        facilities: ['wifi', 'parking', 'group', 'accessible'],
+        notice: '• 주말에는 이용 고객이 많아 예약 시간 기준 10분 이상 지연 시 자동 취소될 수 있습니다.\n• 외부 음식 반입은 금지됩니다.',
+      },
+      route: {
+        destinationLabel: '도심 속의 숲 (서울숲)',
+        routesByMode: {
+          walk: [
+            { id: 'forest-lounge-walk-1', badge: '최단시간', durationMin: 12, distanceLabel: '840m', metaLabel: '소모 칼로리 45kcal', progress: 65, description: '숲길 우선 경로: 성수동 카페거리를 경유합니다.' }
+          ],
+          transit: [
+            { id: 'forest-lounge-transit-1', badge: '최적환승', durationMin: 9, distanceLabel: '1.8km', metaLabel: '버스 1회 환승', progress: 70, description: '뚝섬역에서 지선버스 2213번으로 환승합니다.' }
+          ],
+          taxi: [
+            { id: 'forest-lounge-taxi-1', badge: '가장 빠름', durationMin: 6, distanceLabel: '2.5km', metaLabel: '예상 요금 6,500원', progress: 80, description: '강변북로 성수대교 방면을 경유하는 최단 거리 차량 경로입니다.' }
+          ]
+        }
+      }
+    }
+  },
+  {
+    id: 'urban-nest',
+    name: '어반 네스트',
+    location: '서울 성동구 서울숲4길 17-7 1층',
+    description: '모던한 휴식처',
+    match: 85,
+    tags: ['Minimal', 'Books'],
+    mood: ['calm'],
+    bookmarked: false,
+    hero: false,
+    photo: { type: 'image', image: '/assets/cafe_urban_nest.jpg', from: '#8e9aaf', to: '#cbd5e1', emoji: '◻' },
+    detail: {
+      detailTags: ['미니멀', '성수동'],
+      description: '불필요한 장식을 덜어내고 선과 면, 빛과 그림자에 집중한 미니멀 디자인 공간입니다. 조용히 책을 읽거나 영감을 얻기에 완벽합니다.',
+      rating: 4.6,
+      hoursLabel: '09:00 - 22:00',
+      reviewCount: 94,
+      menu: [
+        {
+          id: 'urban-nest-m1',
+          name: '플랫 화이트',
+          price: '6,000원',
+          desc: '진한 에스프레소 리스트레토 샷과 부드러운 스팀 밀크의 완벽한 밸런스',
+          image: '/assets/menu_flat_white.jpg',
+        },
+        {
+          id: 'urban-nest-m2',
+          name: '미니멀 버터 스콘',
+          price: '5,500원',
+          desc: '매일 아침 구워내는 고소하고 촉촉한 플레인 버터 스콘',
+          image: '/assets/menu_scone.jpg',
+        }
+      ],
+      reviews: [],
+      reservation: {
+        rating: 4.6,
+        reviewCountLabel: '리뷰 94+',
+        description: '미니멀한 미학과 고요한 아날로그 감성을 전하는 성수동의 미니멀 쉼터입니다.',
+        facilities: ['wifi', 'group', 'accessible', 'pet'],
+        notice: '• 조용한 분위기 유지를 위해 3인 이상 단체 방문 시 사전에 문의해 주시기 바랍니다.',
+      },
+      route: {
+        destinationLabel: '어반 네스트',
+        routesByMode: {
+          walk: [
+            { id: 'urban-nest-walk-1', badge: '추천', durationMin: 5, distanceLabel: '300m', metaLabel: '가장 짧은 도보 거리', progress: 90, description: '성수역 4번출구에서 직진 후 골목 좌회전' }
+          ],
+          transit: [
+            { id: 'urban-nest-transit-1', badge: '지하철', durationMin: 4, distanceLabel: '400m', metaLabel: '2호선 성수역 하차', progress: 95, description: '2호선 성수역 4번출구 이용' }
+          ],
+          taxi: [
+            { id: 'urban-nest-taxi-1', badge: '기본요금', durationMin: 3, distanceLabel: '600m', metaLabel: '예상요금 4,800원', progress: 98, description: '성수이로를 경유하는 최단차량코스' }
+          ]
+        }
+      }
+    }
+  },
+  {
+    id: 'vivid-garden',
+    name: '비비드 가든',
+    location: '서울 성동구 성수이로7가길 9',
+    description: '화사한 온실 속의 휴식',
+    match: 92,
+    tags: ['Bright', 'Greenery'],
+    mood: ['energetic'],
+    bookmarked: false,
+    hero: false,
+    photo: { type: 'image', image: '/assets/cafe_vivid_garden.jpg', from: '#ffccd5', to: '#ff4d6d', emoji: '🌸' },
+    detail: {
+      detailTags: ['온실카페', '성수동'],
+      description: '컬러풀한 화초와 큰 창으로 쏟아지는 햇살이 어우러진 비비드한 무드의 온실 카페입니다. 사진 찍기 좋은 포인트가 곳곳에 있어요.',
+      rating: 4.8,
+      hoursLabel: '11:00 - 22:00',
+      reviewCount: 150,
+      menu: [
+        {
+          id: 'vivid-garden-m1',
+          name: '비비드 시그니처 아인슈페너',
+          price: '7,000원',
+          desc: '달콤한 수제 묵직한 크림과 묵직한 에스프레소의 콜라보',
+          image: '/assets/menu_einspanner.jpg',
+        },
+        {
+          id: 'vivid-garden-m2',
+          name: '생과일 파블로바 케이크',
+          price: '8,500원',
+          desc: '겉은 바삭하고 속은 쫀득한 머랭 시트 위에 제철 생과일과 크림을 얹은 특제 디저트',
+          image: '/assets/menu_pavlova.jpg',
+        }
+      ],
+      reviews: [],
+      reservation: {
+        rating: 4.8,
+        reviewCountLabel: '리뷰 150+',
+        description: '사계절 내내 햇살과 꽃이 가득한 비비드 온실 라운지입니다.',
+        facilities: ['wifi', 'parking', 'pet', 'group', 'kids'],
+        notice: '• 온실 좌석 및 대형 단체석은 사전 예약 고객 위주로 배정됩니다.',
+      },
+      route: {
+        destinationLabel: '비비드 가든',
+        routesByMode: {
+          walk: [
+            { id: 'vivid-garden-walk-1', badge: '추천', durationMin: 8, distanceLabel: '500m', metaLabel: '도보 코스', progress: 85, description: '서울숲역 4번출구 근처' }
+          ],
+          transit: [
+            { id: 'vivid-garden-transit-1', badge: '지하철', durationMin: 4, distanceLabel: '400m', metaLabel: '서울숲역 하차', progress: 90, description: '수인분당선 서울숲역 이용' }
+          ],
+          taxi: [
+            { id: 'vivid-garden-taxi-1', badge: '기본요금', durationMin: 4, distanceLabel: '800m', metaLabel: '예상요금 5,000원', progress: 95, description: '왕십리로를 경유하는 차량코스' }
+          ]
+        }
+      }
+    }
+  },
+  {
+    id: 'quiet-tea-room',
+    name: '고요다반',
+    location: '서울 성동구 서울숲2길 18-11 1층',
+    description: '한옥 스타일 티하우스',
+    match: 89,
+    tags: ['Traditional', 'Quiet'],
+    mood: ['dreamy'],
+    bookmarked: false,
+    hero: false,
+    photo: { type: 'image', image: '/assets/cafe_quiet_tea_room.jpg', from: '#d8f3dc', to: '#1b4332', emoji: '🍵' },
+    detail: {
+      detailTags: ['한옥카페', '성수동'],
+      description: '전통차와 다과를 즐기며 조용히 사색할 수 있는 한옥 스타일의 티하우스입니다.',
+      rating: 4.7,
+      hoursLabel: '12:00 - 20:00',
+      reviewCount: 78,
+      menu: [
+        {
+          id: 'quiet-tea-room-m1',
+          name: '고요 말차 라떼',
+          price: '7,000원',
+          desc: '제주산 유기농 말차 가루를 정성껏 개어낸 진하고 부드러운 맛의 시그니처 말차 라떼',
+          image: '/assets/menu_matcha_tea.jpg',
+        },
+        {
+          id: 'quiet-tea-room-m2',
+          name: '전통 모나카 & 곶감 다과',
+          price: '6,500원',
+          desc: '바삭한 피 속에 수제 팥앙금을 채운 모나카와 달콤한 곶감 앙금 다과 세트',
+          image: '/assets/menu_tea_dessert.jpg',
+        }
+      ],
+      reviews: [],
+      reservation: {
+        rating: 4.7,
+        reviewCountLabel: '리뷰 78+',
+        description: '전통차 다도 체험과 고즈넉한 사색을 즐길 수 있는 한옥 티하우스입니다.',
+        facilities: ['wifi', 'group', 'accessible'],
+        notice: '• 차 다도 세션 예약은 정시 단위로 진행되며 10분 전 입장을 권장합니다.',
+      },
+      route: {
+        destinationLabel: '고요다반',
+        routesByMode: {
+          walk: [
+            { id: 'quiet-tea-room-walk-1', badge: '추천', durationMin: 10, distanceLabel: '700m', metaLabel: '골목길', progress: 80, description: '성수역 연무장길 안쪽 골목' }
+          ],
+          transit: [
+            { id: 'quiet-tea-room-transit-1', badge: '도보이동', durationMin: 10, distanceLabel: '700m', metaLabel: '도보전용', progress: 80, description: '연무장길을 통한 도보 경로' }
+          ],
+          taxi: [
+            { id: 'quiet-tea-room-taxi-1', badge: '기본요금', durationMin: 5, distanceLabel: '900m', metaLabel: '예상요금 5,200원', progress: 85, description: '연무장길 일방통행 경유 차량코스' }
+          ]
+        }
+      }
+    }
+  },
+  {
+    id: 'calm-forest',
+    name: '온화한 숲',
+    location: '서울 성동구 성수이로 78',
+    description: '따뜻한 나무와 식물의 조화',
+    match: 94,
+    tags: ['Warm', 'Woody'],
+    mood: ['cozy'],
+    bookmarked: false,
+    hero: false,
+    photo: { type: 'image', image: '/assets/cafe_calm_forest.jpg', from: '#ede0d4', to: '#7f5539', emoji: '🌳' },
+    detail: {
+      detailTags: ['식물카페', '성수동'],
+      description: '따뜻한 나무 소재와 풍성한 식물들이 조화를 이루는 공간입니다. 깊은 숲속에 들어온 듯한 안정감을 줍니다.',
+      rating: 4.7,
+      hoursLabel: '10:00 - 22:00',
+      reviewCount: 110,
+      menu: [
+        {
+          id: 'calm-forest-m1',
+          name: '우드 아메리카노',
+          price: '5,500원',
+          desc: '다크 초콜릿 향과 너티한 고소함이 도드라지는 시그니처 블렌드 아메리카노',
+          image: '/assets/menu_wood_americano.jpg',
+        },
+        {
+          id: 'calm-forest-m2',
+          name: '말차 수제 타르트',
+          price: '7,500원',
+          desc: '진하고 쌉싸름한 제주 말차 가나슈 크림이 가득한 파티쉐 특제 타르트',
+          image: '/assets/menu_tart.jpg',
+        }
+      ],
+      reviews: [],
+      reservation: {
+        rating: 4.7,
+        reviewCountLabel: '리뷰 110+',
+        description: '풍성한 플랜테리어와 우드 인테리어가 선사하는 포근한 숲 속 안식처입니다.',
+        facilities: ['wifi', 'parking', 'pet', 'accessible', 'group'],
+        notice: '• 주말 야외 테라스석은 입실 순서대로 지정됩니다.',
+      },
+      route: {
+        destinationLabel: '온화한 숲',
+        routesByMode: {
+          walk: [
+            { id: 'calm-forest-walk-1', badge: '추천', durationMin: 6, distanceLabel: '400m', metaLabel: '도보 코스', progress: 90, description: '성수역 3번출구 뚝섬역 방향 도보 6분' }
+          ],
+          transit: [
+            { id: 'calm-forest-transit-1', badge: '지하철', durationMin: 6, distanceLabel: '400m', metaLabel: '성수역 하차', progress: 90, description: '2호선 성수역 3번출구 도보' }
+          ],
+          taxi: [
+            { id: 'calm-forest-taxi-1', badge: '기본요금', durationMin: 4, distanceLabel: '800m', metaLabel: '예상요금 5,000원', progress: 92, description: '성수이로 골목을 통과하는 경로' }
+          ]
+        }
+      }
+    }
+  },
+  {
+    id: 'brick-atelier',
+    name: '브릭 아틀리에',
+    location: '서울 성동구 서울숲2길 28-11',
+    description: '붉은 벽돌의 갤러리 아틀리에',
+    match: 87,
+    tags: ['Gallery', 'Brunch'],
+    mood: ['energetic', 'dreamy'],
+    bookmarked: false,
+    hero: false,
+    photo: { type: 'image', image: '/assets/cafe_brick_atelier.jpg', from: '#f08080', to: '#8b0000', emoji: '🧱' },
+    detail: {
+      detailTags: ['갤러리카페', '성수동'],
+      description: '붉은 벽돌과 큰 창이 어우러진 갤러리형 카페로, 그룹 모임이나 사진 촬영에도 좋아요.',
+      rating: 4.5,
+      hoursLabel: '09:00 - 21:00',
+      reviewCount: 65,
+      menu: [
+        {
+          id: 'brick-atelier-m1',
+          name: '브릭 핸드드립 커피',
+          price: '6,500원',
+          desc: '에티오피아 스페셜티 원두를 전문 바리스타가 직접 정성껏 핸드드립한 커피',
+          image: '/assets/menu_brick_coffee.jpg',
+        },
+        {
+          id: 'brick-atelier-m2',
+          name: '브릭 아이스크림 크로플',
+          price: '8,500원',
+          desc: '바삭하게 구운 프랑스 크루아상 생지에 바닐라 아이스크림과 메이플 시럽 토핑',
+          image: '/assets/menu_croffle.jpg',
+        }
+      ],
+      reviews: [],
+      reservation: {
+        rating: 4.5,
+        reviewCountLabel: '리뷰 65+',
+        description: '붉은 벽돌과 예술 작품들이 함께하는 넓고 쾌적한 아틀리에 갤러리 공간입니다.',
+        facilities: ['wifi', 'parking', 'group', 'kids', 'pet', 'accessible'],
+        notice: '• 갤러리 전시 및 대관 일정에 따라 일부 구역 예약이 제한될 수 있습니다.',
+      },
+      route: {
+        destinationLabel: '브릭 아틀리에',
+        routesByMode: {
+          walk: [
+            { id: 'brick-atelier-walk-1', badge: '추천', durationMin: 11, distanceLabel: '800m', metaLabel: '골목길 코스', progress: 75, description: '뚝섬역 5번출구 근처' }
+          ],
+          transit: [
+            { id: 'brick-atelier-transit-1', badge: '지하철', durationMin: 11, distanceLabel: '800m', metaLabel: '2호선 뚝섬역 하차', progress: 75, description: '2호선 뚝섬역 이용' }
+          ],
+          taxi: [
+            { id: 'brick-atelier-taxi-1', badge: '기본요금', durationMin: 6, distanceLabel: '1.2km', metaLabel: '예상요금 5,500원', progress: 80, description: '성수동 뚝섬로 경유 최단차량경로' }
+          ]
+        }
+      }
+    }
+  }
+];
+
+export const SAVED_CATEGORY_FILTERS = [
+  { id: 'all', label: '전체' },
+  { id: 'cafe', label: '카페' },
+  { id: 'restaurant', label: '디저트' },
+  { id: 'bar', label: '라운지' },
+];
+
+export const SAVED_PLACES: SavedPlace[] = [
+  {
+    id: 'forest-lounge',
+    category: 'cafe',
+    name: '포레스트 인 더 시티',
+    address: '서울 성동구 서울숲4길 12-8 1층',
+    image: '/assets/cafe_forest_lounge.jpg',
+    tags: ['Cozy', 'Quiet'],
+  },
+  {
+    id: 'urban-nest',
+    category: 'cafe',
+    name: '어반 네스트',
+    address: '서울 성동구 서울숲4길 17-7 1층',
+    image: '/assets/cafe_urban_nest.jpg',
+    tags: ['Minimal', 'Books'],
+  },
+  {
+    id: 'calm-forest',
+    category: 'cafe',
+    name: '온화한 숲',
+    address: '서울 성동구 성수이로 78',
+    image: '/assets/cafe_calm_forest.jpg',
+    tags: ['포근한', '자연친화적', '조용한'],
+  },
+  {
+    id: 'vivid-garden',
+    category: 'restaurant',
+    name: '비비드 가든',
+    address: '서울 성동구 성수이로7가길 9',
+    image: '/assets/cafe_vivid_garden.jpg',
+    tags: ['화사한', '플랜테리어', '포토스팟'],
+  },
+  {
+    id: 'quiet-tea-room',
+    category: 'bar',
+    name: '고요다반',
+    address: '서울 성동구 서울숲2길 18-11 1층',
+    image: '/assets/cafe_quiet_tea_room.jpg',
+    tags: ['조용한', '티하우스', '아늑한'],
+  },
+  {
+    id: 'brick-atelier',
+    category: 'cafe',
+    name: '브릭 아틀리에',
+    address: '서울 성동구 서울숲2길 28-11',
+    image: '/assets/cafe_brick_atelier.jpg',
+    tags: ['채광좋은', '단체석', '포토스팟'],
+  },
+];
+
+export const CURATOR_MESSAGES: Record<string, string> = {
+  default: "오늘은 조금 정적인 시간이 필요해보이네요. 복잡한 생각은 잠시 접어두고, 성수동의 '포레스트 인 더 시티'에서 재즈 선율과 함께 따뜻한 차 한 잔 어떠신가요?",
+  cozy: "몸과 마음을 사르르 녹여줄 Cozy한 하루가 어떠신가요? 식물들과 따뜻한 우드가 있는 '온화한 숲'이나 '포레스트 인 더 시티'를 방문해 편안한 쉼을 누려보세요.",
+  calm: "조용한 몰입의 즐거움, Calm 무드를 경험해 보세요. 미니멀한 감각의 공간인 '어반 네스트'에서 생각을 정돈하며 책 한 권을 즐기시는 것을 추천합니다.",
+  energetic: "에너지가 솟아오르는 화사한 하루를 꿈꾸신다면 Energetic 탭을 확인해 보세요. 햇살 가득한 온실 '비비드 가든'에서 상큼한 생과일 에이드 한 잔이 기분을 들뜨게 할 거예요.",
+  dreamy: "조용히 사색하며 낭만에 젖는 Dreamy 감성이 필요하시군요. 한옥 느낌의 고즈넉한 '고요다반'에서 제주 말차티를 한 모금 음미하며 평온을 만끽해 보시기 바랍니다.",
+};
+
+export const MY_PROFILE = {
+  name: '김무드',
+  avatarUrl: '',
+  stats: {
+    saved: 24,
+    reviews: 12,
+    visits: 38,
+  },
+};
+
+export const ACCOUNT_MENU_ITEMS = [
+  { id: 'edit-profile', label: '프로필 수정', icon: 'editProfile' },
+  { id: 'notifications', label: '알림 설정', icon: 'bell' },
+  { id: 'privacy', label: '보안 & 개인정보', icon: 'shield' },
+  { id: 'help', label: '도움말 & 지원', icon: 'help' },
+];
+
+export function getCafeById(id: string): Cafe | null {
+  return MOCK_CAFES.find((cafe) => cafe.id === id) || null;
+}
+
+export function getNearbyPlaceById(id: string): NearbyPlace | null {
+  return NEARBY_PLACES.find((place) => place.id === id) || null;
+}
+
+export function getCuratorMessage(moodIds: string[]): string {
+  for (const id of moodIds) {
+    if (CURATOR_MESSAGES[id]) return CURATOR_MESSAGES[id];
+  }
+  return CURATOR_MESSAGES.default;
+}
+
+export function mockAiSearch(moodIds: string[], description: string): Cafe[] {
+  let results = MOCK_CAFES.filter((cafe) =>
+    moodIds.length === 0 ? true : cafe.mood.some((m) => moodIds.includes(m))
+  );
+
+  if (results.length === 0) results = [...MOCK_CAFES];
+
+  const seed = description.length % 5;
+  results = results
+    .map((c, i) => ({ ...c, match: Math.max(80, c.match - i * 2 - seed) }))
+    .sort((a, b) => b.match - a.match);
+
+  return results;
+}

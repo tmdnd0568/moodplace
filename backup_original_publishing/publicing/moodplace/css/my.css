@@ -1,0 +1,310 @@
+/* ==========================================================
+   my.css
+   마이페이지 화면(My Page Screen) 전용 스타일
+   컴포넌트 단위로 블록을 분리 — 각 블록은 React 컴포넌트 1개에 대응 예정
+   ========================================================== */
+
+#screen-my {
+  background: var(--color-bg);
+  padding-bottom: calc(var(--bottom-nav-height) + var(--space-6));
+}
+
+/* ---------- 1) Header ---------- */
+.my-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-4) var(--space-5) var(--space-2);
+}
+
+.my-header-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.my-icon-btn {
+  width: 38px;
+  height: 38px;
+  border: none;
+  background: none;
+  color: var(--color-text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-pill);
+  transition: background 0.15s ease;
+}
+
+.my-icon-btn:hover {
+  background: var(--color-primary-light);
+}
+
+.my-icon-btn .icon {
+  width: 21px;
+  height: 21px;
+}
+
+/* ---------- 2) Profile ---------- */
+.my-profile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: var(--space-4) var(--space-5) var(--space-6);
+}
+
+.my-avatar-wrap {
+  position: relative;
+  margin-bottom: var(--space-4);
+}
+
+.my-avatar {
+  width: 108px;
+  height: 108px;
+  border-radius: 50%;
+  border: 2.5px solid var(--color-primary);
+  background: var(--color-bg);
+  background-size: cover;
+  background-position: center;
+}
+
+.my-avatar-edit-btn {
+  position: absolute;
+  bottom: 2px;
+  right: 2px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 2px solid var(--color-bg);
+  background: var(--color-primary);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.my-avatar-edit-btn .icon {
+  width: 14px;
+  height: 14px;
+}
+
+.my-name {
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--color-text);
+}
+
+/* ---------- 3) Stats row ---------- */
+.my-stats-row {
+  display: flex;
+  gap: var(--space-3);
+  padding: 0 var(--space-5);
+  margin-bottom: var(--space-8);
+}
+
+.my-stat-card {
+  flex: 1;
+  background: var(--color-surface);
+  border-radius: var(--radius-md);
+  padding: var(--space-4) var(--space-2);
+  text-align: center;
+  box-shadow: 0 2px 10px rgba(26, 26, 26, 0.04);
+}
+
+.my-stat-value {
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--color-primary);
+  margin-bottom: 2px;
+}
+
+.my-stat-label {
+  font-size: 12.5px;
+  color: var(--color-text-muted);
+}
+
+/* ---------- 4) Account & Preferences ---------- */
+.my-section {
+  padding: 0 var(--space-5);
+  margin-bottom: var(--space-8);
+}
+
+.my-section-label {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  color: var(--color-text-muted);
+  margin-bottom: var(--space-3);
+}
+
+.my-menu-card {
+  background: var(--color-surface);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  box-shadow: 0 2px 10px rgba(26, 26, 26, 0.04);
+}
+
+.my-menu-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-4);
+  border: none;
+  background: none;
+  border-bottom: 1px solid var(--color-border);
+  color: var(--color-text);
+  text-align: left;
+  transition: background 0.15s ease;
+}
+
+.my-menu-item:last-child {
+  border-bottom: none;
+}
+
+.my-menu-item:hover {
+  background: var(--color-bg);
+}
+
+.my-menu-item-icon {
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+  color: var(--color-primary);
+}
+
+.my-menu-item-label {
+  flex: 1;
+  font-size: 14.5px;
+  font-weight: 600;
+}
+
+.my-menu-item-arrow {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  color: var(--color-text-muted);
+}
+
+/* ---------- 5) Logout ---------- */
+.my-logout-row {
+  display: flex;
+  justify-content: center;
+  padding: 0 var(--space-5);
+  margin-bottom: var(--space-8);
+}
+
+.my-logout-btn {
+  border: none;
+  background: none;
+  color: #d64545;
+  font-size: 14.5px;
+  font-weight: 700;
+  padding: var(--space-2) var(--space-4);
+}
+
+/* ---------- 6) Brand footer (스플래시 화면의 로고/태그라인 재사용) ---------- */
+.my-brand-footer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: var(--space-6) var(--space-5) var(--space-8);
+}
+
+.my-brand-badge {
+  width: 56px;
+  height: 68px;
+  margin-bottom: var(--space-3);
+}
+
+.my-brand-badge svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.my-brand-logo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1.15;
+  margin-bottom: var(--space-3);
+}
+
+.my-brand-sub {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-text);
+}
+
+.my-brand-main {
+  font-size: 26px;
+  font-weight: 800;
+  color: var(--color-text);
+  letter-spacing: -0.4px;
+}
+
+.my-brand-tagline {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
+
+.my-brand-tagline .line {
+  width: 24px;
+  height: 1px;
+  background: var(--color-border);
+}
+
+/* ---------- 7) Bottom navigation (main.js 의 하단 탭바와 동일 — 독립 페이지라 자체 포함) ---------- */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: var(--app-max-width);
+  height: var(--bottom-nav-height);
+  background: var(--color-surface);
+  border-top: 1px solid var(--color-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  z-index: 20;
+}
+
+.nav-tab {
+  border: none;
+  background: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  height: 60px;
+  border-radius: 0;
+  color: var(--color-text-muted);
+  position: relative;
+}
+
+.nav-tab .icon {
+  width: 22px;
+  height: 22px;
+  position: relative;
+  z-index: 1;
+}
+
+.nav-tab.is-active {
+  color: #1a1a1a;
+}
+
+.nav-tab.is-active::before {
+  content: '';
+  position: absolute;
+  width: 44px;
+  height: 36px;
+  border: 1px solid #1a1a1a;
+  border-radius: 10px;
+  pointer-events: none;
+}

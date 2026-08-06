@@ -1,0 +1,454 @@
+/* ==========================================================
+   reservation.css
+   예약 화면(Reservation Screen) 전용 스타일
+   컴포넌트 단위로 블록을 분리 — 각 블록은 React 컴포넌트 1개에 대응 예정
+   ========================================================== */
+
+#screen-reservation {
+  background: var(--color-bg);
+  padding-bottom: 100px; /* 하단 고정 액션바 높이만큼 여백 */
+  position: relative;
+}
+
+/* ---------- 1) Header (히어로 이미지 위 오버레이) ---------- */
+.rsv-header {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-4) var(--space-4);
+}
+
+.rsv-header-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.rsv-icon-btn {
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: var(--radius-pill);
+  background: rgba(255, 255, 255, 0.9);
+  color: var(--color-text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(26, 26, 26, 0.12);
+  transition: background 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+}
+
+.rsv-icon-btn:hover {
+  background: linear-gradient(135deg, #ffffff 0%, #cfe6cb 100%);
+  box-shadow: 0 4px 12px rgba(45, 82, 68, 0.2);
+  transform: scale(1.05);
+}
+
+.rsv-icon-btn .icon {
+  width: 19px;
+  height: 19px;
+}
+
+.rsv-icon-btn.is-bookmarked {
+  color: var(--color-primary);
+}
+
+/* ---------- 2) Hero image ---------- */
+.rsv-hero {
+  width: 100%;
+  height: 300px;
+  background-size: cover;
+  background-position: center;
+}
+
+/* ---------- 3) Info card ---------- */
+.rsv-info-card {
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+  margin: -48px var(--space-5) 0;
+  padding: var(--space-5);
+  position: relative;
+  z-index: 2;
+}
+
+.rsv-place-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-bottom: var(--space-2);
+}
+
+.rsv-place-name {
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--color-text);
+  letter-spacing: -0.3px;
+}
+
+.rsv-rating {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--color-text);
+  flex-shrink: 0;
+}
+
+.rsv-rating .icon {
+  width: 16px;
+  height: 16px;
+  color: #e8a33d;
+}
+
+.rsv-meta-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.rsv-location {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13.5px;
+  color: var(--color-text-muted);
+}
+
+.rsv-location .icon {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+}
+
+.rsv-review-count {
+  font-size: 12.5px;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+
+/* ---------- 4) AI VIBE GUIDE card ---------- */
+.rsv-vibe-card {
+  margin: var(--space-6) var(--space-5) 0;
+  background: var(--color-primary);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+  position: relative;
+  overflow: hidden;
+  color: #f3f8f2;
+}
+
+.rsv-vibe-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  color: #cfe6cb;
+  margin-bottom: var(--space-3);
+}
+
+.rsv-vibe-label .icon {
+  width: 12px;
+  height: 12px;
+}
+
+.rsv-vibe-quote {
+  font-size: 15px;
+  line-height: 1.65;
+  font-weight: 500;
+  color: #f3f8f2;
+  position: relative;
+  z-index: 1;
+}
+
+.rsv-vibe-sparkle {
+  position: absolute;
+  top: -18px;
+  right: -10px;
+  width: 96px;
+  height: 96px;
+  color: rgba(255, 255, 255, 0.08);
+  z-index: 0;
+}
+
+/* ---------- 5) Section wrapper (운영정보 / 시설 / 위치 / 미리보기 공용) ---------- */
+.rsv-section {
+  padding: 0 var(--space-5);
+  margin-top: var(--space-8);
+}
+
+.rsv-section-title {
+  font-size: 21px;
+  font-weight: 800;
+  color: var(--color-text);
+  margin-bottom: var(--space-4);
+}
+
+.rsv-section-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-4);
+}
+
+.rsv-section-title-row .rsv-section-title {
+  margin-bottom: 0;
+}
+
+.rsv-more-btn {
+  background: none;
+  border: none;
+  color: var(--color-text-muted);
+  display: flex;
+  align-items: center;
+}
+
+.rsv-more-btn .icon {
+  width: 18px;
+  height: 18px;
+}
+
+/* ---------- 6) 운영 정보 ---------- */
+.rsv-hours-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-4) var(--space-5);
+}
+
+.rsv-hours-status-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: var(--space-3);
+  margin-bottom: var(--space-3);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.rsv-hours-status {
+  font-size: 14.5px;
+  font-weight: 700;
+  color: var(--color-primary);
+}
+
+.rsv-hours-status.is-closed {
+  color: var(--color-text-muted);
+}
+
+.rsv-hours-close-time {
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--color-text);
+}
+
+.rsv-hours-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 14px;
+  padding: 5px 0;
+}
+
+.rsv-hours-row .rsv-hours-label {
+  color: var(--color-text-muted);
+}
+
+.rsv-hours-row .rsv-hours-value {
+  color: var(--color-text);
+  font-weight: 600;
+}
+
+/* ---------- 7) 시설 및 편의 (2열 그리드) ---------- */
+.rsv-facility-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-3);
+}
+
+.rsv-facility-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-4) var(--space-3);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  text-align: center;
+}
+
+.rsv-facility-card .icon {
+  width: 24px;
+  height: 24px;
+  color: var(--color-primary);
+}
+
+.rsv-facility-label {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+/* ---------- 8) 위치 ---------- */
+.rsv-map-thumb {
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  background: #e7ede4 url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="200" height="140"><rect width="200" height="140" fill="%23e7ede4"/></svg>') center / cover;
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.rsv-map-thumb svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.rsv-map-pin {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -100%);
+  width: 34px;
+  height: 34px;
+  color: var(--color-primary);
+  filter: drop-shadow(0 3px 5px rgba(26, 26, 26, 0.25));
+}
+
+.rsv-address-bar {
+  margin-top: var(--space-3);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-3) var(--space-4);
+}
+
+.rsv-address-text {
+  font-size: 13.5px;
+  color: var(--color-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rsv-copy-btn {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: none;
+  color: var(--color-text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-pill);
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.rsv-copy-btn .icon {
+  width: 17px;
+  height: 17px;
+}
+
+.rsv-copy-btn.is-copied {
+  color: var(--color-primary);
+  background: var(--color-primary-light);
+}
+
+/* ---------- 9) 공간 미리보기 ---------- */
+.rsv-preview-scroll {
+  display: flex;
+  gap: var(--space-3);
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding-bottom: 2px;
+}
+
+.rsv-preview-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.rsv-preview-thumb {
+  flex-shrink: 0;
+  width: 108px;
+  height: 108px;
+  border-radius: var(--radius-md);
+  background-size: cover;
+  background-position: center;
+}
+
+/* ---------- 10) 하단 고정 액션바 ---------- */
+.rsv-action-bar {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: var(--app-max-width);
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-5);
+  background: var(--color-surface);
+  border-top: 1px solid var(--color-border);
+  z-index: 20;
+}
+
+.rsv-phone-btn {
+  flex-shrink: 0;
+  width: 52px;
+  height: 52px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.rsv-phone-btn .icon {
+  width: 21px;
+  height: 21px;
+}
+
+.rsv-cta-btn {
+  flex: 1;
+  height: 52px;
+  border: none;
+  border-radius: var(--radius-md);
+  background: var(--color-primary);
+  color: #ffffff;
+  font-size: 15.5px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.rsv-cta-btn .icon {
+  width: 18px;
+  height: 18px;
+}
+
+.rsv-cta-btn:hover {
+  background: var(--color-primary-dark);
+}

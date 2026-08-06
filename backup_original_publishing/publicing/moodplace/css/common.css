@@ -1,0 +1,157 @@
+/* ==========================================================
+   common.css
+   디자인 토큰(변수) + Reset + 모바일 레이아웃 컨테이너
+   ========================================================== */
+
+:root {
+  /* ---- Color tokens ---- */
+  --color-primary: #2d5244;          /* Primary Green */
+  --color-primary-dark: #1f3b30;
+  --color-primary-light: #c8e9c2;    /* Light Green (Sub) */
+  --color-bg: #f9f9f8;               /* Background */
+  --color-surface: #ffffff;
+  --color-text: #1a1a1a;             /* Dark Charcoal */
+  --color-text-muted: #767676;       /* Muted Text */
+  --color-border: #e7e6e2;
+  --color-overlay: rgba(20, 24, 20, 0.45);
+
+  /* ---- Radius ---- */
+  --radius-sm: 10px;
+  --radius-md: 16px;
+  --radius-lg: 22px;
+  --radius-pill: 999px;
+
+  /* ---- Shadow ---- */
+  --shadow-card: 0 4px 14px rgba(26, 26, 26, 0.06);
+  --shadow-float: 0 8px 24px rgba(26, 26, 26, 0.12);
+
+  /* ---- Spacing scale ---- */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+
+  /* ---- Typography ---- */
+  --font-base:
+    -apple-system, 'Apple SD Gothic Neo', 'Pretendard', 'Malgun Gothic',
+    Roboto, 'Segoe UI', sans-serif;
+  --font-brand: 'Georgia', 'Apple SD Gothic Neo', serif;
+
+  /* ---- Layout ---- */
+  --app-max-width: 480px;
+  --bottom-nav-height: 60px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-base);
+  color: var(--color-text);
+  background: #e9e9e6;
+  -webkit-font-smoothing: antialiased;
+  line-height: 1.5;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+}
+
+input,
+textarea {
+  font-family: inherit;
+}
+
+img {
+  max-width: 100%;
+  display: block;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+ul,
+ol {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+h1,
+h2,
+h3,
+p {
+  margin: 0;
+}
+
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* ---- App shell: mobile-first, centered on wider viewports ---- */
+.app-shell {
+  max-width: var(--app-max-width);
+  margin: 0 auto;
+  min-height: 100vh;
+  background: transparent;
+  position: relative;
+  overflow-x: hidden;
+  border: 0.5px solid #0000000d; /* 0.5px #000d (black with 5% alpha) */
+  box-shadow: 0 0 40px rgba(0, 0, 0, 0.08);
+}
+
+/* Screen switching: only one .screen is visible at a time */
+.screen {
+  display: none;
+  min-height: 100vh;
+  flex-direction: column;
+}
+
+.screen.is-active {
+  display: flex;
+}
+
+/* Utility */
+.visually-hidden {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.icon {
+  display: inline-flex;
+  width: 1em;
+  height: 1em;
+  flex-shrink: 0;
+}
+.icon svg {
+  width: 100%;
+  height: 100%;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
+}
