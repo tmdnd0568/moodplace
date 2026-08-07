@@ -116,7 +116,7 @@ export const MOCK_CAFES: Cafe[] = [
     photo: { type: 'image', image: '/assets/onion_seongsu.jpg', from: '#6b8f71', to: '#2d5244', emoji: '🌿' },
     detail: {
       detailTags: ['베이커리', '성수동'],
-      description: '도심 속에서 찾은 작은 숲속의 휴식처. 정교하게 큐레이션된 식물들과 따뜻한 우드 톤의 인테리어가 어우러져 최상의 고요함을 선사합니다.',
+      description: '1970년대 신신정밀 공장 건물, 세탁소 등의 세월의 흔적을 그대로 살린 인더스트리얼 감성의 공간입니다. 녹슨 철문, 거친 벽면과 매일 아침 구워내는 고소한 베이커리가 특별한 조화를 선사합니다.',
       rating: 4.4,
       hoursLabel: '08:00 - 22:00',
       reviewCount: 128,
@@ -163,7 +163,7 @@ export const MOCK_CAFES: Cafe[] = [
       reservation: {
         rating: 4.8,
         reviewCountLabel: '리뷰 1,240+',
-        description: '자연 친화적 조망과 전문 바리스타의 드립 커피 서비스를 프라이빗하게 누릴 수 있는 성수동 무드 플레이스입니다.',
+        description: '붉은 벽돌 공장의 역사적인 공간에서 갓 구운 브레드와 바리스타의 스페셜티 음료 서비스를 누릴 수 있는 성수동의 대표 랜드마크 공간입니다.',
         facilities: ['wifi', 'parking', 'group', 'accessible'],
         notice: '• 주말에는 이용 고객이 많아 예약 시간 기준 10분 이상 지연 시 자동 취소될 수 있습니다.\n• 외부 음식 반입은 금지됩니다.',
       },
@@ -196,7 +196,7 @@ export const MOCK_CAFES: Cafe[] = [
     photo: { type: 'image', image: '/assets/center_coffee.jpg', from: '#8e9aaf', to: '#cbd5e1', emoji: '◻' },
     detail: {
       detailTags: ['스페셜티커피', '서울숲'],
-      description: '불필요한 장식을 덜어내고 선과 면, 빛과 그림자에 집중한 미니멀 디자인 공간입니다. 조용히 책을 읽거나 영감을 얻기에 완벽합니다.',
+      description: '서울숲의 아름다운 전경이 한눈에 보이는 미니멀하고 세련된 스페셜티 커피 브랜드입니다. 통유리창 너머 계절마다 옷을 갈아입는 숲의 모습을 조망하며 바리스타의 핸드드립 커피를 즐길 수 있습니다.',
       rating: 4.5,
       hoursLabel: '10:00 - 21:00',
       reviewCount: 94,
@@ -241,9 +241,9 @@ export const MOCK_CAFES: Cafe[] = [
         }
       ],
       reservation: {
-        rating: 4.6,
+        rating: 4.5,
         reviewCountLabel: '리뷰 94+',
-        description: '미니멀한 미학과 고요한 아날로그 감성을 전하는 성수동의 미니멀 쉼터입니다.',
+        description: '서울숲의 사계절 자연 뷰를 파노라마 통창으로 마주하며 즐기는 최고급 스페셜티 커피 및 브런치 라운지입니다.',
         facilities: ['wifi', 'group', 'accessible', 'pet'],
         notice: '• 조용한 분위기 유지를 위해 3인 이상 단체 방문 시 사전에 문의해 주시기 바랍니다.',
       },
@@ -276,7 +276,7 @@ export const MOCK_CAFES: Cafe[] = [
     photo: { type: 'image', image: '/assets/daelim_changgo.jpg', from: '#ffccd5', to: '#ff4d6d', emoji: '🌸' },
     detail: {
       detailTags: ['갤러리카페', '성수동'],
-      description: '컬러풀한 화초와 큰 창으로 쏟아지는 햇살이 어우러진 비비드한 무드의 온실 카페입니다. 사진 찍기 좋은 포인트가 곳곳에 있어요.',
+      description: '과거 정미소로 쓰이던 거대한 창고 건물을 리모델링한 복합 문화 갤러리 카페입니다. 웅장한 목조 트러스 천장과 붉은 벽돌 벽면을 배경으로 대형 설치 미술 작품들과 향긋한 커피를 즐길 수 있습니다.',
       rating: 4.3,
       hoursLabel: '11:00 - 22:00',
       reviewCount: 150,
@@ -356,7 +356,7 @@ export const MOCK_CAFES: Cafe[] = [
     photo: { type: 'image', image: '/assets/matchacha.jpg', from: '#d8f3dc', to: '#1b4332', emoji: '🍵' },
     detail: {
       detailTags: ['티하우스', '서울숲'],
-      description: '전통차와 다과를 즐기며 조용히 사색할 수 있는 한옥 스타일의 티하우스입니다.',
+      description: '서울숲의 고요한 자연을 마주 보며 온전히 나만의 사색에 잠길 수 있는 프리미엄 차 전문점입니다. 차분한 젠(Zen) 스타일의 목조 다도 바에서 엄선된 유기농 말차와 정갈한 제철 다식을 차분히 음미하는 경험을 제공합니다.',
       rating: 4.8,
       hoursLabel: '11:00 - 19:00',
       reviewCount: 78,
@@ -401,9 +401,9 @@ export const MOCK_CAFES: Cafe[] = [
         }
       ],
       reservation: {
-        rating: 4.7,
+        rating: 4.8,
         reviewCountLabel: '리뷰 78+',
-        description: '전통차 다도 체험과 고즈넉한 사색을 즐길 수 있는 한옥 티하우스입니다.',
+        description: '서울숲의 고요한 자연을 병풍 삼아 최고급 제철 차 다도 체험과 사색을 즐기는 힐링 티하우스 공간입니다.',
         facilities: ['wifi', 'group', 'accessible'],
         notice: '• 차 다도 세션 예약은 정시 단위로 진행되며 10분 전 입장을 권장합니다.',
       },
@@ -436,7 +436,7 @@ export const MOCK_CAFES: Cafe[] = [
     photo: { type: 'image', image: '/assets/grandpa_factory.jpg', from: '#ede0d4', to: '#7f5539', emoji: '🌳' },
     detail: {
       detailTags: ['정원카페', '성수동'],
-      description: '따뜻한 나무 소재와 풍성한 식물들이 조화를 이루는 공간입니다. 깊은 숲속에 들어온 듯한 안정감을 줍니다.',
+      description: '동화 속에 나오는 커다란 나무 위의 오두막 정원과 넓은 예술적 공간이 어우러진 성수동의 초대형 정원형 카페입니다. 곳곳에 배치된 예술 작품과 목조 테이블, 싱그러운 화초들이 마치 거대한 숲 속 별장에 온 듯한 평온함을 줍니다.',
       rating: 4.5,
       hoursLabel: '11:00 - 22:00',
       reviewCount: 110,
@@ -516,7 +516,7 @@ export const MOCK_CAFES: Cafe[] = [
     photo: { type: 'image', image: '/assets/peaches_dowone.jpg', from: '#f08080', to: '#8b0000', emoji: '🧱' },
     detail: {
       detailTags: ['복합문화공간', '성수동'],
-      description: '붉은 벽돌과 큰 창이 어우러진 갤러리형 카페로, 그룹 모임이나 사진 촬영에도 좋아요.',
+      description: '스트리트 자동차 튜닝 브랜드 Peaches가 기획한 힙하고 트렌디한 복합 문화 공간입니다. 강렬한 핑크빛 튜닝 스포츠카 전시와 힙한 스케이트보드 파크 콘셉트의 연출, 달콤한 노티드 도넛 매장이 입점하여 활기찬 영감을 제공합니다.',
       rating: 4.4,
       hoursLabel: '11:00 - 21:00',
       reviewCount: 65,
