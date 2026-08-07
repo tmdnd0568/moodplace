@@ -145,6 +145,19 @@ export const MOCK_CAFES: Cafe[] = [
           date: '2일 전',
           text: '인테리어가 정말 예뻐요. 조용하게 작업하기 좋고 커피도 맛있습니다. 특히 시그니처 라떼 강력추천해요!',
           tags: ['#작업하기좋은', '#커피맛집'],
+          likes: 4,
+          likedByUser: false
+        },
+        {
+          id: 'forest-lounge-r2',
+          author: 'Minho Park',
+          initial: 'M',
+          rating: 4,
+          date: '1주일 전',
+          text: '주말엔 사람이 좀 많지만 평일 낮에 오면 최고의 힐링 공간입니다. 음악 선곡도 브랜드 무드랑 너무 잘 어울려요.',
+          tags: ['#감성적인', '#LP음악'],
+          likes: 2,
+          likedByUser: false
         }
       ],
       reservation: {
@@ -203,7 +216,30 @@ export const MOCK_CAFES: Cafe[] = [
           image: '/assets/menu_scone.jpg',
         }
       ],
-      reviews: [],
+      reviews: [
+        {
+          id: 'urban-nest-r1',
+          author: '이소민',
+          initial: 'L',
+          rating: 5,
+          date: '3일 전',
+          text: '인테리어가 아주 군더더기 없고 깔끔해서 집중이 잘 돼요. 책 읽기 너무 좋은 조용한 분위기입니다.',
+          tags: ['#북카페', '#조용한분위기'],
+          likes: 3,
+          likedByUser: false
+        },
+        {
+          id: 'urban-nest-r2',
+          author: '박태양',
+          initial: 'P',
+          rating: 4,
+          date: '5일 전',
+          text: '플랫 화이트가 정말 부드럽고 맛있어요. 스콘도 겉바속촉 그 자체네요. 자주 오고 싶어요.',
+          tags: ['#커피맛집', '#디저트맛집'],
+          likes: 1,
+          likedByUser: false
+        }
+      ],
       reservation: {
         rating: 4.6,
         reviewCountLabel: '리뷰 94+',
@@ -260,7 +296,30 @@ export const MOCK_CAFES: Cafe[] = [
           image: '/assets/menu_pavlova.jpg',
         }
       ],
-      reviews: [],
+      reviews: [
+        {
+          id: 'vivid-garden-r1',
+          author: '강민아',
+          initial: 'K',
+          rating: 5,
+          date: '1일 전',
+          text: '온실 속에 들어온 것처럼 초록초록해서 힐링돼요! 채광이 너무 좋아서 사진도 인생샷 건졌습니다.',
+          tags: ['#온실카페', '#채광맛집'],
+          likes: 5,
+          likedByUser: false
+        },
+        {
+          id: 'vivid-garden-r2',
+          author: '정우성',
+          initial: 'J',
+          rating: 4,
+          date: '4일 전',
+          text: '생과일 파블로바 진짜 대박이에요. 머랭이 입안에서 살살 녹네요. 에이드도 엄청 상큼해요.',
+          tags: ['#디저트추천', '#에이드맛집'],
+          likes: 2,
+          likedByUser: false
+        }
+      ],
       reservation: {
         rating: 4.8,
         reviewCountLabel: '리뷰 150+',
@@ -317,7 +376,30 @@ export const MOCK_CAFES: Cafe[] = [
           image: '/assets/menu_tea_dessert.jpg',
         }
       ],
-      reviews: [],
+      reviews: [
+        {
+          id: 'quiet-tea-room-r1',
+          author: '한예지',
+          initial: 'H',
+          rating: 5,
+          date: '2일 전',
+          text: '성수동에서 보기 드문 고즈넉한 한옥 감성이라 마음이 차분해집니다. 제주 말차 라떼가 정말 깊고 진해요.',
+          tags: ['#한옥카페', '#티하우스'],
+          likes: 6,
+          likedByUser: false
+        },
+        {
+          id: 'quiet-tea-room-r2',
+          author: '윤동현',
+          initial: 'Y',
+          rating: 4,
+          date: '6일 전',
+          text: '모나카와 곶감 다과 세트 플레이팅이 너무 예쁘고 정갈합니다. 차분한 대화를 나누기에 최적의 장소예요.',
+          tags: ['#전통다과', '#조용함'],
+          likes: 3,
+          likedByUser: false
+        }
+      ],
       reservation: {
         rating: 4.7,
         reviewCountLabel: '리뷰 78+',
@@ -374,7 +456,30 @@ export const MOCK_CAFES: Cafe[] = [
           image: '/assets/menu_tart.jpg',
         }
       ],
-      reviews: [],
+      reviews: [
+        {
+          id: 'calm-forest-r1',
+          author: '최진아',
+          initial: 'C',
+          rating: 5,
+          date: '3일 전',
+          text: '플랜테리어가 잘 되어 있어서 공기도 맑은 느낌이고 우드 가구가 주는 따뜻함이 참 편안해요.',
+          tags: ['#식물카페', '#아늑한공간'],
+          likes: 4,
+          likedByUser: false
+        },
+        {
+          id: 'calm-forest-r2',
+          author: '김동하',
+          initial: 'K',
+          rating: 4,
+          date: '1주일 전',
+          text: '우드 아메리카노의 고소한 너티 향이 취향저격입니다. 타르트랑 같이 먹으니까 진짜 맛있네요.',
+          tags: ['#커피맛집', '#타르트추천'],
+          likes: 2,
+          likedByUser: false
+        }
+      ],
       reservation: {
         rating: 4.7,
         reviewCountLabel: '리뷰 110+',
@@ -431,7 +536,30 @@ export const MOCK_CAFES: Cafe[] = [
           image: '/assets/menu_croffle.jpg',
         }
       ],
-      reviews: [],
+      reviews: [
+        {
+          id: 'brick-atelier-r1',
+          author: '송민경',
+          initial: 'S',
+          rating: 5,
+          date: '2일 전',
+          text: '붉은 벽돌 건물이 이국적이고 멋져요. 갤러리처럼 전시된 작품들 구경하는 재미가 쏠쏠합니다.',
+          tags: ['#갤러리카페', '#볼거리많음'],
+          likes: 3,
+          likedByUser: false
+        },
+        {
+          id: 'brick-atelier-r2',
+          author: '임재범',
+          initial: 'I',
+          rating: 4,
+          date: '5일 전',
+          text: '핸드드립 커피가 향긋하고 맛의 깊이가 달라요. 크로플도 바닐라 아이스크림이랑 찰떡궁합입니다.',
+          tags: ['#핸드드립', '#크로플맛집'],
+          likes: 1,
+          likedByUser: false
+        }
+      ],
       reservation: {
         rating: 4.5,
         reviewCountLabel: '리뷰 65+',
