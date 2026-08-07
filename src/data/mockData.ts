@@ -123,17 +123,17 @@ export const MOCK_CAFES: Cafe[] = [
       menu: [
         {
           id: 'forest-lounge-m1',
-          name: '시그니처 숲 라떼',
+          name: '팡도르',
           price: '7,500원',
-          desc: '직접 로스팅한 원두의 고소함과 수제 쑥 크림의 달콤함이 조화를 이루는 시그니처 메뉴',
-          image: '/assets/menu_forest_latte.jpg',
+          desc: '이탈리아 베로나 지방의 전통 빵으로, 슈가 파우더가 눈처럼 소복이 쌓인 어니언 대표 디저트',
+          image: '/assets/menu_onion_pandoro.jpg',
         },
         {
           id: 'forest-lounge-m2',
-          name: '얼그레이 쉬폰 케이크',
-          price: '8,000원',
-          desc: '향긋한 얼그레이 향이 가득한 폭신한 시트와 가벼운 생크림의 조화',
-          image: '/assets/menu_earlgrey_cake.jpg',
+          name: '고소미 소금빵',
+          price: '3,000원',
+          desc: '겉은 바삭하고 속은 쫄깃하며 버터의 풍미와 짭조름한 소금맛이 매력적인 소금빵',
+          image: '/assets/menu_onion_saltbread.jpg',
         },
       ],
       reviews: [
@@ -203,17 +203,17 @@ export const MOCK_CAFES: Cafe[] = [
       menu: [
         {
           id: 'urban-nest-m1',
-          name: '플랫 화이트',
-          price: '6,000원',
-          desc: '진한 에스프레소 리스트레토 샷과 부드러운 스팀 밀크의 완벽한 밸런스',
-          image: '/assets/menu_flat_white.jpg',
+          name: '게이샤 핸드드립 커피',
+          price: '8,000원',
+          desc: '화사한 꽃향기와 과일의 산미가 도드라지는 고품격 스페셜티 게이샤 핸드드립 커피',
+          image: '/assets/menu_center_geisha.jpg',
         },
         {
           id: 'urban-nest-m2',
-          name: '미니멀 버터 스콘',
-          price: '5,500원',
-          desc: '매일 아침 구워내는 고소하고 촉촉한 플레인 버터 스콘',
-          image: '/assets/menu_scone.jpg',
+          name: '쑥 라떼',
+          price: '6,500원',
+          desc: '국내산 쑥의 쌉싸름함 and 부드러운 우유가 어우러진 웰빙 시그니처 음료',
+          image: '/assets/menu_center_mugwort.jpg',
         }
       ],
       reviews: [
@@ -283,17 +283,17 @@ export const MOCK_CAFES: Cafe[] = [
       menu: [
         {
           id: 'vivid-garden-m1',
-          name: '비비드 시그니처 아인슈페너',
-          price: '7,000원',
-          desc: '달콤한 수제 묵직한 크림과 묵직한 에스프레소의 콜라보',
-          image: '/assets/menu_einspanner.jpg',
+          name: '성수동 크림라떼',
+          price: '8,500원',
+          desc: '대림창고만의 고소한 시그니처 견과류 베이스 크림이 올라간 시그니처 라떼',
+          image: '/assets/menu_daelim_cream.jpg',
         },
         {
           id: 'vivid-garden-m2',
-          name: '생과일 파블로바 케이크',
-          price: '8,500원',
-          desc: '겉은 바삭하고 속은 쫀득한 머랭 시트 위에 제철 생과일과 크림을 얹은 특제 디저트',
-          image: '/assets/menu_pavlova.jpg',
+          name: '딸기 초코 타르트',
+          price: '9,000원',
+          desc: '신선한 생딸기와 진한 가나슈 초콜릿 크림이 어우러진 수제 타르트',
+          image: '/assets/menu_daelim_tart.jpg',
         }
       ],
       reviews: [
@@ -363,17 +363,17 @@ export const MOCK_CAFES: Cafe[] = [
       menu: [
         {
           id: 'quiet-tea-room-m1',
-          name: '고요 말차 라떼',
-          price: '7,000원',
-          desc: '제주산 유기농 말차 가루를 정성껏 개어낸 진하고 부드러운 맛의 시그니처 말차 라떼',
-          image: '/assets/menu_matcha_tea.jpg',
+          name: '맛차 라떼',
+          price: '8,500원',
+          desc: '제주산 유기농 차광재배 말차를 격불하여 만드는 진하고 깊은 오리지널 맛차 라떼',
+          image: '/assets/menu_matcha_latte.jpg',
         },
         {
           id: 'quiet-tea-room-m2',
-          name: '전통 모나카 & 곶감 다과',
-          price: '6,500원',
-          desc: '바삭한 피 속에 수제 팥앙금을 채운 모나카와 달콤한 곶감 앙금 다과 세트',
-          image: '/assets/menu_tea_dessert.jpg',
+          name: '맛차 다식 다과 세트',
+          price: '8,000원',
+          desc: '정갈한 제철 다과와 전통 모나카가 어우러져 차의 풍미를 돋우는 디저트 플레이팅',
+          image: '/assets/menu_matchacha_dessert.jpg',
         }
       ],
       reviews: [
@@ -443,17 +443,17 @@ export const MOCK_CAFES: Cafe[] = [
       menu: [
         {
           id: 'calm-forest-m1',
-          name: '우드 아메리카노',
-          price: '5,500원',
-          desc: '다크 초콜릿 향과 너티한 고소함이 도드라지는 시그니처 블렌드 아메리카노',
-          image: '/assets/menu_wood_americano.jpg',
+          name: '더티 아인슈페너',
+          price: '8,000원',
+          desc: '할아버지공장의 빈티지 감성을 담아 초코 파우더를 거칠게 얹은 비주얼 시그니처 크림 커피',
+          image: '/assets/menu_grandpa_einspanner.jpg',
         },
         {
           id: 'calm-forest-m2',
-          name: '말차 수제 타르트',
-          price: '7,500원',
-          desc: '진하고 쌉싸름한 제주 말차 가나슈 크림이 가득한 파티쉐 특제 타르트',
-          image: '/assets/menu_tart.jpg',
+          name: '쉬림프 알리오 올리오 파스타',
+          price: '19,000원',
+          desc: '마늘 향 가득한 올리브 오일에 통통한 새우와 루꼴라를 곁들인 인기 브런치 식사 메뉴',
+          image: '/assets/menu_grandpa_pasta.jpg',
         }
       ],
       reviews: [
@@ -523,17 +523,17 @@ export const MOCK_CAFES: Cafe[] = [
       menu: [
         {
           id: 'brick-atelier-m1',
-          name: '브릭 핸드드립 커피',
-          price: '6,500원',
-          desc: '에티오피아 스페셜티 원두를 전문 바리스타가 직접 정성껏 핸드드립한 커피',
-          image: '/assets/menu_brick_coffee.jpg',
+          name: '노티드 우유생크림 도넛',
+          price: '3,900원',
+          desc: '도원 한편에 자리한 노티드의 넘버원 시그니처 제품으로, 부드러운 우유크림이 가득한 도넛',
+          image: '/assets/menu_knotted_donut.jpg',
         },
         {
           id: 'brick-atelier-m2',
-          name: '브릭 아이스크림 크로플',
-          price: '8,500원',
-          desc: '바삭하게 구운 프랑스 크루아상 생지에 바닐라 아이스크림과 메이플 시럽 토핑',
-          image: '/assets/menu_croffle.jpg',
+          name: '피치스 소다',
+          price: '6,500원',
+          desc: '피치스 브랜드 컬러인 핑크빛을 띠는 상큼달콤한 청량 탄산음료',
+          image: '/assets/menu_peaches_soda.jpg',
         }
       ],
       reviews: [
