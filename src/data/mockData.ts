@@ -123,17 +123,17 @@ export const MOCK_CAFES: Cafe[] = [
       menu: [
         {
           id: 'forest-lounge-m1',
+          name: '어니언 아인슈페너',
+          price: '6,500원',
+          desc: '부드러운 시그니처 크림이 쌉싸름한 콜드브루와 어우러진 어니언 대표 커피',
+          image: '/assets/menu_onion_coffee.jpg',
+        },
+        {
+          id: 'forest-lounge-m2',
           name: '팡도르',
           price: '7,500원',
           desc: '이탈리아 베로나 지방의 전통 빵으로, 슈가 파우더가 눈처럼 소복이 쌓인 어니언 대표 디저트',
           image: '/assets/menu_onion_pandoro.jpg',
-        },
-        {
-          id: 'forest-lounge-m2',
-          name: '고소미 소금빵',
-          price: '3,000원',
-          desc: '겉은 바삭하고 속은 쫄깃하며 버터의 풍미와 짭조름한 소금맛이 매력적인 소금빵',
-          image: '/assets/menu_onion_saltbread.jpg',
         },
       ],
       reviews: [
@@ -210,10 +210,10 @@ export const MOCK_CAFES: Cafe[] = [
         },
         {
           id: 'urban-nest-m2',
-          name: '쑥 라떼',
-          price: '6,500원',
-          desc: '국내산 쑥의 쌉싸름함 and 부드러운 우유가 어우러진 웰빙 시그니처 음료',
-          image: '/assets/menu_center_mugwort.jpg',
+          name: '수제 쑥 스콘',
+          price: '5,000원',
+          desc: '국내산 쑥의 은은한 향과 고소한 버터의 조화가 일품인 겉바속촉 수제 스콘',
+          image: '/assets/menu_center_scone.jpg',
         }
       ],
       reviews: [
@@ -450,10 +450,10 @@ export const MOCK_CAFES: Cafe[] = [
         },
         {
           id: 'calm-forest-m2',
-          name: '쉬림프 알리오 올리오 파스타',
-          price: '19,000원',
-          desc: '마늘 향 가득한 올리브 오일에 통통한 새우와 루꼴라를 곁들인 인기 브런치 식사 메뉴',
-          image: '/assets/menu_grandpa_pasta.jpg',
+          name: '조각 초코 치즈케이크',
+          price: '8,000원',
+          desc: '꾸덕하고 진한 크림치즈 베이스에 초콜릿 레이어를 얹은 부드러운 수제 케이크',
+          image: '/assets/menu_grandpa_cake.jpg',
         }
       ],
       reviews: [
@@ -523,17 +523,17 @@ export const MOCK_CAFES: Cafe[] = [
       menu: [
         {
           id: 'brick-atelier-m1',
+          name: '도원 시그니처 아메리카노',
+          price: '5,500원',
+          desc: '고소하고 다크한 바디감이 살아있는 피치스 도원만의 특제 하우스 블렌드 아메리카노',
+          image: '/assets/menu_peaches_coffee.jpg',
+        },
+        {
+          id: 'brick-atelier-m2',
           name: '노티드 우유생크림 도넛',
           price: '3,900원',
           desc: '도원 한편에 자리한 노티드의 넘버원 시그니처 제품으로, 부드러운 우유크림이 가득한 도넛',
           image: '/assets/menu_knotted_donut.jpg',
-        },
-        {
-          id: 'brick-atelier-m2',
-          name: '피치스 소다',
-          price: '6,500원',
-          desc: '피치스 브랜드 컬러인 핑크빛을 띠는 상큼달콤한 청량 탄산음료',
-          image: '/assets/menu_peaches_soda.jpg',
         }
       ],
       reviews: [
