@@ -274,20 +274,7 @@ export const LoginPage: React.FC = () => {
       <PageContainer>
         {/* 상단 브랜드 영역 */}
         <BrandSection>
-          <LogoBadge aria-hidden="true">
-            <svg viewBox="0 0 100 124" xmlns="http://www.w3.org/2000/svg">
-              <path d="M50 4C29 4 12 21 12 42c0 28 38 74 38 74s38-46 38-74C88 21 71 4 50 4z" fill="#2D5244" />
-              <circle cx="50" cy="42" r="27" fill="#FFFFFF" />
-              <path d="M50 29c-2.4-3.4-8-3.4-9.6 0.6-1.4 3.4 1.4 6.4 9.6 11.4 8.2-5 11-8 9.6-11.4-1.6-4-7.2-4-9.6-0.6z" fill="#2D5244" />
-              <path d="M35 46h24v8a8 8 0 0 1-8 8h-8a8 8 0 0 1-8-8v-8z" fill="none" stroke="#2D5244" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
-              <path d="M59 48h3.5a4 4 0 0 1 0 8H59" fill="none" stroke="#2D5244" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          </LogoBadge>
-
-          <BrandName>
-            <BrandMy>my</BrandMy>
-            <BrandMain>MoodPlace</BrandMain>
-          </BrandName>
+          <BrandLogoImg src="/assets/logo_01.png" alt="MoodPlace" />
 
           <Tagline>
             <TagLine />
@@ -549,10 +536,7 @@ export const LoginPage: React.FC = () => {
 
         {/* 하단 푸터 */}
         <FooterSection>
-          <FooterBrandName>
-            <FooterMy>my</FooterMy>
-            <FooterMain>MoodPlace</FooterMain>
-          </FooterBrandName>
+          <FooterLogoImg src="/assets/logo_01.png" alt="MoodPlace" />
           <FooterTagline>
             <TagLine />
             <TagText>당신이 분위기에 맞는 공간을 찾다</TagText>
@@ -759,35 +743,10 @@ const BrandSection = styled.div`
   margin-bottom: 36px;
 `;
 
-const LogoBadge = styled.div`
-  width: 70px;
-  height: 86px;
+const BrandLogoImg = styled.img`
+  height: 60px;
+  object-fit: contain;
   margin-bottom: 14px;
-  svg { width: 100%; height: 100%; }
-`;
-
-const BrandName = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  line-height: 1;
-  margin-bottom: 10px;
-`;
-
-const BrandMy = styled.span`
-  font-size: 22px;
-  font-weight: 400;
-  font-style: italic;
-  color: #2D5244;
-  letter-spacing: -0.5px;
-`;
-
-const BrandMain = styled.span`
-  font-size: 44px;
-  font-weight: 700;
-  color: #1a1a1a;
-  letter-spacing: -1.5px;
-  line-height: 1.05;
 `;
 
 const Tagline = styled.div`
@@ -1016,25 +975,9 @@ const FooterSection = styled.footer`
   margin-top: auto;
 `;
 
-const FooterBrandName = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  line-height: 1;
-`;
-
-const FooterMy = styled.span`
-  font-size: 14px;
-  font-weight: 400;
-  font-style: italic;
-  color: #2D5244;
-`;
-
-const FooterMain = styled.span`
-  font-size: 26px;
-  font-weight: 700;
-  color: #1a1a1a;
-  letter-spacing: -0.8px;
+const FooterLogoImg = styled.img`
+  height: 38px;
+  object-fit: contain;
 `;
 
 const FooterTagline = styled.div`

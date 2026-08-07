@@ -207,10 +207,7 @@ export const MapPage: React.FC = () => {
         <MapIconBtn type="button" className="map-icon-btn" onClick={handleBack} aria-label="뒤로가기">
           <Icon name="back" className="icon" />
         </MapIconBtn>
-        <MapLogo className="map-logo">
-          <MapLogoSub className="map-logo-sub">my</MapLogoSub>
-          <MapLogoMain className="map-logo-main">MoodPlace</MapLogoMain>
-        </MapLogo>
+        <MapLogoImg src="/assets/logo_01.png" alt="MoodPlace" />
         <MapIconBtn type="button" className="map-icon-btn" onClick={() => setIsMoreOpen(true)} aria-label="더보기">
           <svg viewBox="0 0 24 24" fill="currentColor" className="icon-more">
             <circle cx="12" cy="5" r="1.8" />
@@ -531,24 +528,9 @@ const MapIconBtn = styled.button`
   }
 `;
 
-const MapLogo = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  line-height: 1.1;
-`;
-
-const MapLogoSub = styled.span`
-  font-size: 13px;
-  font-weight: 500;
-  color: ${({ theme }) => theme.colors.text};
-`;
-
-const MapLogoMain = styled.span`
-  font-size: 19px;
-  font-weight: 800;
-  color: ${({ theme }) => theme.colors.text};
-  letter-spacing: -0.3px;
+const MapLogoImg = styled.img`
+  height: 32px;
+  object-fit: contain;
 `;
 
 const MapArea = styled.div`
