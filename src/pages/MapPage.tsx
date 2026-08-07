@@ -6,12 +6,12 @@ import { getCafeById, TRAVEL_MODES, MAP_ORIGIN_LABEL } from '../data/mockData';
 import { Icon } from '../components/icons/Icons';
 
 const CAFE_COORDS: Record<string, [number, number]> = {
-  'forest-lounge': [37.54512, 127.04358],
-  'urban-nest': [37.54558, 127.04415],
-  'calm-forest': [37.54228, 127.05592],
-  'vivid-garden': [37.54185, 127.05648],
+  'forest-lounge': [37.54457, 127.05761],
+  'urban-nest': [37.54316, 127.04179],
+  'calm-forest': [37.54117, 127.05594],
+  'vivid-garden': [37.54181, 127.05645],
   'quiet-tea-room': [37.54341, 127.04167],
-  'brick-atelier': [37.54389, 127.04192],
+  'brick-atelier': [37.54145, 127.06208],
 };
 
 export const MapPage: React.FC = () => {
@@ -53,23 +53,23 @@ export const MapPage: React.FC = () => {
     let path: [number, number][] = [];
     if (cafeId === 'urban-nest') {
       if (routeOption === 'shortest') {
-        path = [[37.5408, 127.0514], [37.5458, 127.0520]];
+        path = [origin, destination];
       } else if (routeOption === 'free') {
-        path = [[37.5408, 127.0514], [37.5408, 127.0500], [37.5458, 127.0500], [37.5458, 127.0520]];
+        path = [origin, [origin[0], 127.0500], [destination[0], 127.0500], destination];
       } else if (routeOption === 'main') {
-        path = [[37.5408, 127.0514], [37.5420, 127.0514], [37.5420, 127.0520], [37.5458, 127.0520]];
+        path = [origin, [37.5420, origin[1]], [37.5420, destination[1]], destination];
       } else {
-        path = [[37.5408, 127.0514], [37.5420, 127.0514], [37.5420, 127.0520], [37.5458, 127.0520]];
+        path = [origin, [37.5420, origin[1]], [37.5420, destination[1]], destination];
       }
     } else {
       if (routeOption === 'shortest') {
-        path = [[37.5408, 127.0514], [37.5446, 127.0560]];
+        path = [origin, destination];
       } else if (routeOption === 'free') {
-        path = [[37.5408, 127.0514], [37.5390, 127.0514], [37.5390, 127.0560], [37.5446, 127.0560]];
+        path = [origin, [37.5390, origin[1]], [37.5390, destination[1]], destination];
       } else if (routeOption === 'main') {
-        path = [[37.5408, 127.0514], [37.5408, 127.0560], [37.5446, 127.0560]];
+        path = [origin, [origin[0], destination[1]], destination];
       } else {
-        path = [[37.5408, 127.0514], [37.5420, 127.0514], [37.5420, 127.0560], [37.5446, 127.0560]];
+        path = [origin, [37.5420, origin[1]], [37.5420, destination[1]], destination];
       }
     }
 

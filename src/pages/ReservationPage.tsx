@@ -6,12 +6,12 @@ import { SubHeader } from '../components/SubHeader';
 import { Icon } from '../components/icons/Icons';
 
 const CAFE_COORDS: Record<string, [number, number]> = {
-  'forest-lounge': [37.54512, 127.04358],
-  'urban-nest': [37.54558, 127.04415],
-  'calm-forest': [37.54228, 127.05592],
-  'vivid-garden': [37.54185, 127.05648],
+  'forest-lounge': [37.54457, 127.05761],
+  'urban-nest': [37.54316, 127.04179],
+  'calm-forest': [37.54117, 127.05594],
+  'vivid-garden': [37.54181, 127.05645],
   'quiet-tea-room': [37.54341, 127.04167],
-  'brick-atelier': [37.54389, 127.04192],
+  'brick-atelier': [37.54145, 127.06208],
 };
 
 export const ReservationPage: React.FC = () => {

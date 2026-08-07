@@ -7,10 +7,10 @@ import { BottomNav } from '../components/BottomNav';
 import { Icon } from '../components/icons/Icons';
 
 const PLACE_COORDS: Record<string, [number, number]> = {
-  'calm-forest': [37.54228, 127.05592],
-  'vivid-garden': [37.54185, 127.05648],
+  'calm-forest': [37.54117, 127.05594],
+  'vivid-garden': [37.54181, 127.05645],
   'quiet-tea-room': [37.54341, 127.04167],
-  'brick-atelier': [37.54389, 127.04192],
+  'brick-atelier': [37.54145, 127.06208],
 };
 
 export const FindPage: React.FC = () => {
