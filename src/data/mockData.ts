@@ -57,7 +57,7 @@ export const NEARBY_PLACES: NearbyPlace[] = [
       { icon: 'quiet', label: '조용한' },
     ],
     description: '오두막 정원과 나무 감성의 성수동 랜드마크 카페',
-    photos: ['/assets/cafe_calm_forest.jpg', '/assets/menu_wood_americano.jpg'],
+    photos: ['/assets/grandpa_factory.jpg', '/assets/menu_wood_americano.jpg'],
     position: { top: '55%', left: '40%' },
     isDefault: true,
   },
@@ -71,7 +71,7 @@ export const NEARBY_PLACES: NearbyPlace[] = [
       { icon: 'camera', label: '포토스팟' },
     ],
     description: '성수동을 대표하는 대형 창고형 갤러리 카페',
-    photos: ['/assets/cafe_vivid_garden.jpg', '/assets/menu_grapefruit_ade.jpg'],
+    photos: ['/assets/daelim_changgo.jpg', '/assets/menu_grapefruit_ade.jpg'],
     position: { top: '22%', left: '62%' },
   },
   {
@@ -84,7 +84,7 @@ export const NEARBY_PLACES: NearbyPlace[] = [
       { icon: 'warm', label: '아늑한' },
     ],
     description: '서울숲을 마주 보며 즐기는 프리미엄 말차 티하우스',
-    photos: ['/assets/cafe_quiet_tea_room.jpg', '/assets/menu_matcha_tea.jpg'],
+    photos: ['/assets/matchacha.jpg', '/assets/menu_matcha_tea.jpg'],
     position: { top: '70%', left: '68%' },
   },
   {
@@ -97,7 +97,7 @@ export const NEARBY_PLACES: NearbyPlace[] = [
       { icon: 'camera', label: '포토스팟' },
     ],
     description: '스트리트 카 컬처 기반의 힙한 복합 문화 공간',
-    photos: ['/assets/cafe_brick_atelier.jpg', '/assets/menu_croffle.jpg'],
+    photos: ['/assets/peaches_dowone.jpg', '/assets/menu_croffle.jpg'],
     position: { top: '38%', left: '20%' },
   },
 ];
@@ -113,7 +113,7 @@ export const MOCK_CAFES: Cafe[] = [
     mood: ['vintage', 'cozy'],
     bookmarked: false,
     hero: true,
-    photo: { type: 'image', image: '/assets/cafe_forest_lounge.jpg', from: '#6b8f71', to: '#2d5244', emoji: '🌿' },
+    photo: { type: 'image', image: '/assets/onion_seongsu.jpg', from: '#6b8f71', to: '#2d5244', emoji: '🌿' },
     detail: {
       detailTags: ['베이커리', '성수동'],
       description: '도심 속에서 찾은 작은 숲속의 휴식처. 정교하게 큐레이션된 식물들과 따뜻한 우드 톤의 인테리어가 어우러져 최상의 고요함을 선사합니다.',
@@ -193,7 +193,7 @@ export const MOCK_CAFES: Cafe[] = [
     mood: ['minimal', 'calm'],
     bookmarked: false,
     hero: false,
-    photo: { type: 'image', image: '/assets/cafe_urban_nest.jpg', from: '#8e9aaf', to: '#cbd5e1', emoji: '◻' },
+    photo: { type: 'image', image: '/assets/center_coffee.jpg', from: '#8e9aaf', to: '#cbd5e1', emoji: '◻' },
     detail: {
       detailTags: ['스페셜티커피', '서울숲'],
       description: '불필요한 장식을 덜어내고 선과 면, 빛과 그림자에 집중한 미니멀 디자인 공간입니다. 조용히 책을 읽거나 영감을 얻기에 완벽합니다.',
@@ -273,7 +273,7 @@ export const MOCK_CAFES: Cafe[] = [
     mood: ['vintage', 'energetic'],
     bookmarked: false,
     hero: false,
-    photo: { type: 'image', image: '/assets/cafe_vivid_garden.jpg', from: '#ffccd5', to: '#ff4d6d', emoji: '🌸' },
+    photo: { type: 'image', image: '/assets/daelim_changgo.jpg', from: '#ffccd5', to: '#ff4d6d', emoji: '🌸' },
     detail: {
       detailTags: ['갤러리카페', '성수동'],
       description: '컬러풀한 화초와 큰 창으로 쏟아지는 햇살이 어우러진 비비드한 무드의 온실 카페입니다. 사진 찍기 좋은 포인트가 곳곳에 있어요.',
@@ -353,7 +353,7 @@ export const MOCK_CAFES: Cafe[] = [
     mood: ['calm', 'dreamy'],
     bookmarked: false,
     hero: false,
-    photo: { type: 'image', image: '/assets/cafe_quiet_tea_room.jpg', from: '#d8f3dc', to: '#1b4332', emoji: '🍵' },
+    photo: { type: 'image', image: '/assets/matchacha.jpg', from: '#d8f3dc', to: '#1b4332', emoji: '🍵' },
     detail: {
       detailTags: ['티하우스', '서울숲'],
       description: '전통차와 다과를 즐기며 조용히 사색할 수 있는 한옥 스타일의 티하우스입니다.',
@@ -433,7 +433,7 @@ export const MOCK_CAFES: Cafe[] = [
     mood: ['cozy', 'warm'],
     bookmarked: false,
     hero: false,
-    photo: { type: 'image', image: '/assets/cafe_calm_forest.jpg', from: '#ede0d4', to: '#7f5539', emoji: '🌳' },
+    photo: { type: 'image', image: '/assets/grandpa_factory.jpg', from: '#ede0d4', to: '#7f5539', emoji: '🌳' },
     detail: {
       detailTags: ['정원카페', '성수동'],
       description: '따뜻한 나무 소재와 풍성한 식물들이 조화를 이루는 공간입니다. 깊은 숲속에 들어온 듯한 안정감을 줍니다.',
@@ -513,7 +513,7 @@ export const MOCK_CAFES: Cafe[] = [
     mood: ['energetic', 'dreamy'],
     bookmarked: false,
     hero: false,
-    photo: { type: 'image', image: '/assets/cafe_brick_atelier.jpg', from: '#f08080', to: '#8b0000', emoji: '🧱' },
+    photo: { type: 'image', image: '/assets/peaches_dowone.jpg', from: '#f08080', to: '#8b0000', emoji: '🧱' },
     detail: {
       detailTags: ['복합문화공간', '성수동'],
       description: '붉은 벽돌과 큰 창이 어우러진 갤러리형 카페로, 그룹 모임이나 사진 촬영에도 좋아요.',
