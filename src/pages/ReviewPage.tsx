@@ -7,22 +7,22 @@ import { Icon } from '../components/icons/Icons';
 
 // 카페 상세정보를 위한 주소 및 연락처 맵핑 헬퍼
 const getAddress = (cafeId: string, defaultLocation: string) => {
-  if (cafeId === 'forest-lounge') return '서울 성동구 서울숲4길 12-8 1층';
-  if (cafeId === 'urban-nest') return '서울 성동구 서울숲4길 17-7 1층';
-  if (cafeId === 'vivid-garden') return '서울 성동구 성수이로7가길 9';
-  if (cafeId === 'quiet-tea-room') return '서울 성동구 서울숲2길 18-11 1층';
-  if (cafeId === 'calm-forest') return '서울 성동구 성수이로 78';
-  if (cafeId === 'brick-atelier') return '서울 성동구 서울숲2길 28-11';
+  if (cafeId === 'forest-lounge') return '서울 성동구 아차산로9길 8';
+  if (cafeId === 'urban-nest') return '서울 성동구 서울숲2길 28-11';
+  if (cafeId === 'vivid-garden') return '서울 성동구 성수이로 78';
+  if (cafeId === 'quiet-tea-room') return '서울 성동구 서울숲2길 18-11';
+  if (cafeId === 'calm-forest') return '서울 성동구 성수이로74길 9';
+  if (cafeId === 'brick-atelier') return '서울 성동구 연무장15길 11';
   return defaultLocation || '서울 성동구 성수동 일대';
 };
 
 const getPhone = (cafeId: string) => {
-  if (cafeId === 'forest-lounge') return '02-456-7890';
-  if (cafeId === 'urban-nest') return '02-789-0123';
-  if (cafeId === 'vivid-garden') return '02-234-5678';
-  if (cafeId === 'quiet-tea-room') return '02-345-6789';
-  if (cafeId === 'calm-forest') return '02-456-1122';
-  if (cafeId === 'brick-atelier') return '02-567-3344';
+  if (cafeId === 'forest-lounge') return '0507-1386-3238';
+  if (cafeId === 'urban-nest') return '0507-1428-2016';
+  if (cafeId === 'vivid-garden') return '02-499-9669';
+  if (cafeId === 'quiet-tea-room') return '0507-1318-4320';
+  if (cafeId === 'calm-forest') return '0507-1317-2301';
+  if (cafeId === 'brick-atelier') return '0507-1384-2451';
   return '02-1234-5678';
 };
 
