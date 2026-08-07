@@ -106,7 +106,7 @@ export const MOCK_CAFES: Cafe[] = [
   {
     id: 'forest-lounge',
     name: '어니언 성수',
-    location: '서울 성동구 서울숲4길 12-8 1층',
+    location: '서울 성동구 아차산로9길 8',
     description: '폐공장을 리노베이션한 성수동 대표 브레드 카페',
     match: 98,
     tags: ['Vintage', 'Cozy'],
@@ -168,7 +168,7 @@ export const MOCK_CAFES: Cafe[] = [
         notice: '• 주말에는 이용 고객이 많아 예약 시간 기준 10분 이상 지연 시 자동 취소될 수 있습니다.\n• 외부 음식 반입은 금지됩니다.',
       },
       route: {
-        destinationLabel: '도심 속의 숲 (서울숲)',
+        destinationLabel: '어니언 성수',
         routesByMode: {
           walk: [
             { id: 'forest-lounge-walk-1', badge: '최단시간', durationMin: 12, distanceLabel: '840m', metaLabel: '소모 칼로리 45kcal', progress: 65, description: '숲길 우선 경로: 성수동 카페거리를 경유합니다.' }
@@ -186,7 +186,7 @@ export const MOCK_CAFES: Cafe[] = [
   {
     id: 'urban-nest',
     name: '센터커피 서울숲점',
-    location: '서울 성동구 서울숲4길 17-7 1층',
+    location: '서울 성동구 서울숲2길 28-11',
     description: '서울숲 뷰가 한눈에 들어오는 스페셜티 커피 전문점',
     match: 85,
     tags: ['Minimal', 'Calm'],
@@ -248,7 +248,7 @@ export const MOCK_CAFES: Cafe[] = [
         notice: '• 조용한 분위기 유지를 위해 3인 이상 단체 방문 시 사전에 문의해 주시기 바랍니다.',
       },
       route: {
-        destinationLabel: '어반 네스트',
+        destinationLabel: '센터커피 서울숲점',
         routesByMode: {
           walk: [
             { id: 'urban-nest-walk-1', badge: '추천', durationMin: 5, distanceLabel: '300m', metaLabel: '가장 짧은 도보 거리', progress: 90, description: '성수역 4번출구에서 직진 후 골목 좌회전' }
@@ -266,7 +266,7 @@ export const MOCK_CAFES: Cafe[] = [
   {
     id: 'vivid-garden',
     name: '대림창고 갤러리',
-    location: '서울 성동구 성수이로7가길 9',
+    location: '서울 성동구 성수이로 78',
     description: '성수동을 대표하는 대형 창고형 갤러리 카페',
     match: 92,
     tags: ['Vintage', 'Gallery'],
@@ -328,7 +328,7 @@ export const MOCK_CAFES: Cafe[] = [
         notice: '• 온실 좌석 및 대형 단체석은 사전 예약 고객 위주로 배정됩니다.',
       },
       route: {
-        destinationLabel: '비비드 가든',
+        destinationLabel: '대림창고 갤러리',
         routesByMode: {
           walk: [
             { id: 'vivid-garden-walk-1', badge: '추천', durationMin: 8, distanceLabel: '500m', metaLabel: '도보 코스', progress: 85, description: '서울숲역 4번출구 근처' }
@@ -346,7 +346,7 @@ export const MOCK_CAFES: Cafe[] = [
   {
     id: 'quiet-tea-room',
     name: '맛차차',
-    location: '서울 성동구 서울숲2길 18-11 1층',
+    location: '서울 성동구 서울숲2길 18-11',
     description: '서울숲을 마주 보며 즐기는 프리미엄 말차 티하우스',
     match: 89,
     tags: ['Calm', 'Traditional'],
@@ -408,7 +408,7 @@ export const MOCK_CAFES: Cafe[] = [
         notice: '• 차 다도 세션 예약은 정시 단위로 진행되며 10분 전 입장을 권장합니다.',
       },
       route: {
-        destinationLabel: '고요다반',
+        destinationLabel: '맛차차',
         routesByMode: {
           walk: [
             { id: 'quiet-tea-room-walk-1', badge: '추천', durationMin: 10, distanceLabel: '700m', metaLabel: '골목길', progress: 80, description: '성수역 연무장길 안쪽 골목' }
@@ -426,7 +426,7 @@ export const MOCK_CAFES: Cafe[] = [
   {
     id: 'calm-forest',
     name: '카페 할아버지공장',
-    location: '서울 성동구 성수이로 78',
+    location: '서울 성동구 성수이로74길 9',
     description: '오두막 정원과 나무 감성의 성수동 랜드마크 카페',
     match: 94,
     tags: ['Cozy', 'Warm'],
@@ -488,7 +488,7 @@ export const MOCK_CAFES: Cafe[] = [
         notice: '• 주말 야외 테라스석은 입실 순서대로 지정됩니다.',
       },
       route: {
-        destinationLabel: '온화한 숲',
+        destinationLabel: '카페 할아버지공장',
         routesByMode: {
           walk: [
             { id: 'calm-forest-walk-1', badge: '추천', durationMin: 6, distanceLabel: '400m', metaLabel: '도보 코스', progress: 90, description: '성수역 3번출구 뚝섬역 방향 도보 6분' }
@@ -506,7 +506,7 @@ export const MOCK_CAFES: Cafe[] = [
   {
     id: 'brick-atelier',
     name: '피치스 도원',
-    location: '서울 성동구 서울숲2길 28-11',
+    location: '서울 성동구 연무장15길 11',
     description: '스트리트 카 컬처 기반의 힙한 복합 문화 공간',
     match: 87,
     tags: ['Energetic', 'Hip'],
@@ -568,7 +568,7 @@ export const MOCK_CAFES: Cafe[] = [
         notice: '• 갤러리 전시 및 대관 일정에 따라 일부 구역 예약이 제한될 수 있습니다.',
       },
       route: {
-        destinationLabel: '브릭 아틀리에',
+        destinationLabel: '피치스 도원',
         routesByMode: {
           walk: [
             { id: 'brick-atelier-walk-1', badge: '추천', durationMin: 11, distanceLabel: '800m', metaLabel: '골목길 코스', progress: 75, description: '뚝섬역 5번출구 근처' }
