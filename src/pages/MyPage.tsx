@@ -162,10 +162,6 @@ export const MyPage: React.FC = () => {
             <path d="M59 48h3.5a4 4 0 0 1 0 8H59" fill="none" stroke="#2D5244" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
           </BrandBadgeSvg>
         </div>
-        <div className="my-brand-logo">
-          <span className="my-brand-sub">my</span>
-          <span className="my-brand-main">MoodPlace</span>
-        </div>
         <p className="my-brand-tagline">
           <span className="line"></span>
           <span>당신이 분위기에 맞는 공간을 찾다</span>
