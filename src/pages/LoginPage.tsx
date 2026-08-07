@@ -731,7 +731,7 @@ const PageContainer = styled.main`
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 56px 28px 32px;
+  padding: 56px 16px 32px;
   animation: ${fadeUp} 0.55s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 `;
 

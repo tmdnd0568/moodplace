@@ -197,7 +197,7 @@ const PageContainer = styled.main`
   max-width: 390px;
   display: flex;
   flex-direction: column;
-  padding: 44px 24px 32px;
+  padding: 44px 16px 32px;
   animation: ${fadeUp} 0.55s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   box-sizing: border-box;
 `;
