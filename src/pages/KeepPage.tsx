@@ -150,6 +150,7 @@ const LogoImg = styled.img`
   max-height: 52px;
   width: auto;
   object-fit: contain;
+  margin-left: -13px;
 `;
 
 const KeepAvatarBtn = styled.button`

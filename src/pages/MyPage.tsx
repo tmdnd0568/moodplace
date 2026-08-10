@@ -78,9 +78,6 @@ export const MyPage: React.FC = () => {
           <Icon name="back" className="icon" />
         </MapIconBtn>
         <div className="my-header-actions">
-          <MapIconBtn type="button" className="my-icon-btn" onClick={() => setActiveModal('notifications')} aria-label="알림">
-            <Icon name="bell" className="icon" />
-          </MapIconBtn>
           <MapIconBtn type="button" className="my-icon-btn" onClick={() => setActiveModal('settings')} aria-label="설정">
             <Icon name="settings" className="icon" />
           </MapIconBtn>

@@ -1,4 +1,4 @@
-﻿import React from 'react';
+import React from 'react';
 import styled from 'styled-components';
 import { Icon } from './icons/Icons';
 
@@ -46,6 +46,7 @@ const LogoImg = styled.img`
   max-height: 52px;
   width: auto;
   object-fit: contain;
+  margin-left: -13px;
 `;
 
 const IconButton = styled.button`
