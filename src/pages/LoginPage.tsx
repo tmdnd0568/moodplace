@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import styled, { keyframes } from 'styled-components';
 import { useNavigate } from 'react-router-dom';
+import { signInWithPopup } from 'firebase/auth';
+import { auth, googleProvider, appleProvider } from '../firebase';
 
 // 가상 사용자 데이터 모델 인터페이스
 interface User {
@@ -47,6 +49,51 @@ export const LoginPage: React.FC = () => {
   // 4) 소셜 로그인용 모달 상태
   const [socialModalType, setSocialModalType] = useState<'google' | 'kakao' | 'apple' | null>(null);
   const [socialLoading, setSocialLoading] = useState(false);
+
+  // 실제 Firebase 소셜 로그인 처리
+  const handleFirebaseSocialLogin = async (providerType: 'google' | 'apple') => {
+    setError('');
+    setIsLoading(true);
+    try {
+      const provider = providerType === 'google' ? googleProvider : appleProvider;
+      const result = await signInWithPopup(auth, provider);
+      const user = result.user;
+      
+      const email = user.email || `${providerType}_user_${user.uid}@moodplace.com`;
+      const name = user.displayName || `${providerType.toUpperCase()} 사용자`;
+      
+      const users = getUsers();
+      const existingUser = users.find(u => u.email.toLowerCase() === email.toLowerCase());
+      
+      sessionStorage.setItem('moodplace_auth', 'true');
+      sessionStorage.setItem('moodplace_user_email', email);
+      sessionStorage.setItem('moodplace_user_name', name);
+      
+      const hasOnboarded = existingUser && (existingUser as any).tags && (existingUser as any).tags.length > 0;
+      
+      setIsLoading(false);
+      if (hasOnboarded) {
+        sessionStorage.setItem('moodplace_onboarded', 'true');
+        navigate('/main');
+      } else {
+        if (!existingUser) {
+          const newUser: User = {
+            email: email,
+            password: 'social-auth-placeholder-pass',
+            name: name
+          };
+          localStorage.setItem('moodplace_users', JSON.stringify([...users, newUser]));
+        }
+        navigate('/onboarding');
+      }
+    } catch (err: any) {
+      console.error(`${providerType} Login Error:`, err);
+      if (err.code !== 'auth/popup-closed-by-user') {
+        setError(`${providerType === 'google' ? '구글' : '애플'} 로그인 중 오류가 발생했습니다: ${err.message}`);
+      }
+      setIsLoading(false);
+    }
+  };
 
   // LocalStorage 사용자 DB 초기화 및 헬퍼 함수
   const getUsers = (): User[] => {
@@ -331,7 +378,7 @@ export const LoginPage: React.FC = () => {
             </Divider>
 
             <SocialRow>
-              <SocialBtn id="login-google" type="button" onClick={() => setSocialModalType('google')} aria-label="구글로 로그인">
+              <SocialBtn id="login-google" type="button" onClick={() => handleFirebaseSocialLogin('google')} disabled={isLoading} aria-label="구글로 로그인">
                 <svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
                   <path fill="#FFC107" d="M43.6 20H24v8h11.3C33.6 32.7 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.1 7.9 2.9l5.7-5.7C34.1 6.7 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20c11 0 19.6-8 19.6-20 0-1.3-.1-2.7-.4-4H43.6z" />
                   <path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.5 16.1 18.9 13 24 13c3.1 0 5.8 1.1 7.9 2.9l5.7-5.7C34.1 6.7 29.3 4 24 4c-7.7 0-14.4 4.4-17.7 10.7z" />
@@ -357,7 +404,7 @@ export const LoginPage: React.FC = () => {
                 </svg>
               </SocialBtn>
 
-              <SocialBtn id="login-apple" type="button" $bgColor="#000" onClick={() => setSocialModalType('apple')} aria-label="애플로 로그인">
+              <SocialBtn id="login-apple" type="button" $bgColor="#000" onClick={() => handleFirebaseSocialLogin('apple')} disabled={isLoading} aria-label="애플로 로그인">
                 <svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
                   <path fill="#fff" d="M34.5 25.8c0-4.9 4-7.2 4.2-7.4-2.3-3.3-5.8-3.8-7.1-3.8-3-.3-5.9 1.8-7.4 1.8-1.5 0-3.8-1.7-6.3-1.7-3.2 0-6.2 1.9-7.8 4.8-3.4 5.8-.9 14.4 2.4 19.1 1.6 2.3 3.5 4.9 6 4.8 2.4-.1 3.3-1.5 6.2-1.5s3.7 1.5 6.3 1.5 4.2-2.3 5.8-4.6 2.2-4.7 2.2-4.8c-.1 0-4.5-1.8-4.5-7.2zm-4.2-13.3c1.3-1.6 2.2-3.8 2-6-1.9.1-4.2 1.3-5.6 2.9-1.2 1.4-2.3 3.7-2 5.9 2.1.1 4.3-1.1 5.6-2.8z"/>
                 </svg>
