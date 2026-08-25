@@ -88,10 +88,13 @@ export const LoginPage: React.FC = () => {
       }
     } catch (err: any) {
       console.error(`${providerType} Login Error:`, err);
-      if (err.code !== 'auth/popup-closed-by-user') {
-        setError(`${providerType === 'google' ? '구글' : '애플'} 로그인 중 오류가 발생했습니다: ${err.message}`);
-      }
       setIsLoading(false);
+      
+      // Firebase 도메인 미승인, 키 미설정 등으로 로그인 실패 시 데모용 모달(Mock)로 자동 전환하여 로그인 흐름을 보장합니다.
+      if (err.code !== 'auth/popup-closed-by-user') {
+        console.warn(`Firebase login failed. Falling back to mock demo modal for ${providerType}.`);
+        setSocialModalType(providerType);
+      }
     }
   };
 
