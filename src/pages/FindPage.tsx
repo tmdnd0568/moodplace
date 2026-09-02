@@ -21,70 +21,71 @@ function getDistanceFromLatLonInKm(lat1: number, lon1: number, lat2: number, lon
   return R * c;
 }
 
-// AI 실제 카페 이미지 자동 검색/생성 매핑
+// AI 실제 카페 분위기 이미지 1장 + 대표 메뉴 이미지 1장 자동 검색/생성 매핑
 function getAIImagesForCafe(name: string, tags: Array<{ label: string }>) {
   const nameLower = name.toLowerCase();
   const tagLabels = tags.map((t) => t.label).join(' ');
 
-  if (nameLower.includes('루프탑') || tagLabels.includes('루프탑') || tagLabels.includes('야경') || nameLower.includes('스카이')) {
-    return [
-      'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=600&q=80',
-      'https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=600&q=80',
-      'https://images.unsplash.com/photo-1511920170033-f8396924c348?auto=format&fit=crop&w=600&q=80',
-      'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?auto=format&fit=crop&w=600&q=80'
-    ];
-  }
-
+  // 1. 스타벅스 (분위기 1장 + 메뉴 1장)
   if (nameLower.includes('스타벅스')) {
     return [
-      'https://images.unsplash.com/photo-1509042239860-f550ce710b93?auto=format&fit=crop&w=600&q=80',
-      'https://images.unsplash.com/photo-1447933601403-0c6688de566e?auto=format&fit=crop&w=600&q=80',
-      'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=600&q=80',
-      'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?auto=format&fit=crop&w=600&q=80'
+      'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?auto=format&fit=crop&w=600&q=80', // 모던 스벅 창가 분위기
+      'https://images.unsplash.com/photo-1509042239860-f550ce710b93?auto=format&fit=crop&w=600&q=80'  // 시그니처 돌체라떼/음료
     ];
   }
 
-  if (nameLower.includes('베이커리') || nameLower.includes('빵') || tagLabels.includes('베이커리')) {
+  // 2. 투썸플레이스 (분위기 1장 + 메뉴 1장)
+  if (nameLower.includes('투썸')) {
     return [
-      'https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=600&q=80',
-      'https://images.unsplash.com/photo-1555507036-ab1f4038808a?auto=format&fit=crop&w=600&q=80',
-      'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=600&q=80',
-      'https://images.unsplash.com/photo-1481833761820-0509d3217039?auto=format&fit=crop&w=600&q=80'
+      'https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=600&q=80', // 시청뷰 라운지 분위기
+      'https://images.unsplash.com/photo-1555507036-ab1f4038808a?auto=format&fit=crop&w=600&q=80'  // 시그니처 케이크/디저트
     ];
   }
 
+  // 3. 루프탑 & 야경뷰 (분위기 1장 + 메뉴 1장)
+  if (nameLower.includes('루프탑') || tagLabels.includes('루프탑') || tagLabels.includes('야경') || nameLower.includes('스카이')) {
+    return [
+      'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=600&q=80', // 최상층 야경 루프탑 분위기
+      'https://images.unsplash.com/photo-1511920170033-f8396924c348?auto=format&fit=crop&w=600&q=80'  // 시그니처 칵테일/에이드
+    ];
+  }
+
+  // 4. 베이커리 & 소금빵 & 디저트 & 타르트 (분위기 1장 + 메뉴 1장)
+  if (nameLower.includes('베이커리') || nameLower.includes('빵') || nameLower.includes('타르트') || tagLabels.includes('베이커리')) {
+    return [
+      'https://images.unsplash.com/photo-1481833761820-0509d3217039?auto=format&fit=crop&w=600&q=80', // 베이커리 아뜰리에 분위기
+      'https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=600&q=80'  // 수제 소금빵/타르트 메뉴
+    ];
+  }
+
+  // 5. 에스프레소 바 & 플랫화이트 (분위기 1장 + 메뉴 1장)
   if (nameLower.includes('에스프레소') || nameLower.includes('플랫화이트') || tagLabels.includes('에스프레소')) {
     return [
-      'https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?auto=format&fit=crop&w=600&q=80',
-      'https://images.unsplash.com/photo-1510591509098-f4fdc6d0ff04?auto=format&fit=crop&w=600&q=80',
-      'https://images.unsplash.com/photo-1447933601403-0c6688de566e?auto=format&fit=crop&w=600&q=80',
-      'https://images.unsplash.com/photo-1497636577773-f1231844b336?auto=format&fit=crop&w=600&q=80'
+      'https://images.unsplash.com/photo-1497636577773-f1231844b336?auto=format&fit=crop&w=600&q=80', // 이탈리안 에스프레소 바 분위기
+      'https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?auto=format&fit=crop&w=600&q=80'  // 쇼콜라또 에스프레소 잔 메뉴
     ];
   }
 
-  if (nameLower.includes('테라스') || nameLower.includes('가든') || tagLabels.includes('야외테라스')) {
-    return [
-      'https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=600&q=80',
-      'https://images.unsplash.com/photo-1442512595331-e89e73853f31?auto=format&fit=crop&w=600&q=80',
-      'https://images.unsplash.com/photo-1511920170033-f8396924c348?auto=format&fit=crop&w=600&q=80',
-      'https://images.unsplash.com/photo-1507138086030-416288548b6b?auto=format&fit=crop&w=600&q=80'
-    ];
-  }
-
+  // 6. 전통 찻집 & 티하우스 (분위기 1장 + 메뉴 1장)
   if (nameLower.includes('티하우스') || nameLower.includes('차') || tagLabels.includes('전통찻집')) {
     return [
-      'https://images.unsplash.com/photo-1576092768241-dec231879fc3?auto=format&fit=crop&w=600&q=80',
-      'https://images.unsplash.com/photo-1597481499750-3e6b22637e12?auto=format&fit=crop&w=600&q=80',
-      'https://images.unsplash.com/photo-1544787219-7f47ccb76574?auto=format&fit=crop&w=600&q=80',
-      'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?auto=format&fit=crop&w=600&q=80'
+      'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?auto=format&fit=crop&w=600&q=80', // 아늑한 다도 티하우스 분위기
+      'https://images.unsplash.com/photo-1576092768241-dec231879fc3?auto=format&fit=crop&w=600&q=80'  // 수제 잎차 다도 세트 메뉴
     ];
   }
 
+  // 7. 야외 가든 & 테라스 (분위기 1장 + 메뉴 1장)
+  if (nameLower.includes('가든') || nameLower.includes('테라스') || tagLabels.includes('야외테라스') || nameLower.includes('수목원')) {
+    return [
+      'https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=600&q=80', // 푸른 야외 가든 테라스 분위기
+      'https://images.unsplash.com/photo-1511920170033-f8396924c348?auto=format&fit=crop&w=600&q=80'  // 청귤 시트러스 에이드 음료 메뉴
+    ];
+  }
+
+  // 8. 기본 카페 (분위기 1장 + 메뉴 1장)
   return [
-    'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?auto=format&fit=crop&w=600&q=80',
-    'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=600&q=80',
-    'https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=600&q=80',
-    'https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=600&q=80'
+    'https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=600&q=80', // 감성 아늑한 카페 분위기
+    'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=600&q=80'  // 시그니처 원두 로스팅 커피 메뉴
   ];
 }
 
@@ -703,9 +704,11 @@ export const FindPage: React.FC = () => {
             <PhotoThumb
               key={i}
               className="find-photo-thumb"
-              style={{ backgroundImage: `url('${photo}')` }}
+              style={{ backgroundImage: `url('${photo}')`, position: 'relative' }}
               onClick={() => setPreviewPhotoUrl(photo)}
-            />
+            >
+              <PhotoLabelBadge>{i === 0 ? '🏰 카페 분위기' : '☕ 대표 메뉴'}</PhotoLabelBadge>
+            </PhotoThumb>
           ))}
         </PhotoRow>
 
@@ -1135,7 +1138,7 @@ const PhotoRow = styled.div`
 `;
 
 const PhotoThumb = styled.div`
-  flex: 0 0 110px;
+  flex: 0 0 135px;
   height: 100px;
   border-radius: ${({ theme }) => theme.radius.md};
   background-size: cover;
@@ -1148,6 +1151,20 @@ const PhotoThumb = styled.div`
     transform: scale(1.03);
     box-shadow: 0 4px 12px rgba(45, 82, 68, 0.2);
   }
+`;
+
+const PhotoLabelBadge = styled.span`
+  position: absolute;
+  bottom: 6px;
+  left: 6px;
+  background: rgba(0, 0, 0, 0.65);
+  color: #ffffff;
+  font-size: 10.5px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 8px;
+  backdrop-filter: blur(4px);
+  pointer-events: none;
 `;
 
 const PhotoModalOverlay = styled.div`
