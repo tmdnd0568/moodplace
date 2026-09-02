@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
 import { useStore } from '../store/StoreContext';
-import { NEARBY_PLACES, NEARBY_TAG_ICON_META } from '../data/mockData';
+import { NEARBY_PLACES, NEARBY_TAG_ICON_META, REGIONAL_MOCK_CAFES } from '../data/mockData';
 import { BottomNav } from '../components/BottomNav';
 import { Icon } from '../components/icons/Icons';
 
@@ -295,10 +295,40 @@ export const FindPage: React.FC = () => {
       }
     });
 
+    // 4. 전국 주요 도시 대표 카페 (REGIONAL_MOCK_CAFES) 통합 (서울, 대전, 부산, 제주 등)
+    Object.entries(REGIONAL_MOCK_CAFES).forEach(([regionName, cafeList]) => {
+      cafeList.forEach((c, idx) => {
+        if (!seen.has(c.id)) {
+          seen.add(c.id);
+          
+          let coords: [number, number];
+          if (regionName === '대전') {
+            coords = [36.3537 + (idx * 0.004), 127.3872 + (idx * 0.003)];
+          } else if (regionName === '부산') {
+            coords = [35.1587 + (idx * 0.005), 129.1604 + (idx * 0.004)];
+          } else if (regionName === '제주') {
+            coords = [33.4996 + (idx * 0.006), 126.5312 + (idx * 0.005)];
+          } else {
+            coords = [37.5665 + (idx * 0.004), 126.9780 + (idx * 0.003)];
+          }
+
+          list.push({
+            id: c.id,
+            name: c.name,
+            address: c.location || `${regionName} 추천 카페`,
+            description: c.description || c.detail?.description || `${c.name} - ${regionName} 감성 핫플`,
+            photos: (c.photo.type === 'image' && c.photo.image) ? [c.photo.image] : ['/assets/caffe_001.jpg'],
+            tags: c.tags ? c.tags.map((t) => ({ icon: 'warm', label: t.replace('#', '') })) : [{ icon: 'warm', label: regionName }],
+            coords,
+          });
+        }
+      });
+    });
+
     return list;
   }, [state.cafes, state.searchResults, EXTRA_LOCAL_CAFES, userCoords]);
 
-  // 내 위치 기준 모든 카페 거리 계산 및 3km 반경 필터링
+  // 내 위치 기준 모든 카페 거리 계산
   const cafesWithDistance = React.useMemo(() => {
     return allCafes.map((cafe) => {
       const distKm = getDistanceFromLatLonInKm(
@@ -316,8 +346,11 @@ export const FindPage: React.FC = () => {
     });
   }, [allCafes, userCoords]);
 
-  // 3km 반경 내 카페 필터링 (가까운 순 정렬)
+  // km 반경 내 카페 필터링 (radiusKm >= 20 이면 '전체' 전국 카페 검색 모드)
   const cafesWithin3km = React.useMemo(() => {
+    if (radiusKm >= 20) {
+      return [...cafesWithDistance].sort((a, b) => a.distKm - b.distKm);
+    }
     return cafesWithDistance
       .filter((c) => c.distKm <= radiusKm)
       .sort((a, b) => a.distKm - b.distKm);
@@ -576,6 +609,16 @@ export const FindPage: React.FC = () => {
             <FindIconBtn type="button" onClick={() => setIsMenuOpen(true)} aria-label="메뉴">
               <Icon name="menu" className="icon" />
             </FindIconBtn>
+
+            {/* 메뉴 버튼과 검색 버튼 사이에 정렬된 km 반경 검색 필터 */}
+            <RadiusInfoFloatingBar>
+              <RadiusFilterChips>
+                <RadiusChipBtn type="button" $active={radiusKm === 1.0} onClick={() => setRadiusKm(1.0)}>1km</RadiusChipBtn>
+                <RadiusChipBtn type="button" $active={radiusKm === 3.0} onClick={() => setRadiusKm(3.0)}>3km</RadiusChipBtn>
+                <RadiusChipBtn type="button" $active={radiusKm === 20.0} onClick={() => setRadiusKm(20.0)}>전체</RadiusChipBtn>
+              </RadiusFilterChips>
+            </RadiusInfoFloatingBar>
+
             <FindIconBtn type="button" onClick={() => setIsSearchActive(true)} aria-label="검색">
               <Icon name="search" className="icon" />
             </FindIconBtn>
@@ -612,30 +655,7 @@ export const FindPage: React.FC = () => {
       {/* 2) Map Canvas */}
       <MapCanvas className="find-map-canvas">
         <div id="find-map-api" style={{ width: '100%', height: '100%', position: 'relative', zIndex: 1 }} />
-        
-        {/* 3km 반경 카페 탐색 상단 플로팅 바 */}
-        <RadiusInfoFloatingBar>
-          <RadiusBadgeText>
-            📍 <strong>{userLocationName}</strong> 기준 반경 <strong>{radiusKm}km</strong> 이내 <strong>{cafesWithin3km.length}개</strong> 카페 탐색됨
-          </RadiusBadgeText>
-          <RadiusFilterChips>
-            <RadiusChipBtn type="button" $active={radiusKm === 1.0} onClick={() => setRadiusKm(1.0)}>1km</RadiusChipBtn>
-            <RadiusChipBtn type="button" $active={radiusKm === 3.0} onClick={() => setRadiusKm(3.0)}>3km (추천)</RadiusChipBtn>
-            <RadiusChipBtn type="button" $active={radiusKm === 5.0} onClick={() => setRadiusKm(5.0)}>5km</RadiusChipBtn>
-            <RadiusChipBtn type="button" $active={radiusKm === 20.0} onClick={() => setRadiusKm(20.0)}>전체</RadiusChipBtn>
-          </RadiusFilterChips>
-        </RadiusInfoFloatingBar>
       </MapCanvas>
-
-      {/* 내 위치 확인 버튼 - 바텀시트가 접히면 하단 고정, 열리면 바텀시트 위로 부드럽게 연동 */}
-      <FindLocateBtn
-        type="button"
-        $isSheetOpen={isSheetOpen}
-        onClick={handleLocateClick}
-        aria-label="현재 위치로 이동"
-      >
-        <Icon name="locate" className="icon" />
-      </FindLocateBtn>
 
       {/* 3) Bottom sheet with Drag Gestures */}
       <PlaceDetailSheet 
@@ -653,6 +673,14 @@ export const FindPage: React.FC = () => {
         onMouseUp={handleDragEnd}
         onMouseLeave={handleDragEnd}
       >
+        {/* 내 위치 확인 버튼 - 카페 정보 박스 바로 위 (바텀시트 상단) */}
+        <FindLocateBtn
+          type="button"
+          onClick={handleLocateClick}
+          aria-label="현재 위치로 이동"
+        >
+          <Icon name="locate" className="icon" />
+        </FindLocateBtn>
 
         <SheetHandleWrapper 
           type="button" 
@@ -931,34 +959,18 @@ const MapCanvas = styled.div`
 `;
 
 const RadiusInfoFloatingBar = styled.div`
-  position: absolute;
-  top: 72px;
-  left: 50%;
-  transform: translateX(-50%);
+  position: static;
+  transform: none;
   z-index: 10;
-  width: calc(100% - 32px);
-  max-width: 380px;
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(8px);
-  border-radius: 16px;
-  padding: 10px 14px;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(10px);
+  border-radius: 50px;
+  padding: 4px 6px;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
   border: 1px solid rgba(45, 82, 68, 0.15);
   display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: 6px;
-`;
-
-const RadiusBadgeText = styled.div`
-  font-size: 13px;
-  color: ${({ theme }) => theme.colors.text};
-  text-align: center;
-
-  strong {
-    color: ${({ theme }) => theme.colors.primary};
-    font-weight: 800;
-  }
+  justify-content: center;
 `;
 
 const RadiusFilterChips = styled.div`
@@ -967,26 +979,27 @@ const RadiusFilterChips = styled.div`
 `;
 
 const RadiusChipBtn = styled.button<{ $active?: boolean }>`
-  background: ${({ $active, theme }) => ($active ? theme.colors.primary : 'rgba(45, 82, 68, 0.08)')};
-  color: ${({ $active }) => ($active ? '#ffffff' : '#2d5244')};
-  border: none;
-  border-radius: 12px;
-  padding: 3px 10px;
-  font-size: 11.5px;
+  background: ${({ $active, theme }) => ($active ? theme.colors.primary : 'transparent')};
+  color: ${({ $active }) => ($active ? '#ffffff' : '#4a5568')};
+  border: 1px solid ${({ $active, theme }) => ($active ? theme.colors.primary : 'transparent')};
+  border-radius: 50px;
+  padding: 6px 14px;
+  font-size: 13px;
   font-weight: 700;
   cursor: pointer;
+  white-space: nowrap;
   transition: all 0.2s ease;
 
   &:hover {
-    opacity: 0.9;
+    background: ${({ $active, theme }) => ($active ? theme.colors.primary : 'rgba(45, 82, 68, 0.08)')};
   }
 `;
 
-const FindLocateBtn = styled.button<{ $isSheetOpen: boolean }>`
+const FindLocateBtn = styled.button`
   position: absolute;
-  bottom: ${({ $isSheetOpen }) => ($isSheetOpen ? 'calc(310px + env(safe-area-inset-bottom))' : 'calc(80px + env(safe-area-inset-bottom))')};
-  right: ${({ theme }) => theme.space[4]};
-  z-index: 15;
+  top: -54px;
+  right: 16px;
+  z-index: 20;
   width: 44px;
   height: 44px;
   border: none;
@@ -999,7 +1012,7 @@ const FindLocateBtn = styled.button<{ $isSheetOpen: boolean }>`
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.16);
   cursor: pointer;
   backdrop-filter: blur(8px);
-  transition: bottom 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), transform 0.2s ease, box-shadow 0.2s ease;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 
   .icon {
     width: 22px;

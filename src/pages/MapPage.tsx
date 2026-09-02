@@ -45,20 +45,32 @@ export const MapPage: React.FC = () => {
   const handleDragMove = (clientY: number) => {
     if (!isDragging) return;
     const deltaY = clientY - startYRef.current;
-    if (deltaY > 0) {
-      setDragOffset(deltaY);
+    if (isSheetOpen) {
+      if (deltaY > 0) {
+        setDragOffset(deltaY);
+      } else {
+        setDragOffset(deltaY * 0.15);
+      }
     } else {
-      setDragOffset(deltaY * 0.3);
+      if (deltaY < 0) {
+        setDragOffset(deltaY);
+      } else {
+        setDragOffset(0);
+      }
     }
   };
 
   const handleDragEnd = () => {
     if (!isDragging) return;
     setIsDragging(false);
-    if (dragOffset > 80) {
-      setIsSheetOpen(false);
+    if (isSheetOpen) {
+      if (dragOffset > 50) {
+        setIsSheetOpen(false);
+      }
     } else {
-      setIsSheetOpen(true);
+      if (dragOffset < -30) {
+        setIsSheetOpen(true);
+      }
     }
     setDragOffset(0);
   };
@@ -362,13 +374,13 @@ export const MapPage: React.FC = () => {
       <MapArea className="map-canvas">
         <div id="route-map-api" style={{ width: '100%', height: '100%', position: 'relative', zIndex: 1 }} />
 
-        {/* 🤖 AI 실시간 길안내 HUD (지도 상단 플로팅 오버레이) */}
+        {/* 실시간 길안내 HUD (지도 상단 플로팅 오버레이) */}
         {isNavigating && (
           <AINavigationHUD>
-            <AINavIconBadge>➡️ 150m</AINavIconBadge>
+            <AINavIconBadge>150m</AINavIconBadge>
             <AINavTextWrap>
               <AINavTitle>300m 앞 사거리 우회전</AINavTitle>
-              <AINavSubText>🤖 AI 실시간 안내: "그늘이 우거진 쾌적한 보행로입니다. 150m 직진 후 오른쪽에 카페 입구가 보입니다."</AINavSubText>
+              <AINavSubText>150m 직진 후 오른쪽에 도착지 입구가 있습니다.</AINavSubText>
             </AINavTextWrap>
             <AINavEndBtn type="button" onClick={() => setIsNavigating(false)}>
               안내 종료
@@ -383,8 +395,8 @@ export const MapPage: React.FC = () => {
         $isOpen={isSheetOpen}
         style={{
           transform: isSheetOpen 
-            ? `translateY(${dragOffset}px)` 
-            : 'translateY(calc(100% - 68px))',
+            ? `translateY(${Math.max(0, dragOffset)}px)` 
+            : `translateY(calc(100% - 68px + ${Math.min(0, dragOffset)}px))`,
           transition: isDragging ? 'none' : 'transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)'
         }}
         onTouchMove={(e) => handleDragMove(e.touches[0].clientY)}
@@ -419,7 +431,7 @@ export const MapPage: React.FC = () => {
               setUserLocationLabel('내 현재 위치 (대전광역시 둔산동)');
             }}
           >
-            📍 대전 둔산동
+            대전 둔산동
           </LocationChipBtn>
           <LocationChipBtn
             type="button"
@@ -429,14 +441,14 @@ export const MapPage: React.FC = () => {
               setUserLocationLabel('내 현재 위치 (서울 성수동)');
             }}
           >
-            📍 서울 성수동
+            서울 성수동
           </LocationChipBtn>
           <LocationChipBtn
             type="button"
             className={userLocationLabel.includes('실시간 GPS') ? 'is-active' : ''}
             onClick={handleLocateClick}
           >
-            🛰️ GPS 탐색
+            GPS 탐색
           </LocationChipBtn>
         </LocationQuickChipsRow>
 
@@ -495,10 +507,10 @@ export const MapPage: React.FC = () => {
           {featuredRoute ? (
             <>
               <SectionHeader className="map-section-header">
-                <SectionTitle className="map-section-title">✨ AI 최적 추천 경로</SectionTitle>
+                <SectionTitle className="map-section-title">추천 경로</SectionTitle>
                 <SectionHint className="map-section-hint">
                   <Icon name="info" className="icon" />
-                  <span>실시간 AI 경사도/교통 반영</span>
+                  <span>실시간 경사도/교통 반영</span>
                 </SectionHint>
               </SectionHeader>
 
@@ -529,25 +541,22 @@ export const MapPage: React.FC = () => {
                   </RouteDesc>
                 )}
 
-                {/* AI 턴바이턴 길안내 구간 목록 */}
+                {/* 턴바이턴 길안내 구간 목록 */}
                 <AITurnList>
                   <AITurnRow>
-                    <span className="turn-icon">📍</span>
                     <span className="turn-text"><strong>{isSwapped ? destinationLabel : currentOriginLabel}</strong> 출발</span>
                   </AITurnRow>
                   <AITurnRow>
-                    <span className="turn-icon">➡️</span>
-                    <span className="turn-text">150m 직진 후 우회전 (🤖 AI 팁: "그늘이 많은 쾌적 보행로")</span>
+                    <span className="turn-text">150m 직진 후 우회전</span>
                   </AITurnRow>
                   <AITurnRow>
-                    <span className="turn-icon">☕</span>
                     <span className="turn-text"><strong>{isSwapped ? currentOriginLabel : destinationLabel}</strong> 입구 도착</span>
                   </AITurnRow>
                 </AITurnList>
 
-                {/* 1. 실시간 AI 길안내 시작 버튼 */}
+                {/* 길안내 시작 버튼 */}
                 <MapCtaBtn type="button" className="map-cta-btn" onClick={() => setIsNavigating(true)}>
-                  🚀 AI 실시간 길안내 시작
+                  길안내 시작
                 </MapCtaBtn>
               </RouteFeatured>
             </>
@@ -1123,34 +1132,45 @@ const MapSwapBtn = styled.button`
 
 const MapModeToggle = styled.div`
   display: flex;
-  gap: ${({ theme }) => theme.space[2]};
-  margin-bottom: ${({ theme }) => theme.space[6]};
+  gap: 8px;
+  margin-bottom: 16px;
+  width: 100%;
 `;
 
 const MapModeBtn = styled.button`
   flex: 1;
+  min-width: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  height: 44px;
+  gap: 4px;
+  height: 42px;
+  padding: 0 8px;
   border-radius: 50px;
   border: 1px solid ${({ theme }) => theme.colors.border};
   background: ${({ theme }) => theme.colors.surface};
   color: ${({ theme }) => theme.colors.text};
-  font-size: 14px;
+  font-size: 13.5px;
   font-weight: 700;
+  white-space: nowrap;
   transition: all 0.2s ease;
 
   .icon {
-    width: 17px;
-    height: 17px;
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
   }
 
   &.is-active {
     background: ${({ theme }) => theme.colors.primary};
     border-color: ${({ theme }) => theme.colors.primary};
     color: #ffffff;
+  }
+
+  @media (max-width: 380px) {
+    font-size: 12.5px;
+    padding: 0 4px;
+    gap: 3px;
   }
 `;
 
