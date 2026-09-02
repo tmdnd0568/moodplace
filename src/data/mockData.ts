@@ -683,8 +683,154 @@ export function getCuratorMessage(moodIds: string[]): string {
   return CURATOR_MESSAGES.default;
 }
 
+export const REGIONAL_MOCK_CAFES: Record<string, Cafe[]> = {
+  대전: [
+    {
+      id: 'daejeon-1',
+      name: '하치카페',
+      location: '대전 서구 둔산동',
+      description: '일본 감성의 아늑하고 따뜻한 원목 분위기를 자랑하는 둔산동 대표 감성 카페',
+      match: 98,
+      tags: ['#둔산동', '#감성카페', '#일본풍'],
+      mood: ['cozy', 'warm'],
+      bookmarked: false,
+      hero: true,
+      photo: { type: 'gradient', from: '#e0c3fc', to: '#8ec5fc', emoji: '☕' },
+      aiReason: '둔산동 중심에서 차분한 분위기와 특유의 아늑한 원목 인테리어로 최고의 만족도를 주는 카페입니다.',
+      isExternalRegion: true,
+      targetRegion: '대전 둔산동',
+      detail: {
+        detailTags: ['둔산동', '감성카페'],
+        description: '대전 둔산동에 위치한 따뜻한 일본 감성 디저트 전문 카페입니다.',
+        rating: 4.8,
+        hoursLabel: '12:00 - 21:00',
+        reviewCount: 150,
+        menu: [
+          { id: 'dj-m1', name: '말차 롤케이크', price: '6,500원', desc: '진한 유기농 말차 크림이 들어간 수제 롤케이크', image: '/assets/menu_onion_pandoro.jpg' },
+          { id: 'dj-m2', name: '하치 크림라떼', price: '6,000원', desc: '고소한 넛츠 크림이 들어간 시그니처 라떼', image: '/assets/menu_onion_coffee.jpg' }
+        ],
+        reviews: [
+          { id: 'dj-r1', author: '대전시민', initial: 'D', rating: 5, date: '1일 전', text: '둔산동에서 분위기 제일 좋은 아기자기한 카페입니다!', tags: ['#둔산동핫플'], likes: 10 }
+        ]
+      }
+    },
+    {
+      id: 'daejeon-2',
+      name: '크러쉬온바이트',
+      location: '대전 서구 둔산남로9번길 83',
+      description: '화려한 비주얼의 수제 케이크와 세련된 모던 인테리어가 돋보이는 둔산동 디저트 핫플',
+      match: 95,
+      tags: ['#둔산동', '#케이크맛집', '#모던'],
+      mood: ['energetic', 'minimal'],
+      bookmarked: false,
+      hero: false,
+      photo: { type: 'gradient', from: '#fbc531', to: '#e1b12c', emoji: '🍰' },
+      aiReason: '수제 케이크 라인업과 세련된 모던 공간 구성으로 디저트 마니아들에게 인기 높은 곳입니다.',
+      isExternalRegion: true,
+      targetRegion: '대전 둔산동',
+      detail: {
+        detailTags: ['둔산동', '디저트맛집'],
+        description: '매일 아침 구워내는 프리미엄 케이크 전문점입니다.',
+        rating: 4.7,
+        hoursLabel: '11:00 - 22:30',
+        reviewCount: 180,
+        menu: [
+          { id: 'dj-m3', name: '딸기 생크림 케이크', price: '7,500원', desc: '100% 동물성 생크림 수제 케이크', image: '/assets/menu_daelim_tart.jpg' }
+        ],
+        reviews: []
+      }
+    },
+    {
+      id: 'daejeon-3',
+      name: '프랭크커피바 대전둔산점',
+      location: '대전 서구 대덕대로217번길 19',
+      description: '유럽 빈티지 에스프레소 바 감성과 시그니처 크림커피 전문점',
+      match: 93,
+      tags: ['#에스프레소바', '#둔산동', '#크로플'],
+      mood: ['vintage', 'dreamy'],
+      bookmarked: false,
+      hero: false,
+      photo: { type: 'gradient', from: '#487eb0', to: '#40739e', emoji: '☕' },
+      aiReason: '유럽풍의 이국적 감성과 시그니처 크림 커피의 풍미가 뛰어난 명소입니다.',
+      isExternalRegion: true,
+      targetRegion: '대전 둔산동',
+      detail: {
+        detailTags: ['둔산동', '에스프레소바'],
+        description: '유럽 감성의 힙한 에스프레소 바입니다.',
+        rating: 4.6,
+        hoursLabel: '12:00 - 22:00',
+        reviewCount: 110,
+        menu: [
+          { id: 'dj-m4', name: '프랭크 커피', price: '6,000원', desc: '달콤한 크림이 올라간 아인슈페너', image: '/assets/menu_grandpa_einspanner.jpg' }
+        ],
+        reviews: []
+      }
+    }
+  ],
+  부산: [
+    {
+      id: 'busan-1',
+      name: '랑데자뷰 해운대점',
+      location: '부산 해운대구 달맞이길 62',
+      description: '해운대 바다 파노라마 뷰와 제주 감성 현무암 인테리어',
+      match: 98,
+      tags: ['#해운대', '#오션뷰', '#제주감성'],
+      mood: ['dreamy', 'calm'],
+      bookmarked: false,
+      hero: true,
+      photo: { type: 'gradient', from: '#8ec5fc', to: '#e0c3fc', emoji: '🌊' },
+      aiReason: '탁 트인 해운대 오션뷰와 현무암 인테리어가 어우러진 분위기 맛집입니다.',
+      isExternalRegion: true,
+      targetRegion: '부산 해운대',
+      detail: {
+        detailTags: ['해운대', '오션뷰'],
+        description: '바다가 한눈에 보이는 힐링 오션뷰 카페입니다.',
+        rating: 4.8,
+        hoursLabel: '09:30 - 22:00',
+        reviewCount: 240,
+        menu: [],
+        reviews: []
+      }
+    }
+  ],
+  제주: [
+    {
+      id: 'jeju-1',
+      name: '울트라마린',
+      location: '제주 제주시 한경면 일주서로 4611',
+      description: '제주 서쪽 노을이 일품인 차분하고 아늑한 스페셜티 로스터리',
+      match: 98,
+      tags: ['#제주카페', '#노을맛집', '#스페셜티'],
+      mood: ['calm', 'cozy'],
+      bookmarked: false,
+      hero: true,
+      photo: { type: 'gradient', from: '#fbc531', to: '#487eb0', emoji: '🌅' },
+      aiReason: '제주의 붉은 노을과 함께 스페셜티 커피를 맛볼 수 있는 곳입니다.',
+      isExternalRegion: true,
+      targetRegion: '제주도',
+      detail: {
+        detailTags: ['제주', '노을'],
+        description: '제주 바다와 일몰이 아름다운 공간입니다.',
+        rating: 4.9,
+        hoursLabel: '11:00 - 19:30',
+        reviewCount: 310,
+        menu: [],
+        reviews: []
+      }
+    }
+  ]
+};
+
 export function mockAiSearch(moodIds: string[], description: string): Cafe[] {
   const query = description.trim().toLowerCase();
+  
+  // 외부 지역 검색어 즉시 감지 (대전, 둔산, 부산, 제주)
+  for (const [regionKey, cafeList] of Object.entries(REGIONAL_MOCK_CAFES)) {
+    if (query.includes(regionKey) || (regionKey === '대전' && query.includes('둔산'))) {
+      return cafeList;
+    }
+  }
+
   const words = query ? query.split(/\s+/).filter(Boolean) : [];
 
   const scored = MOCK_CAFES.map((cafe) => {

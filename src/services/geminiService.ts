@@ -97,6 +97,7 @@ Each JSON object MUST have keys:
           headers: {
             'Content-Type': 'application/json',
           },
+          signal: AbortSignal.timeout(1800), // 1.8초 초고속 타임아웃
           body: JSON.stringify({
             contents: [
               {
@@ -104,8 +105,8 @@ Each JSON object MUST have keys:
               },
             ],
             generationConfig: {
-              temperature: 0.7,
-              maxOutputTokens: 1500,
+              temperature: 0.2,
+              maxOutputTokens: 350,
             },
           }),
         }
