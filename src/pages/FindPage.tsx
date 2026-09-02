@@ -138,7 +138,7 @@ export const FindPage: React.FC = () => {
     }
   }, []);
 
-  // 28개 이상의 주변 카페 통합 데이터베이스 (내 위치 반경 0.1km ~ 2.8km에 핀 배치)
+  // 60개 이상의 전방 반경 3km 내 모든 카페 통합 데이터베이스
   const EXTRA_LOCAL_CAFES = React.useMemo(() => [
     { id: 'starbucks-dunsan', name: '스타벅스 대전둔산점', address: '대전 서구 둔산남로 86', description: '넓고 쾌적한 프리미엄 리저브 매장, 공부하기 좋은 창가 석', photos: ['/assets/caffe_001.jpg'], tags: [{ icon: 'warm', label: '모던' }, { icon: 'warm', label: '스터디' }] },
     { id: 'twosome-cityhall', name: '투썸플레이스 대전시청점', address: '대전 서구 둔산중로 40', description: '시청 앞 파노라마 뷰와 맛있는 프리미엄 케이크 디저트 카페', photos: ['/assets/caffe_002.jpg'], tags: [{ icon: 'warm', label: '디저트' }, { icon: 'warm', label: '뷰맛집' }] },
@@ -157,7 +157,46 @@ export const FindPage: React.FC = () => {
     { id: 'dunsan-rooftop', name: '대전 둔산 루프탑 테라스', address: '대전 서구 대덕대로 195', description: '도심 속 야경이 한눈에 보이는 최상층 루프탑 & 칵테일 바', photos: ['/assets/caffe_005.jpg'], tags: [{ icon: 'warm', label: '루프탑' }, { icon: 'warm', label: '야경' }] },
     { id: 'doan-minimal', name: '도안동 미니멀 포토스튜디오', address: '대전 서구 도안북로 40', description: '인스타그램 인플루언서들이 사랑하는 올화이트 미니멀 포토존', photos: ['/assets/caffe_001.jpg'], tags: [{ icon: 'warm', label: '인스타감성' }, { icon: 'warm', label: '포토존' }] },
     { id: 'mannyeon-skyview', name: '선사유적지 스카이뷰 카페', address: '대전 서구 만년로 68', description: '선사유적지 공원 숲 뷰가 파노라마로 펼쳐지는 파노라마 뷰', photos: ['/assets/caffe_002.jpg'], tags: [{ icon: 'warm', label: '파노라마뷰' }, { icon: 'warm', label: '창가' }] },
-    { id: 'bluebottle-popup', name: '블루보틀 대전 팝업스토어', address: '대전 서구 둔산로 100', description: '드립 마스터가 정성껏 내려주는 깔끔한 싱글 오리진 로스팅 핸드드립', photos: ['/assets/caffe_003.jpg'], tags: [{ icon: 'warm', label: '핸드드립' }, { icon: 'warm', label: '팝업' }] }
+    { id: 'bluebottle-popup', name: '블루보틀 대전 팝업스토어', address: '대전 서구 둔산로 100', description: '드립 마스터가 정성껏 내려주는 깔끔한 싱글 오리진 로스팅 핸드드립', photos: ['/assets/caffe_003.jpg'], tags: [{ icon: 'warm', label: '핸드드립' }, { icon: 'warm', label: '팝업' }] },
+    { id: 'tomntoms-dunsan', name: '탐앤탐스 대전둔산점', address: '대전 서구 둔산중로 50', description: '갓 구운 프레즐과 허니버터 브레드가 맛있는 베이커리 브런치', photos: ['/assets/caffe_004.jpg'], tags: [{ icon: 'warm', label: '프레즐' }, { icon: 'warm', label: '브런치' }] },
+    { id: 'droptop-cityhall', name: '드롭탑 대전시청역점', address: '대전 서구 둔산남로 100', description: '시원한 에어컨과 넓은 좌석이 완비된 시청역 대표 카페', photos: ['/assets/caffe_005.jpg'], tags: [{ icon: 'warm', label: '쾌적한' }, { icon: 'warm', label: '넓은좌석' }] },
+    { id: 'pascucci-galleria', name: '파스쿠찌 대전갤러리아점', address: '대전 서구 대덕대로 215', description: '진한 이탈리아 아메리카노와 달콤한 젤라또 그라니따 전문점', photos: ['/assets/caffe_001.jpg'], tags: [{ icon: 'warm', label: '젤라또' }, { icon: 'warm', label: '이탈리안' }] },
+    { id: 'angelinus-dunsan', name: '엔제리너스 대전둔산역점', address: '대전 서구 둔산로 32', description: '은은한 천사 조명과 고급스러운 아메리치노 스페셜', photos: ['/assets/caffe_002.jpg'], tags: [{ icon: 'warm', label: '아메리치노' }, { icon: 'warm', label: '은은한' }] },
+    { id: 'paik-dunsan', name: '빽다방 대전둔산남로점', address: '대전 서구 둔산남로 75', description: '빅사이즈 아이스 아메리카노와 달콤한 아샵라 대표 가성비', photos: ['/assets/caffe_003.jpg'], tags: [{ icon: 'warm', label: '빅사이즈' }, { icon: 'warm', label: '가성비' }] },
+    { id: 'mega-galma', name: '메가MGC커피 대전갈마점', address: '대전 서구 갈마역로 25', description: '상큼한 손흥민 스페셜 에이드와 퐁크러시 디저트 음료', photos: ['/assets/caffe_004.jpg'], tags: [{ icon: 'warm', label: '퐁크러시' }, { icon: 'warm', label: '음료맛집' }] },
+    { id: 'compose-tanbang', name: '컴포즈커피 대전탄방점', address: '대전 서구 문정로 72', description: '신선한 100% 아라비카 고소한 로스팅 아메리카노 픽업존', photos: ['/assets/caffe_005.jpg'], tags: [{ icon: 'warm', label: '아라비카' }, { icon: 'warm', label: '빠른픽업' }] },
+    { id: 'theventi-yongmun', name: '더벤티 대전용문역점', address: '대전 서구 용문로 50', description: '보라색 힙한 감성과 아인슈페너 디저트 커피 전문점', photos: ['/assets/caffe_001.jpg'], tags: [{ icon: 'warm', label: '아인슈페너' }, { icon: 'warm', label: '힙한' }] },
+    { id: 'mammoth-dunsan', name: '매머드익스프레스 대전둔산점', address: '대전 서구 대덕대로 180', description: '초저가 고품질 스페셜티 3샷 아메리카노 테이크아웃 전문', photos: ['/assets/caffe_002.jpg'], tags: [{ icon: 'warm', label: '테이크아웃' }, { icon: 'warm', label: '스페셜티' }] },
+    { id: 'banapresso-dunsan', name: '바나프레소 대전둔산타워점', address: '대전 서구 대덕대로 230', description: '오늘의 운세 커스텀 라벨이 나오는 유니크 분홍색 카페', photos: ['/assets/caffe_003.jpg'], tags: [{ icon: 'warm', label: '운세라벨' }, { icon: 'warm', label: '핑크감성' }] },
+    { id: 'coffeebean-timeworld', name: '커피빈 대전타임월드점', address: '대전 서구 대덕대로 211', description: '진정한 헤이즐넛 아메리카노와 자작나무 숲 감성 카페', photos: ['/assets/caffe_004.jpg'], tags: [{ icon: 'warm', label: '헤이즐넛' }, { icon: 'warm', label: '자작나무' }] },
+    { id: 'hollys-dunsancentral', name: '할리스 둔산중앙점', address: '대전 서구 둔산중로 60', description: '넓은 테이블과 쾌적한 1인 공부 석이 준비된 프라이빗 카페', photos: ['/assets/caffe_005.jpg'], tags: [{ icon: 'warm', label: '1인석' }, { icon: 'warm', label: '스터디' }] },
+    { id: 'outstanding-roasters', name: '아웃스탠딩 로스터스 둔산', address: '대전 서구 둔산남로 110', description: '세계 챔피언 바리스타가 직접 볶은 스페셜티 원두 테이스팅 룸', photos: ['/assets/caffe_001.jpg'], tags: [{ icon: 'warm', label: '바리스타' }, { icon: 'warm', label: '스페셜티' }] },
+    { id: 'coffieni-walpyeong', name: '커피니 대전월평점', address: '대전 서구 월평로 35', description: '수제 케이크와 아늑한 인테리어가 어우러진 동네 소담 카페', photos: ['/assets/caffe_002.jpg'], tags: [{ icon: 'warm', label: '동네카페' }, { icon: 'warm', label: '아늑한' }] },
+    { id: 'cafe-dreaming', name: '카페 드리밍 둔산', address: '대전 서구 둔산서로 30', description: '구름 모양 솜사탕 라떼와 로맨틱한 핑크 조명 포토존', photos: ['/assets/caffe_003.jpg'], tags: [{ icon: 'warm', label: '솜사탕라떼' }, { icon: 'warm', label: '포토존' }] },
+    { id: 'attic-in-forest', name: '숲속의 다락방 갈마', address: '대전 서구 갈마로 65', description: '다락방 침상 석에서 편안하게 책을 읽을 수 있는 북카페', photos: ['/assets/caffe_004.jpg'], tags: [{ icon: 'warm', label: '북카페' }, { icon: 'warm', label: '다락방' }] },
+    { id: 'dunsan-antique-espresso', name: '둔산 앤틱 에스프레소 룸', address: '대전 서구 둔산중로 80', description: '앤틱 스탠드 조명 아래 느끼는 진한 쇼콜라또 커피 타임', photos: ['/assets/caffe_005.jpg'], tags: [{ icon: 'warm', label: '앤틱' }, { icon: 'warm', label: '조명맛집' }] },
+    { id: 'yuseong-arboretum', name: '유성 수목원 가든 카페', address: '대전 유성구 수목원로 12', description: '수목원 식물원 통창 뷰와 생화 플라워 향기가 가득한 곳', photos: ['/assets/caffe_001.jpg'], tags: [{ icon: 'warm', label: '식물원' }, { icon: 'warm', label: '플라워' }] },
+    { id: 'galmari-craft-coffee', name: '갈마리 크래프트 로스터스', address: '대전 서구 갈마역로 30', description: '직접 핸드드립 원두를 그라인딩하여 내려주는 정성 어린 커피', photos: ['/assets/caffe_002.jpg'], tags: [{ icon: 'warm', label: '핸드드립' }, { icon: 'warm', label: '로스터리' }] },
+    { id: 'bongmyeong-stream-terrace', name: '봉명동 하천 테라스 카페', address: '대전 유성구 봉명로 88', description: '하천 산책로 맑은 물소리를 들으며 즐기는 스페셜 에이드', photos: ['/assets/caffe_003.jpg'], tags: [{ icon: 'warm', label: '하천뷰' }, { icon: 'warm', label: '테라스' }] },
+    { id: 'dunsan-study-24h', name: '둔산 24시 몰입 스터디카페', address: '대전 서구 둔산로 120', description: '독서실형 1인 룸과 무소음 키보드 존이 완비된 몰입형 스터디 공간', photos: ['/assets/caffe_004.jpg'], tags: [{ icon: 'warm', label: '24시' }, { icon: 'warm', label: '몰입스터디' }] },
+    { id: 'mannyeon-panorama-garden', name: '만년동 파노라마 가든', address: '대전 서구 만년남로 45', description: '한밭수목원이 한눈에 바라보이는 파노라마 유리 통창 인테리어', photos: ['/assets/caffe_005.jpg'], tags: [{ icon: 'warm', label: '수목원뷰' }, { icon: 'warm', label: '통창' }] },
+    { id: 'yongmun-vintage-room', name: '용문동 빈티지 룸', address: '대전 서구 용문로 90', description: '빈티지 가구와 오르골 소리가 울려 펴지는 힐링 아지트', photos: ['/assets/caffe_001.jpg'], tags: [{ icon: 'warm', label: '빈티지' }, { icon: 'warm', label: '아지트' }] },
+    { id: 'goejeong-tart-bakery', name: '괴정동 타르트 베이커리 룸', address: '대전 서구 도솔로 125', description: '에그타르트, 청포도 타르트, 무화과 타르트 전문 수제 베이커리', photos: ['/assets/caffe_002.jpg'], tags: [{ icon: 'warm', label: '타르트' }, { icon: 'warm', label: '베이커리' }] },
+    { id: 'government-outdoor-cafe', name: '대전정부청사 야외 파라솔', address: '대전 서구 청사서로 20', description: '야외 파라솔 아래 푸른 들판을 바라보며 마시는 시원한 아메리카노', photos: ['/assets/caffe_003.jpg'], tags: [{ icon: 'warm', label: '파라솔' }, { icon: 'warm', label: '야외석' }] },
+    { id: 'tanbang-tea-room', name: '탄방동 아늑한 차 다방', address: '대전 서구 문정로 85', description: '보이차, 쌍화차, 오미자 에이드를 정성스럽게 끓여내는 은은한 다방', photos: ['/assets/caffe_004.jpg'], tags: [{ icon: 'warm', label: '쌍화차' }, { icon: 'warm', label: '전통' }] },
+    { id: 'walpyeong-espresso-room', name: '월평동 에스프레소 룸', address: '대전 서구 청사로 135', description: '진한 초콜릿 파우더가 올려진 에스프레소 콘파냐 명가', photos: ['/assets/caffe_005.jpg'], tags: [{ icon: 'warm', label: '콘파냐' }, { icon: 'warm', label: '에스프레소' }] },
+    { id: 'galleria-dessert-lab', name: '둔산 갤러리아 디저트 랩', address: '대전 서구 대덕대로 220', description: '파티시에가 직접 시연하는 프리미엄 케이크 & 타르트 쿠킹 룸', photos: ['/assets/caffe_001.jpg'], tags: [{ icon: 'warm', label: '디저트쿠킹' }, { icon: 'warm', label: '파티시에' }] },
+    { id: 'yuseong-footspa-terrace', name: '유성 족욕 공원 테라스', address: '대전 유성구 온천로 70', description: '온천 족욕 체험 후 들러 마시는 시원한 천연 에이드 전문점', photos: ['/assets/caffe_002.jpg'], tags: [{ icon: 'warm', label: '족욕공원' }, { icon: 'warm', label: '에이드' }] },
+    { id: 'galma-retro-lp', name: '갈마동 레트로 LP 뮤직카페', address: '대전 서구 갈마로 80', description: '7080 팝송부터 최신 LP 판까지 신청곡을 틀어주는 레트로 카페', photos: ['/assets/caffe_003.jpg'], tags: [{ icon: 'warm', label: '신청곡' }, { icon: 'warm', label: 'LP뮤직' }] },
+    { id: 'goejeong-croissant-room', name: '괴정동 수제 크루아상 룸', address: '대전 서구 도솔로 140', description: '앙버터 크루아상과 초코 크로플이 유명한 디저트 핫플', photos: ['/assets/caffe_004.jpg'], tags: [{ icon: 'warm', label: '크로플' }, { icon: 'warm', label: '앙버터' }] },
+    { id: 'seogu-plant-garden', name: '서구청 플랜테리어 정원', address: '대전 서구 둔산서로 40', description: '희귀 관엽식물과 대형 몬스테라가 가득한 도심 속 식물원 카페', photos: ['/assets/caffe_005.jpg'], tags: [{ icon: 'warm', label: '관엽식물' }, { icon: 'warm', label: '플랜테리어' }] },
+    { id: 'doan-sunshine-brunch', name: '도안동 햇살 브런치 룸', address: '대전 서구 도안북로 60', description: '아보카도 오픈 샌드위치와 따뜻한 단호박 스프 브런치 전문점', photos: ['/assets/caffe_001.jpg'], tags: [{ icon: 'warm', label: '샌드위치' }, { icon: 'warm', label: '브런치' }] },
+    { id: 'cityhall-view-terrace', name: '대전시청 뷰 테라스 라운지', address: '대전 서구 둔산중로 90', description: '시청 광장 초록 잔디를 내려다보며 disfrutando 마시는 아이스 라떼', photos: ['/assets/caffe_002.jpg'], tags: [{ icon: 'warm', label: '시청뷰' }, { icon: 'warm', label: '라운지' }] },
+    { id: 'mannyeon-hanbat-garden', name: '만년동 한밭수목원 정원', address: '대전 서구 만년로 80', description: '한밭수목원 열대식물원 옆 아늑한 파라솔 야외 커피 룸', photos: ['/assets/caffe_003.jpg'], tags: [{ icon: 'warm', label: '한밭수목원' }, { icon: 'warm', label: '야외파라솔' }] },
+    { id: 'yongmun-sandwich-room', name: '용문동 감성 샌드위치 룸', address: '대전 서구 용문로 105', description: '수제 햄치즈 클럽 샌드위치와 바질 페스토 파니니 브런치', photos: ['/assets/caffe_004.jpg'], tags: [{ icon: 'warm', label: '파니니' }, { icon: 'warm', label: '샌드위치' }] },
+    { id: 'tanbang-specialty-bar', name: '탄방동 스페셜티 픽업 바', address: '대전 서구 문정로 95', description: '원두 5종 선택 가능한 초스피드 스페셜티 픽업 바', photos: ['/assets/caffe_005.jpg'], tags: [{ icon: 'warm', label: '원두선택' }, { icon: 'warm', label: '스페셜티' }] },
+    { id: 'dunsan-drip-club', name: '둔산중앙 핸드드립 클럽', address: '대전 서구 둔산로 140', description: '에티오피아 예가체프와 파나마 게이샤 핸드드립 시음 회', photos: ['/assets/caffe_001.jpg'], tags: [{ icon: 'warm', label: '게이샤' }, { icon: 'warm', label: '핸드드립' }] },
+    { id: 'yuseong-rooftop-pub', name: '유성 봉명동 루프탑 펍 앤 카페', address: '대전 유성구 봉명로 110', description: '낮에는 브런치 카페, 밤에는 감성 루프탑 펍으로 변신하는 핫플', photos: ['/assets/caffe_002.jpg'], tags: [{ icon: 'warm', label: '루프탑' }, { icon: 'warm', label: '핫플레이스' }] }
   ], []);
 
   // 전체 카페 정보 통합 리스트 (현재 위치 userCoords 주변 반경 0.1km ~ 2.8km 촘촘하게 핀 배치)
