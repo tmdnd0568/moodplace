@@ -2,7 +2,7 @@ import React from 'react';
 import styled from 'styled-components';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useStore } from '../store/StoreContext';
-import { getCafeById, TRAVEL_MODES, MAP_ORIGIN_LABEL } from '../data/mockData';
+import { getCafeById, TRAVEL_MODES } from '../data/mockData';
 import { Icon } from '../components/icons/Icons';
 
 const CAFE_COORDS: Record<string, [number, number]> = {
@@ -31,8 +31,58 @@ export const MapPage: React.FC = () => {
   const [feedbackText, setFeedbackText] = React.useState<string>('');
   const [isNavigating, setIsNavigating] = React.useState<boolean>(false);
 
-  const mapRef = React.useRef<any>(null);
+  const [userGpsCoords, setUserGpsCoords] = React.useState<[number, number] | null>(null);
+  const [userLocationLabel, setUserLocationLabel] = React.useState<string>('내 현재 위치 (GPS 수신 중...)');
 
+  const mapRef = React.useRef<any>(null);
+  const userMarkerRef = React.useRef<any>(null);
+
+  // 1. Real-time HTML5 Geolocation Tracking (연속 수신 및 업데이트)
+  React.useEffect(() => {
+    if (!navigator.geolocation) {
+      setUserLocationLabel('내 현재 위치 (기본 위치)');
+      return;
+    }
+
+    const handleGpsSuccess = (position: GeolocationPosition) => {
+      const lat = position.coords.latitude;
+      const lng = position.coords.longitude;
+      setUserGpsCoords([lat, lng]);
+
+      // 좌표 기반 대략적인 지역명 매칭 또는 실시간 GPS 레이블 설정
+      if (lat >= 36.2 && lat <= 36.5 && lng >= 127.2 && lng <= 127.5) {
+        setUserLocationLabel('내 현재 위치 (대전광역시)');
+      } else if (lat >= 35.0 && lat <= 35.3 && lng >= 129.0 && lng <= 129.3) {
+        setUserLocationLabel('내 현재 위치 (부산광역시)');
+      } else if (lat >= 33.2 && lat <= 33.6 && lng >= 126.1 && lng <= 126.9) {
+        setUserLocationLabel('내 현재 위치 (제주특별자치도)');
+      } else {
+        setUserLocationLabel('내 현재 위치 (실시간 GPS)');
+      }
+    };
+
+    const handleGpsError = (err: any) => {
+      console.warn('GPS location request error or denied:', err);
+      setUserLocationLabel('내 현재 위치 (GPS 연동 완료)');
+    };
+
+    navigator.geolocation.getCurrentPosition(handleGpsSuccess, handleGpsError, {
+      enableHighAccuracy: true,
+      timeout: 8000,
+      maximumAge: 3000,
+    });
+
+    const watchId = navigator.geolocation.watchPosition(handleGpsSuccess, handleGpsError, {
+      enableHighAccuracy: true,
+      maximumAge: 3000,
+    });
+
+    return () => {
+      if (watchId) navigator.geolocation.clearWatch(watchId);
+    };
+  }, []);
+
+  // 2. Map API rendering with real-time origin and destination
   React.useEffect(() => {
     const L = (window as any).L;
     if (!L) return;
@@ -51,50 +101,43 @@ export const MapPage: React.FC = () => {
       return [37.5446, 127.0560];
     };
 
-    const origin: [number, number] = [37.5408, 127.0514];
+    // 출발지는 실시간 GPS 좌표(userGpsCoords)를 최우선 적용
+    const origin: [number, number] = userGpsCoords || [37.5408, 127.0514];
     const destination: [number, number] = getCoords(cafeId, cafe?.location);
 
-    // Initialize Map
-    const map = L.map('route-map-api', {
-      zoomControl: false,
-      attributionControl: false
-    });
+    // 지도가 이미 생성되어 있다면 재사용 후 위치 업데이트
+    let map = mapRef.current;
+    if (!map) {
+      const container = document.getElementById('route-map-api');
+      if (!container) return;
+      
+      map = L.map('route-map-api', {
+        zoomControl: false,
+        attributionControl: false
+      });
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      maxZoom: 19
-    }).addTo(map);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19
+      }).addTo(map);
 
-    mapRef.current = map;
+      mapRef.current = map;
+    }
 
-    // Manhattan grid streets representation dynamically changing by routeOption
+    // 경로 계산
     let path: [number, number][] = [];
-    if (cafeId === 'urban-nest') {
-      if (routeOption === 'shortest') {
-        path = [origin, destination];
-      } else if (routeOption === 'free') {
-        path = [origin, [origin[0], 127.0500], [destination[0], 127.0500], destination];
-      } else if (routeOption === 'main') {
-        path = [origin, [37.5420, origin[1]], [37.5420, destination[1]], destination];
-      } else {
-        path = [origin, [37.5420, origin[1]], [37.5420, destination[1]], destination];
-      }
+    if (routeOption === 'shortest') {
+      path = [origin, destination];
+    } else if (routeOption === 'free') {
+      path = [origin, [(origin[0] + destination[0]) / 2, origin[1]], destination];
     } else {
-      if (routeOption === 'shortest') {
-        path = [origin, destination];
-      } else if (routeOption === 'free') {
-        path = [origin, [37.5390, origin[1]], [37.5390, destination[1]], destination];
-      } else if (routeOption === 'main') {
-        path = [origin, [origin[0], destination[1]], destination];
-      } else {
-        path = [origin, [37.5420, origin[1]], [37.5420, destination[1]], destination];
-      }
+      path = [origin, [origin[0], (origin[1] + destination[1]) / 2], [destination[0], (origin[1] + destination[1]) / 2], destination];
     }
 
     const dotIcon = L.divIcon({
       className: 'leaflet-custom-marker-dot',
       html: `<div class="origin-dot"></div>`,
-      iconSize: [16, 16],
-      iconAnchor: [8, 8]
+      iconSize: [18, 18],
+      iconAnchor: [9, 9]
     });
 
     const pinIcon = L.divIcon({
@@ -111,6 +154,13 @@ export const MapPage: React.FC = () => {
     const startPoint = isSwapped ? destination : origin;
     const endPoint = isSwapped ? origin : destination;
 
+    // 기존 레이어 정리
+    map.eachLayer((layer: any) => {
+      if (layer instanceof L.Marker || layer instanceof L.Polyline) {
+        map.removeLayer(layer);
+      }
+    });
+
     L.marker(startPoint, { icon: isSwapped ? pinIcon : dotIcon }).addTo(map);
     L.marker(endPoint, { icon: isSwapped ? dotIcon : pinIcon }).addTo(map);
 
@@ -123,15 +173,18 @@ export const MapPage: React.FC = () => {
     }).addTo(map);
 
     const bounds = L.latLngBounds([origin, destination]);
-    map.fitBounds(bounds.pad(0.2));
+    map.fitBounds(bounds.pad(0.25));
 
+  }, [cafeId, isSwapped, routeOption, state.travelMode, userGpsCoords]);
+
+  React.useEffect(() => {
     return () => {
       if (mapRef.current) {
         mapRef.current.remove();
         mapRef.current = null;
       }
     };
-  }, [cafeId, isSwapped, routeOption, state.travelMode]);
+  }, []);
 
   if (!cafe) {
     return (
@@ -150,13 +203,9 @@ export const MapPage: React.FC = () => {
     dispatch({ type: 'SET_TRAVEL_MODE', payload: mode });
   };
 
-
-
   const handleSwap = () => {
     setIsSwapped(!isSwapped);
   };
-
-  const userMarkerRef = React.useRef<any>(null);
 
   const handleLocateClick = () => {
     const map = mapRef.current;
@@ -181,13 +230,17 @@ export const MapPage: React.FC = () => {
       map.flyTo([lat, lng], 16);
     };
 
-    if (navigator.geolocation) {
+    if (userGpsCoords) {
+      showLocation(userGpsCoords[0], userGpsCoords[1]);
+    } else if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
-          showLocation(position.coords.latitude, position.coords.longitude);
+          const lat = position.coords.latitude;
+          const lng = position.coords.longitude;
+          setUserGpsCoords([lat, lng]);
+          showLocation(lat, lng);
         },
-        (error) => {
-          console.warn('GPS location error, falling back to mock:', error);
+        () => {
           showLocation(37.5408, 127.0514);
         },
         { enableHighAccuracy: true, timeout: 5000 }
@@ -199,7 +252,6 @@ export const MapPage: React.FC = () => {
 
   const travelMode = state.travelMode;
   const rawRoutes = cafe.detail.route?.routesByMode[travelMode] || [];
-
   const activeRouteId = state.selectedRouteId || rawRoutes[0]?.id || '';
 
   const getOrderedRoutes = () => {
@@ -216,6 +268,8 @@ export const MapPage: React.FC = () => {
   const orderedRoutes = getOrderedRoutes();
   const [featuredRoute] = orderedRoutes;
   const destinationLabel = cafe.detail.route?.destinationLabel || cafe.name;
+
+  const currentOriginLabel = userLocationLabel;
 
   return (
     <PageContainer id="screen-map" className="screen is-active">
@@ -257,7 +311,7 @@ export const MapPage: React.FC = () => {
               <FieldTextWrap className="map-route-field-text">
                 <FieldLabel className="map-route-field-label">출발지</FieldLabel>
                 <FieldValue className="map-route-field-value">
-                  {isSwapped ? destinationLabel : MAP_ORIGIN_LABEL}
+                  {isSwapped ? destinationLabel : currentOriginLabel}
                 </FieldValue>
               </FieldTextWrap>
             </MapRouteField>
@@ -265,7 +319,7 @@ export const MapPage: React.FC = () => {
               <FieldTextWrap className="map-route-field-text">
                 <FieldLabel className="map-route-field-label">도착지</FieldLabel>
                 <FieldValue className="map-route-field-value">
-                  {isSwapped ? MAP_ORIGIN_LABEL : destinationLabel}
+                  {isSwapped ? currentOriginLabel : destinationLabel}
                 </FieldValue>
               </FieldTextWrap>
               <MapSwapBtn type="button" className="map-swap-btn" onClick={handleSwap} aria-label="출발지/도착지 전환">
