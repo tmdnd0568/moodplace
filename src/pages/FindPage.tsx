@@ -75,23 +75,23 @@ function getUniqueHash(str: string): number {
 
 // 탐색된 모든 카페마다 완전히 고유한 분위기 1장 + 대표 메뉴 1장 이미지 매핑
 function getAIImagesForCafe(name: string, _tags: Array<{ label: string }>, id?: string, placePhotos?: string[]) {
-  if (placePhotos && placePhotos.length >= 2 && placePhotos[0].startsWith('http')) {
-    return [placePhotos[0], placePhotos[1]];
-  }
-
   const seed = id || name;
   const hash = getUniqueHash(seed);
 
   const atmoIndex = hash % ATMOSPHERE_PHOTOS.length;
   const menuIndex = (hash * 13 + 7) % MENU_PHOTOS.length;
 
-  const atmoUrl = (placePhotos && placePhotos[0] && placePhotos[0].startsWith('http'))
-    ? placePhotos[0]
-    : ATMOSPHERE_PHOTOS[atmoIndex];
+  let atmoUrl = ATMOSPHERE_PHOTOS[atmoIndex];
+  let menuUrl = MENU_PHOTOS[menuIndex];
 
-  const menuUrl = (placePhotos && placePhotos[1] && placePhotos[1].startsWith('http'))
-    ? placePhotos[1]
-    : MENU_PHOTOS[menuIndex];
+  if (placePhotos && placePhotos.length > 0) {
+    if (placePhotos[0] && placePhotos[0].startsWith('http')) {
+      atmoUrl = placePhotos[0];
+    }
+    if (placePhotos[1] && placePhotos[1].startsWith('http')) {
+      menuUrl = placePhotos[1];
+    }
+  }
 
   return [atmoUrl, menuUrl];
 }
