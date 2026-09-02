@@ -586,6 +586,16 @@ export const FindPage: React.FC = () => {
         </RadiusInfoFloatingBar>
       </MapCanvas>
 
+      {/* 내 위치 확인 버튼 - 바텀시트가 접히면 하단 고정, 열리면 바텀시트 위로 부드럽게 연동 */}
+      <FindLocateBtn
+        type="button"
+        $isSheetOpen={isSheetOpen}
+        onClick={handleLocateClick}
+        aria-label="현재 위치로 이동"
+      >
+        <Icon name="locate" className="icon" />
+      </FindLocateBtn>
+
       {/* 3) Bottom sheet with Drag Gestures */}
       <PlaceDetailSheet 
         className="find-sheet" 
@@ -593,7 +603,7 @@ export const FindPage: React.FC = () => {
         style={{
           transform: isSheetOpen 
             ? `translateY(${dragOffset}px)` 
-            : 'translateY(calc(100% - 64px))',
+            : 'translateY(calc(100% + 80px))',
           transition: isDragging ? 'none' : 'transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)'
         }}
         onTouchMove={(e) => handleDragMove(e.touches[0].clientY)}
@@ -602,14 +612,6 @@ export const FindPage: React.FC = () => {
         onMouseUp={handleDragEnd}
         onMouseLeave={handleDragEnd}
       >
-        {/* 📍 바텀시트 상단 바로 위에서 시트 이동에 100% 동기화하여 연동되는 내 위치 확인 버튼 */}
-        <LocateBtnAboveSheet
-          type="button"
-          onClick={handleLocateClick}
-          aria-label="현재 위치로 이동"
-        >
-          <Icon name="locate" className="icon" />
-        </LocateBtnAboveSheet>
 
         <SheetHandleWrapper 
           type="button" 
@@ -943,11 +945,11 @@ const RadiusChipBtn = styled.button<{ $active?: boolean }>`
   }
 `;
 
-const LocateBtnAboveSheet = styled.button`
+const FindLocateBtn = styled.button<{ $isSheetOpen: boolean }>`
   position: absolute;
-  top: -54px;
-  right: 16px;
-  z-index: 20;
+  bottom: ${({ $isSheetOpen }) => ($isSheetOpen ? 'calc(310px + env(safe-area-inset-bottom))' : 'calc(80px + env(safe-area-inset-bottom))')};
+  right: ${({ theme }) => theme.space[4]};
+  z-index: 15;
   width: 44px;
   height: 44px;
   border: none;
@@ -960,7 +962,7 @@ const LocateBtnAboveSheet = styled.button`
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.16);
   cursor: pointer;
   backdrop-filter: blur(8px);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition: bottom 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), transform 0.2s ease, box-shadow 0.2s ease;
 
   .icon {
     width: 22px;
