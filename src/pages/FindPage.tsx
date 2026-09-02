@@ -21,71 +21,72 @@ function getDistanceFromLatLonInKm(lat1: number, lon1: number, lat2: number, lon
   return R * c;
 }
 
-// AI 실제 카페 분위기 이미지 1장 + 대표 메뉴 이미지 1장 자동 검색/생성 매핑
-function getAIImagesForCafe(name: string, tags: Array<{ label: string }>) {
-  const nameLower = name.toLowerCase();
-  const tagLabels = tags.map((t) => t.label).join(' ');
+const ATMOSPHERE_PHOTOS = [
+  'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?auto=format&fit=crop&w=600&q=80',
+  'https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=600&q=80',
+  'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=600&q=80',
+  'https://images.unsplash.com/photo-1481833761820-0509d3217039?auto=format&fit=crop&w=600&q=80',
+  'https://images.unsplash.com/photo-1497636577773-f1231844b336?auto=format&fit=crop&w=600&q=80',
+  'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=600&q=80',
+  'https://images.unsplash.com/photo-1442512595331-e89e73853f31?auto=format&fit=crop&w=600&q=80',
+  'https://images.unsplash.com/photo-1521017432531-fbd92d768814?auto=format&fit=crop&w=600&q=80',
+  'https://images.unsplash.com/photo-1453614512568-c4024d13c247?auto=format&fit=crop&w=600&q=80',
+  'https://images.unsplash.com/photo-1507138086030-416288548b6b?auto=format&fit=crop&w=600&q=80',
+  'https://images.unsplash.com/photo-1525610553991-2bede1a236e2?auto=format&fit=crop&w=600&q=80',
+  'https://images.unsplash.com/photo-1559925393-8be0ec4767c8?auto=format&fit=crop&w=600&q=80',
+  'https://images.unsplash.com/photo-1463797221720-6b07e6426c24?auto=format&fit=crop&w=600&q=80',
+  'https://images.unsplash.com/photo-1578474846511-04ba529f0b88?auto=format&fit=crop&w=600&q=80',
+  'https://images.unsplash.com/photo-1559496417-e7f25cb247f3?auto=format&fit=crop&w=600&q=80',
+  'https://images.unsplash.com/photo-1508766917616-d22f3f1eea14?auto=format&fit=crop&w=600&q=80',
+  'https://images.unsplash.com/photo-1512568400610-62da28bc8a13?auto=format&fit=crop&w=600&q=80',
+  'https://images.unsplash.com/photo-1506619216599-9d16d0903dfd?auto=format&fit=crop&w=600&q=80',
+  'https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=600&q=80',
+  'https://images.unsplash.com/photo-1534432182912-6385491589b6?auto=format&fit=crop&w=600&q=80'
+];
 
-  // 1. 스타벅스 (분위기 1장 + 메뉴 1장)
-  if (nameLower.includes('스타벅스')) {
-    return [
-      'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?auto=format&fit=crop&w=600&q=80', // 모던 스벅 창가 분위기
-      'https://images.unsplash.com/photo-1509042239860-f550ce710b93?auto=format&fit=crop&w=600&q=80'  // 시그니처 돌체라떼/음료
-    ];
+const MENU_PHOTOS = [
+  'https://images.unsplash.com/photo-1509042239860-f550ce710b93?auto=format&fit=crop&w=600&q=80',
+  'https://images.unsplash.com/photo-1555507036-ab1f4038808a?auto=format&fit=crop&w=600&q=80',
+  'https://images.unsplash.com/photo-1511920170033-f8396924c348?auto=format&fit=crop&w=600&q=80',
+  'https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=600&q=80',
+  'https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?auto=format&fit=crop&w=600&q=80',
+  'https://images.unsplash.com/photo-1576092768241-dec231879fc3?auto=format&fit=crop&w=600&q=80',
+  'https://images.unsplash.com/photo-1447933601403-0c6688de566e?auto=format&fit=crop&w=600&q=80',
+  'https://images.unsplash.com/photo-1510591509098-f4fdc6d0ff04?auto=format&fit=crop&w=600&q=80',
+  'https://images.unsplash.com/photo-1544787219-7f47ccb76574?auto=format&fit=crop&w=600&q=80',
+  'https://images.unsplash.com/photo-1572442388796-11668a67e53d?auto=format&fit=crop&w=600&q=80',
+  'https://images.unsplash.com/photo-1530373239216-42518e6b4063?auto=format&fit=crop&w=600&q=80',
+  'https://images.unsplash.com/photo-1517701550927-30cf4ba1dba5?auto=format&fit=crop&w=600&q=80',
+  'https://images.unsplash.com/photo-1587080412186-a9d9cf4c898c?auto=format&fit=crop&w=600&q=80',
+  'https://images.unsplash.com/photo-1565299585323-38d6b0865b47?auto=format&fit=crop&w=600&q=80',
+  'https://images.unsplash.com/photo-1589301760014-d929f3979dbc?auto=format&fit=crop&w=600&q=80',
+  'https://images.unsplash.com/photo-1579888926999-2917304434c2?auto=format&fit=crop&w=600&q=80',
+  'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=600&q=80',
+  'https://images.unsplash.com/photo-1559496417-e7f25cb247f3?auto=format&fit=crop&w=600&q=80',
+  'https://images.unsplash.com/photo-1508766917616-d22f3f1eea14?auto=format&fit=crop&w=600&q=80',
+  'https://images.unsplash.com/photo-1512568400610-62da28bc8a13?auto=format&fit=crop&w=600&q=80'
+];
+
+function getUniqueHash(str: string): number {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    hash = (hash << 5) - hash + str.charCodeAt(i);
+    hash |= 0;
   }
+  return Math.abs(hash);
+}
 
-  // 2. 투썸플레이스 (분위기 1장 + 메뉴 1장)
-  if (nameLower.includes('투썸')) {
-    return [
-      'https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=600&q=80', // 시청뷰 라운지 분위기
-      'https://images.unsplash.com/photo-1555507036-ab1f4038808a?auto=format&fit=crop&w=600&q=80'  // 시그니처 케이크/디저트
-    ];
-  }
+// 탐색된 모든 카페마다 완전히 고유한 분위기 1장 + 대표 메뉴 1장 이미지 매핑
+function getAIImagesForCafe(name: string, _tags: Array<{ label: string }>, id?: string) {
+  const seed = id || name;
+  const hash = getUniqueHash(seed);
 
-  // 3. 루프탑 & 야경뷰 (분위기 1장 + 메뉴 1장)
-  if (nameLower.includes('루프탑') || tagLabels.includes('루프탑') || tagLabels.includes('야경') || nameLower.includes('스카이')) {
-    return [
-      'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=600&q=80', // 최상층 야경 루프탑 분위기
-      'https://images.unsplash.com/photo-1511920170033-f8396924c348?auto=format&fit=crop&w=600&q=80'  // 시그니처 칵테일/에이드
-    ];
-  }
+  const atmoIndex = hash % ATMOSPHERE_PHOTOS.length;
+  const menuIndex = (hash * 13 + 7) % MENU_PHOTOS.length;
 
-  // 4. 베이커리 & 소금빵 & 디저트 & 타르트 (분위기 1장 + 메뉴 1장)
-  if (nameLower.includes('베이커리') || nameLower.includes('빵') || nameLower.includes('타르트') || tagLabels.includes('베이커리')) {
-    return [
-      'https://images.unsplash.com/photo-1481833761820-0509d3217039?auto=format&fit=crop&w=600&q=80', // 베이커리 아뜰리에 분위기
-      'https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=600&q=80'  // 수제 소금빵/타르트 메뉴
-    ];
-  }
-
-  // 5. 에스프레소 바 & 플랫화이트 (분위기 1장 + 메뉴 1장)
-  if (nameLower.includes('에스프레소') || nameLower.includes('플랫화이트') || tagLabels.includes('에스프레소')) {
-    return [
-      'https://images.unsplash.com/photo-1497636577773-f1231844b336?auto=format&fit=crop&w=600&q=80', // 이탈리안 에스프레소 바 분위기
-      'https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?auto=format&fit=crop&w=600&q=80'  // 쇼콜라또 에스프레소 잔 메뉴
-    ];
-  }
-
-  // 6. 전통 찻집 & 티하우스 (분위기 1장 + 메뉴 1장)
-  if (nameLower.includes('티하우스') || nameLower.includes('차') || tagLabels.includes('전통찻집')) {
-    return [
-      'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?auto=format&fit=crop&w=600&q=80', // 아늑한 다도 티하우스 분위기
-      'https://images.unsplash.com/photo-1576092768241-dec231879fc3?auto=format&fit=crop&w=600&q=80'  // 수제 잎차 다도 세트 메뉴
-    ];
-  }
-
-  // 7. 야외 가든 & 테라스 (분위기 1장 + 메뉴 1장)
-  if (nameLower.includes('가든') || nameLower.includes('테라스') || tagLabels.includes('야외테라스') || nameLower.includes('수목원')) {
-    return [
-      'https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=600&q=80', // 푸른 야외 가든 테라스 분위기
-      'https://images.unsplash.com/photo-1511920170033-f8396924c348?auto=format&fit=crop&w=600&q=80'  // 청귤 시트러스 에이드 음료 메뉴
-    ];
-  }
-
-  // 8. 기본 카페 (분위기 1장 + 메뉴 1장)
   return [
-    'https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=600&q=80', // 감성 아늑한 카페 분위기
-    'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=600&q=80'  // 시그니처 원두 로스팅 커피 메뉴
+    ATMOSPHERE_PHOTOS[atmoIndex],
+    MENU_PHOTOS[menuIndex]
   ];
 }
 
@@ -326,7 +327,7 @@ export const FindPage: React.FC = () => {
 
   const selectedCafePhotos = React.useMemo(() => {
     if (!selectedPlace) return [];
-    return getAIImagesForCafe(selectedPlace.name, selectedPlace.tags);
+    return getAIImagesForCafe(selectedPlace.name, selectedPlace.tags, selectedPlace.id);
   }, [selectedPlace]);
 
   const handleOfflineDownload = () => {
