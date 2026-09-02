@@ -31,6 +31,38 @@ export const MapPage: React.FC = () => {
   const [feedbackText, setFeedbackText] = React.useState<string>('');
   const [isNavigating, setIsNavigating] = React.useState<boolean>(false);
 
+  // Drag Gesture States for MapSheet (올렸다가 내렸다가 하는 드래그 바텀시트)
+  const [isSheetOpen, setIsSheetOpen] = React.useState<boolean>(true);
+  const [dragOffset, setDragOffset] = React.useState<number>(0);
+  const [isDragging, setIsDragging] = React.useState<boolean>(false);
+  const startYRef = React.useRef<number>(0);
+
+  const handleDragStart = (clientY: number) => {
+    setIsDragging(true);
+    startYRef.current = clientY;
+  };
+
+  const handleDragMove = (clientY: number) => {
+    if (!isDragging) return;
+    const deltaY = clientY - startYRef.current;
+    if (deltaY > 0) {
+      setDragOffset(deltaY);
+    } else {
+      setDragOffset(deltaY * 0.3);
+    }
+  };
+
+  const handleDragEnd = () => {
+    if (!isDragging) return;
+    setIsDragging(false);
+    if (dragOffset > 80) {
+      setIsSheetOpen(false);
+    } else {
+      setIsSheetOpen(true);
+    }
+    setDragOffset(0);
+  };
+
   const [userGpsCoords, setUserGpsCoords] = React.useState<[number, number] | null>(null);
   
   const isDaejeonTarget = cafe?.location?.includes('대전') || cafe?.location?.includes('둔산') || cafe?.location?.includes('유성') || cafe?.name?.includes('대전') || cafe?.detail?.description?.includes('대전');
@@ -320,13 +352,53 @@ export const MapPage: React.FC = () => {
       {/* 2) Map Canvas - 상단 메인 지도가 배경 100% 채움 */}
       <MapArea className="map-canvas">
         <div id="route-map-api" style={{ width: '100%', height: '100%', position: 'relative', zIndex: 1 }} />
-        <MapLocateBtn type="button" onClick={handleLocateClick} aria-label="내 위치 확인">
-          <Icon name="locate" className="icon" />
-        </MapLocateBtn>
+
+        {/* 🤖 AI 실시간 길안내 HUD (지도 상단 플로팅 오버레이) */}
+        {isNavigating && (
+          <AINavigationHUD>
+            <AINavIconBadge>➡️ 150m</AINavIconBadge>
+            <AINavTextWrap>
+              <AINavTitle>300m 앞 사거리 우회전</AINavTitle>
+              <AINavSubText>🤖 AI 실시간 안내: "그늘이 우거진 쾌적한 보행로입니다. 150m 직진 후 오른쪽에 카페 입구가 보입니다."</AINavSubText>
+            </AINavTextWrap>
+            <AINavEndBtn type="button" onClick={() => setIsNavigating(false)}>
+              안내 종료
+            </AINavEndBtn>
+          </AINavigationHUD>
+        )}
       </MapArea>
 
-      {/* 3) 길찾기 패널 - 모바일 프레임 최하단(bottom: 0) 고정 */}
-      <MapSheet className="map-sheet">
+      {/* 3) 길찾기 드래그 패널 - 위아래로 당겨 올리고 내릴 수 있는 스마트 바텀시트 */}
+      <MapSheet 
+        className="map-sheet"
+        $isOpen={isSheetOpen}
+        style={{
+          transform: isSheetOpen 
+            ? `translateY(${dragOffset}px)` 
+            : 'translateY(calc(100% - 68px))',
+          transition: isDragging ? 'none' : 'transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)'
+        }}
+        onTouchMove={(e) => handleDragMove(e.touches[0].clientY)}
+        onTouchEnd={handleDragEnd}
+        onMouseMove={(e) => handleDragMove(e.clientY)}
+        onMouseUp={handleDragEnd}
+        onMouseLeave={handleDragEnd}
+      >
+        {/* 📍 바텀시트 이동에 100% 동기화되는 내 위치 확인 버튼 */}
+        <LocateBtnAboveSheet type="button" onClick={handleLocateClick} aria-label="내 위치 확인">
+          <Icon name="locate" className="icon" />
+        </LocateBtnAboveSheet>
+
+        {/* 바텀시트 드래그 손잡이 바 */}
+        <SheetHandleWrapper 
+          type="button" 
+          aria-label="길안내 창 드래그 및 접기/펼치기"
+          onTouchStart={(e) => handleDragStart(e.touches[0].clientY)}
+          onMouseDown={(e) => handleDragStart(e.clientY)}
+          onClick={() => setIsSheetOpen(!isSheetOpen)}
+        >
+          <SheetHandle className="map-sheet-handle" aria-hidden="true" />
+        </SheetHandleWrapper>
 
         {/* 위치 빠른 전환 칩 탭 */}
         <LocationQuickChipsRow>
@@ -414,10 +486,10 @@ export const MapPage: React.FC = () => {
           {featuredRoute ? (
             <>
               <SectionHeader className="map-section-header">
-                <SectionTitle className="map-section-title">추천 경로</SectionTitle>
+                <SectionTitle className="map-section-title">✨ AI 최적 추천 경로</SectionTitle>
                 <SectionHint className="map-section-hint">
                   <Icon name="info" className="icon" />
-                  <span>실시간 교통상황 반영</span>
+                  <span>실시간 AI 경사도/교통 반영</span>
                 </SectionHint>
               </SectionHeader>
 
@@ -448,9 +520,25 @@ export const MapPage: React.FC = () => {
                   </RouteDesc>
                 )}
 
-                {/* 1. 안내 시작 버튼을 추천 경로 카드 내부로 통합 */}
+                {/* AI 턴바이턴 길안내 구간 목록 */}
+                <AITurnList>
+                  <AITurnRow>
+                    <span className="turn-icon">📍</span>
+                    <span className="turn-text"><strong>{isSwapped ? destinationLabel : currentOriginLabel}</strong> 출발</span>
+                  </AITurnRow>
+                  <AITurnRow>
+                    <span className="turn-icon">➡️</span>
+                    <span className="turn-text">150m 직진 후 우회전 (🤖 AI 팁: "그늘이 많은 쾌적 보행로")</span>
+                  </AITurnRow>
+                  <AITurnRow>
+                    <span className="turn-icon">☕</span>
+                    <span className="turn-text"><strong>{isSwapped ? currentOriginLabel : destinationLabel}</strong> 입구 도착</span>
+                  </AITurnRow>
+                </AITurnList>
+
+                {/* 1. 실시간 AI 길안내 시작 버튼 */}
                 <MapCtaBtn type="button" className="map-cta-btn" onClick={() => setIsNavigating(true)}>
-                  안내 시작
+                  🚀 AI 실시간 길안내 시작
                 </MapCtaBtn>
               </RouteFeatured>
             </>
@@ -737,39 +825,154 @@ const MapArea = styled.div`
   }
 `;
 
-const MapLocateBtn = styled.button`
+const LocateBtnAboveSheet = styled.button`
   position: absolute;
-  top: 68px;
-  right: ${({ theme }) => theme.space[4]};
-  z-index: 10;
-  width: 40px;
-  height: 40px;
+  top: -54px;
+  right: 16px;
+  z-index: 20;
+  width: 44px;
+  height: 44px;
   border: none;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.95);
-  color: ${({ theme }) => theme.colors.text};
+  background: #ffffff;
+  color: ${({ theme }) => theme.colors.primary};
   display: flex;
   align-items: center;
   justify-content: center;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.16);
   cursor: pointer;
-  box-shadow: 0 2px 8px rgba(26, 26, 26, 0.15);
-  backdrop-filter: blur(4px);
-  transition: background 0.2s, transform 0.2s, box-shadow 0.2s;
+  backdrop-filter: blur(8px);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 
   .icon {
-    width: 20px;
-    height: 20px;
+    width: 22px;
+    height: 22px;
     color: ${({ theme }) => theme.colors.primary};
   }
 
   &:hover {
-    background: #ffffff;
-    transform: scale(1.05);
-    box-shadow: 0 4px 12px rgba(45, 82, 68, 0.2);
+    transform: scale(1.06);
+    box-shadow: 0 6px 20px rgba(45, 82, 68, 0.25);
+  }
+
+  &:active {
+    transform: scale(0.94);
   }
 `;
 
-const MapSheet = styled.div`
+const SheetHandleWrapper = styled.button`
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  padding: 8px 0 14px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  z-index: 11;
+`;
+
+const SheetHandle = styled.div`
+  width: 40px;
+  height: 4px;
+  border-radius: ${({ theme }) => theme.radius.pill};
+  background: ${({ theme }) => theme.colors.border};
+`;
+
+const AINavigationHUD = styled.div`
+  position: absolute;
+  top: 72px;
+  left: 16px;
+  right: 16px;
+  z-index: 20;
+  background: rgba(45, 82, 68, 0.95);
+  backdrop-filter: blur(10px);
+  border-radius: 16px;
+  padding: 12px 16px;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-shadow: 0 8px 24px rgba(45, 82, 68, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+`;
+
+const AINavIconBadge = styled.div`
+  background: #ffffff;
+  color: #2d5244;
+  font-size: 13px;
+  font-weight: 800;
+  padding: 6px 10px;
+  border-radius: 12px;
+  white-space: nowrap;
+`;
+
+const AINavTextWrap = styled.div`
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+`;
+
+const AINavTitle = styled.div`
+  font-size: 14.5px;
+  font-weight: 800;
+  letter-spacing: -0.2px;
+`;
+
+const AINavSubText = styled.div`
+  font-size: 11.5px;
+  color: rgba(255, 255, 255, 0.85);
+  line-height: 1.3;
+`;
+
+const AINavEndBtn = styled.button`
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 6px 12px;
+  border-radius: 10px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: #ffffff;
+    color: #2d5244;
+  }
+`;
+
+const AITurnList = styled.div`
+  margin: 12px 0 16px;
+  background: rgba(45, 82, 68, 0.04);
+  border: 1px dashed rgba(45, 82, 68, 0.2);
+  border-radius: 12px;
+  padding: 10px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+`;
+
+const AITurnRow = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12.5px;
+  color: ${({ theme }) => theme.colors.text};
+
+  .turn-icon {
+    font-size: 14px;
+  }
+  .turn-text {
+    line-height: 1.4;
+    strong {
+      color: ${({ theme }) => theme.colors.primary};
+    }
+  }
+`;
+
+const MapSheet = styled.div<{ $isOpen?: boolean }>`
   position: absolute;
   bottom: 0;
   left: 0;
@@ -778,9 +981,10 @@ const MapSheet = styled.div`
   z-index: 10;
   background: ${({ theme }) => theme.colors.surface};
   border-radius: 24px 24px 0 0;
-  padding: ${({ theme }) => theme.space[4]} ${({ theme }) => theme.space[5]};
+  padding: 0 ${({ theme }) => theme.space[5]} ${({ theme }) => theme.space[5]};
   box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.12);
   box-sizing: border-box;
+  transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
 `;
 
 const LocationQuickChipsRow = styled.div`
