@@ -234,7 +234,7 @@ export const SearchModal: React.FC = () => {
               ref={inputRef}
               autoFocus
               type="text"
-              placeholder="장소, 무드, 카페 Gemini AI에 검색..."
+              placeholder="오늘은 어떤장소를 찾으시나요"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               onKeyDown={(e) => {
@@ -244,17 +244,16 @@ export const SearchModal: React.FC = () => {
                 }
               }}
             />
-            {description && (
+            {description ? (
               <ClearInputBtn type="button" onClick={() => setDescription('')} aria-label="입력 초기화">
                 <Icon name="close" />
               </ClearInputBtn>
+            ) : (
+              <SearchSparkleIcon type="button" onClick={() => executeSearch(description)} aria-label="탐색">
+                <Icon name="sparkle" />
+              </SearchSparkleIcon>
             )}
           </SearchInputBox>
-
-          <AiModeBadgeBtn type="button" onClick={() => executeSearch(description)}>
-            <Icon name="sparkle" className="ai-badge-icon" />
-            <span>AI 모드</span>
-          </AiModeBadgeBtn>
         </SearchTopRow>
 
         {/* 최근 검색어 목록 (위 이미지와 동일한 세로 수직 리스트) */}
@@ -342,8 +341,8 @@ const ModalOverlay = styled.div`
   display: flex;
   justify-content: center;
   align-items: flex-start;
-  padding: 16px;
-  /* 메인 화면의 '오늘은 어떤장소를 찾으시나요' 검색 버튼 위치에 직접 연결되도록 상단 여백 정밀 조정 */
+  padding: 0 20px; /* 메인 화면 양쪽 여백 20px과 100% 가로 길이 일치 */
+  /* 메인 화면의 검색 버튼 위치에 연결되도록 상단 여백 설정 */
   padding-top: max(146px, env(safe-area-inset-top) + 138px);
   animation: ${fadeIn} 0.25s ease;
 `;
@@ -352,14 +351,16 @@ const ModalSheet = styled.div`
   width: 100%;
   max-width: ${({ theme }) => theme.layout.appMaxWidth};
   background: ${({ theme }) => theme.colors.surface};
-  border-radius: 20px;
-  padding: 16px 18px 20px 18px;
-  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.18);
+  border-radius: ${({ theme }) => theme.radius.md}; /* 검색 버튼 라운딩과 100% 동일 */
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  padding: 12px 16px 18px 16px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.16);
   position: relative;
   animation: ${slideDown} 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   max-height: calc(100vh - 170px);
   max-height: calc(100dvh - 170px);
   overflow-y: auto;
+  box-sizing: border-box;
 `;
 
 const ModalHandle = styled.button`
@@ -380,29 +381,20 @@ const ModalTitle = styled.h2`
   margin-bottom: ${({ theme }) => theme.space[1]};
 `;
 
-/* ─── 참고 이미지 스타일 상단 검색 바 ─── */
+/* ─── 검색 버튼과 100% 가로 길이가 일치하는 상단 검색 바 ─── */
 const SearchTopRow = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 12px;
+  width: 100%;
+  margin-bottom: 6px;
 `;
 
 const SearchInputBox = styled.div`
-  flex: 1;
+  width: 100%;
+  height: 48px;
   display: flex;
   align-items: center;
-  background: ${({ theme }) => theme.colors.bg};
-  border: 1.5px solid ${({ theme }) => theme.colors.border};
-  border-radius: 24px;
-  padding: 0 14px;
-  height: 48px;
+  background: transparent;
+  padding: 0;
   transition: all 0.2s ease;
-
-  &:focus-within {
-    border-color: ${({ theme }) => theme.colors.primary};
-    box-shadow: 0 0 0 3px rgba(45, 82, 68, 0.12);
-  }
 `;
 
 const SearchPlusIcon = styled.div`
@@ -410,17 +402,17 @@ const SearchPlusIcon = styled.div`
   align-items: center;
   justify-content: center;
   color: ${({ theme }) => theme.colors.textMuted};
-  margin-right: 8px;
+  margin-right: 10px;
   flex-shrink: 0;
 
   svg {
-    width: 18px;
-    height: 18px;
+    width: 20px;
+    height: 20px;
   }
 `;
 
 const TopSearchInput = styled.input`
-  width: 100%;
+  flex: 1;
   height: 100%;
   border: none;
   background: transparent;
@@ -429,8 +421,8 @@ const TopSearchInput = styled.input`
   outline: none;
 
   &::placeholder {
-    color: ${({ theme }) => theme.colors.textMuted};
-    font-size: 13.5px;
+    color: #a4a29e;
+    font-size: 14px;
   }
 `;
 
@@ -455,32 +447,20 @@ const ClearInputBtn = styled.button`
   }
 `;
 
-const AiModeBadgeBtn = styled.button`
+const SearchSparkleIcon = styled.button`
+  background: none;
+  border: none;
+  color: ${({ theme }) => theme.colors.primary};
+  padding: 4px;
+  cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 6px;
-  background: rgba(45, 82, 68, 0.08);
-  color: ${({ theme }) => theme.colors.primary};
-  border: 1.5px solid rgba(45, 82, 68, 0.2);
-  border-radius: 20px;
-  padding: 0 14px;
-  height: 48px;
-  font-size: 13.5px;
-  font-weight: 700;
-  cursor: pointer;
-  white-space: nowrap;
+  justify-content: center;
   flex-shrink: 0;
-  transition: all 0.2s ease;
 
-  &:hover {
-    background: ${({ theme }) => theme.colors.primary};
-    color: #ffffff;
-    border-color: ${({ theme }) => theme.colors.primary};
-  }
-
-  .ai-badge-icon {
-    width: 15px;
-    height: 15px;
+  svg {
+    width: 18px;
+    height: 18px;
   }
 `;
 
