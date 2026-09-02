@@ -134,12 +134,19 @@ export const MapPage: React.FC = () => {
       if (!container) return;
       
       map = L.map('route-map-api', {
+        preferCanvas: true, // GPU 하드웨어 가속 렌더러 적용
         zoomControl: false,
-        attributionControl: false
+        attributionControl: false,
+        fadeAnimation: true,
+        markerZoomAnimation: true,
+        inertia: true
       });
 
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 19
+        maxZoom: 19,
+        updateWhenZooming: false,
+        updateWhenIdle: true,
+        keepBuffer: 3
       }).addTo(map);
 
       mapRef.current = map;

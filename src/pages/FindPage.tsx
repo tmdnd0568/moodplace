@@ -227,18 +227,26 @@ export const FindPage: React.FC = () => {
   const circleRef = React.useRef<any>(null);
   const tileLayerRef = React.useRef<any>(null);
 
+  // 1. GPU 하드웨어 가속 Leaflet Map 엔진 초기화
   React.useEffect(() => {
     const L = (window as any).L;
     if (!L) return;
 
-    // Map 초기화 (내 위치 중심으로 설정)
     const map = L.map('find-map-api', {
+      preferCanvas: true, // GPU 하드웨어 가속 캔버스 렌더러로 렉 제거
       zoomControl: false,
-      attributionControl: false
+      attributionControl: false,
+      fadeAnimation: true,
+      markerZoomAnimation: true,
+      inertia: true,
+      inertiaDeceleration: 3000
     }).setView(userCoords, 14);
 
     const standardLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      maxZoom: 19
+      maxZoom: 19,
+      updateWhenZooming: false, // 줌 줌 시 타일 재렌더링 렉 방지
+      updateWhenIdle: true,     // 드래그 멈췄을 때만 타일 업데이트
+      keepBuffer: 3             // 렉 없는 매끄러운 스크롤을 위한 버퍼 유지
     }).addTo(map);
     tileLayerRef.current = standardLayer;
 
@@ -252,18 +260,19 @@ export const FindPage: React.FC = () => {
     };
   }, []);
 
-  // 3km 반경 원(Circle) 및 반경 내 카페 마커 업데이트
+  // 2. 3km 반경 원(Circle) 및 마커 생성 (반경 변경 시에만 고성능 재렌더링)
+  const userCoordsKey = userCoords.join(',');
   React.useEffect(() => {
     const L = (window as any).L;
     const map = mapRef.current;
     if (!L || !map) return;
 
-    // 기존 3km 원 및 마커 제거
+    // 기존 원 및 마커 제거
     if (circleRef.current) circleRef.current.remove();
     Object.values(markersRef.current).forEach((m: any) => m.remove());
     markersRef.current = {};
 
-    // 1. 내 위치 중심 반경 3km (3000m) 원(Circle) 레이어 표시
+    // 반경 원 오버레이 렌더링
     const circle = L.circle(userCoords, {
       radius: radiusKm * 1000,
       color: '#2d5244',
@@ -274,15 +283,14 @@ export const FindPage: React.FC = () => {
     }).addTo(map);
     circleRef.current = circle;
 
-    // 2. 반경 내 모든 카페 마커 생성 및 핀 표시
+    // 마커 생성 및 핑 등록
     cafesWithin3km.forEach((place) => {
-      const isActive = place.id === selectedPlaceId;
       const pinSvg = `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>`;
 
       const customIcon = L.divIcon({
         className: 'leaflet-custom-marker-container',
         html: `
-          <div class="custom-marker ${isActive ? 'is-active' : ''}">
+          <div class="custom-marker ${place.id === selectedPlaceId ? 'is-active' : ''}">
             <span class="marker-label">${place.name} (${place.distText})</span>
             <span class="marker-pin">${pinSvg}</span>
           </div>
@@ -294,19 +302,35 @@ export const FindPage: React.FC = () => {
       const marker = L.marker(place.coords, { icon: customIcon }).addTo(map);
       marker.on('click', () => {
         handlePlaceSelect(place.id);
+        map.panTo(place.coords, { animate: true, duration: 0.25 });
       });
 
       markersRef.current[place.id] = marker;
     });
 
-    // 선택된 카페 또는 반경으로 지도 뷰 조정
+  }, [userCoordsKey, radiusKm, cafesWithin3km]);
+
+  // 3. 선택된 카페 핀 클래스 토글 (전체 마커 파괴 없이 0ms 즉시 하이라이트)
+  React.useEffect(() => {
+    Object.entries(markersRef.current).forEach(([id, marker]) => {
+      const el = marker.getElement();
+      if (el) {
+        const child = el.querySelector('.custom-marker');
+        if (child) {
+          if (id === selectedPlaceId) {
+            child.classList.add('is-active');
+          } else {
+            child.classList.remove('is-active');
+          }
+        }
+      }
+    });
+
     const activeCafe = cafesWithin3km.find((c) => c.id === selectedPlaceId);
-    if (activeCafe) {
-      map.panTo(activeCafe.coords);
-    } else if (cafesWithin3km.length > 0) {
-      map.panTo(userCoords);
+    if (activeCafe && mapRef.current) {
+      mapRef.current.panTo(activeCafe.coords, { animate: true, duration: 0.25 });
     }
-  }, [userCoords, radiusKm, cafesWithin3km, selectedPlaceId]);
+  }, [selectedPlaceId]);
 
   const handlePlaceSelect = (id: string) => {
     setSelectedPlaceId(id);
