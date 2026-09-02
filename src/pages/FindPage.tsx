@@ -1441,7 +1441,7 @@ const SearchInput = styled.input`
   flex: 1;
   border: none;
   background: none;
-  font-size: 13.5px;
+  font-size: 16px; /* Prevent iOS & Mobile browser auto-zoom on input focus */
   color: #1a1a1a;
   outline: none;
   padding: 4px 0;
@@ -1449,6 +1449,7 @@ const SearchInput = styled.input`
 
   &::placeholder {
     color: #999999;
+    font-size: 14px;
   }
 `;
 
