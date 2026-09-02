@@ -111,7 +111,6 @@ export const FindPage: React.FC = () => {
   // 내 실시간 위치 및 반경 3km 설정
   const [userCoords, setUserCoords] = useState<[number, number]>([36.3537, 127.3872]); // 기본 대전/GPS 중심
   const [radiusKm, setRadiusKm] = useState<number>(3.0); // 반경 3km (기본)
-  const [userLocationName, setUserLocationName] = useState<string>('내 현재 위치 (대전 둔산동)');
   const [previewPhotoUrl, setPreviewPhotoUrl] = useState<string | null>(null);
 
   // Drag Gesture States for Bottom Sheet
@@ -131,15 +130,9 @@ export const FindPage: React.FC = () => {
           const lat = pos.coords.latitude;
           const lng = pos.coords.longitude;
           setUserCoords([lat, lng]);
-          if (lat >= 36.2 && lat <= 36.5 && lng >= 127.2 && lng <= 127.5) {
-            setUserLocationName('내 현재 위치 (대전광역시)');
-          } else {
-            setUserLocationName('내 현재 위치 (실시간 GPS)');
-          }
         },
         () => {
           setUserCoords([36.3537, 127.3872]);
-          setUserLocationName('내 현재 위치 (대전 둔산동)');
         },
         { enableHighAccuracy: true, timeout: 5000 }
       );
