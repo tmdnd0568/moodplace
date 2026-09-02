@@ -192,14 +192,28 @@ function createExternalCafe(item: any, idx: number): Cafe {
     { from: '#e84118', to: '#c23616', emoji: '✨' },
   ];
   const g = gradients[idx % gradients.length];
+  const realImages = [
+    '/assets/cafe_calm_forest.jpg',
+    '/assets/caffe_001.jpg',
+    '/assets/caffa_002.jpg',
+    '/assets/cafe_forest_lounge.jpg',
+    '/assets/cafe_urban_nest.jpg',
+    '/assets/caffa_003.jpg',
+    '/assets/cafe_vivid_garden.jpg',
+    '/assets/caffa_004.jpg',
+    '/assets/cafe_quiet_tea_room.jpg',
+    '/assets/cafe_brick_atelier.jpg',
+  ];
+
   const cafeId = item.id || `ext-${idx}-${Date.now()}`;
   const cafeName = item.name || '추천 카페';
-  const location = item.location || '원하시는 검색 지역';
+  const cafeLoc = item.location || '원하시는 검색 지역';
+  const selectedImage = item.image || realImages[idx % realImages.length];
 
   return {
     id: cafeId,
     name: cafeName,
-    location: location,
+    location: cafeLoc,
     description: item.description || `${cafeName}의 분위기 있는 명소 공간입니다.`,
     match: typeof item.match === 'number' ? item.match : parseInt(item.match) || 96 - idx * 2,
     tags: Array.isArray(item.tags) ? item.tags : ['#지역핫플', '#AI추천'],
@@ -207,7 +221,8 @@ function createExternalCafe(item: any, idx: number): Cafe {
     bookmarked: false,
     hero: idx === 0,
     photo: {
-      type: 'gradient',
+      type: 'image',
+      image: selectedImage,
       from: g.from,
       to: g.to,
       emoji: g.emoji,
