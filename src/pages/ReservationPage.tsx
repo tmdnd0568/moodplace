@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useStore } from '../store/StoreContext';
 import { getCafeById, FACILITY_META } from '../data/mockData';
 import { SubHeader } from '../components/SubHeader';
 import { Icon } from '../components/icons/Icons';
@@ -14,11 +15,30 @@ const CAFE_COORDS: Record<string, [number, number]> = {
   'brick-atelier': [37.54145, 127.06208],
 };
 
+function getCoordsForCafe(id: string, location: string = ''): [number, number] {
+  if (CAFE_COORDS[id]) return CAFE_COORDS[id];
+  const loc = (location || '').toLowerCase();
+  if (loc.includes('대전') || loc.includes('둔산')) return [36.3537, 127.3872];
+  if (loc.includes('부산') || loc.includes('해운대')) return [35.1587, 129.1604];
+  if (loc.includes('제주')) return [33.4996, 126.5312];
+  if (loc.includes('강남')) return [37.4979, 127.0276];
+  if (loc.includes('홍대') || loc.includes('마포')) return [37.5563, 126.9226];
+  if (loc.includes('대구')) return [35.8714, 128.6014];
+  if (loc.includes('광주')) return [35.1595, 126.8526];
+  if (loc.includes('수원')) return [37.2636, 127.0286];
+  return [37.5446, 127.0560];
+}
+
 export const ReservationPage: React.FC = () => {
   const { cafeId } = useParams<{ cafeId: string }>();
   const navigate = useNavigate();
+  const { state } = useStore();
 
-  const cafe = getCafeById(cafeId || '');
+  const cafe =
+    state.cafes.find((c) => c.id === cafeId) ||
+    state.searchResults.find((c) => c.id === cafeId) ||
+    getCafeById(cafeId || '');
+
   const [selectedDate, setSelectedDate] = useState('2026-08-05');
   const [selectedTime, setSelectedTime] = useState('14:00');
   const [isCopied, setIsCopied] = useState(false);
@@ -30,7 +50,7 @@ export const ReservationPage: React.FC = () => {
     const L = (window as any).L;
     if (!L) return;
 
-    const coords = CAFE_COORDS[cafe.id] || [37.5446, 127.0560];
+    const coords = getCoordsForCafe(cafe.id, cafe.location);
 
     // Initialize Map
     const map = L.map('preview-map-api', {
@@ -58,15 +78,13 @@ export const ReservationPage: React.FC = () => {
 
     L.marker(coords, { icon: pinIcon }).addTo(map);
 
-
-
     return () => {
       if (mapRef.current) {
         mapRef.current.remove();
         mapRef.current = null;
       }
     };
-  }, [cafeId]);
+  }, [cafe]);
 
   if (!cafe) {
     return (

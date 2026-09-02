@@ -19,7 +19,10 @@ export const MapPage: React.FC = () => {
   const navigate = useNavigate();
   const { state, dispatch } = useStore();
 
-  const cafe = getCafeById(cafeId);
+  const cafe =
+    state.cafes.find((c) => c.id === cafeId) ||
+    state.searchResults.find((c) => c.id === cafeId) ||
+    getCafeById(cafeId);
   const [isSwapped, setIsSwapped] = React.useState<boolean>(false);
   const [isMoreOpen, setIsMoreOpen] = React.useState<boolean>(false);
   const [routeOption, setRouteOption] = React.useState<string>('optimum');
@@ -34,8 +37,22 @@ export const MapPage: React.FC = () => {
     const L = (window as any).L;
     if (!L) return;
 
+    const getCoords = (id: string, location: string = ''): [number, number] => {
+      if (CAFE_COORDS[id]) return CAFE_COORDS[id];
+      const loc = (location || '').toLowerCase();
+      if (loc.includes('대전') || loc.includes('둔산')) return [36.3537, 127.3872];
+      if (loc.includes('부산') || loc.includes('해운대')) return [35.1587, 129.1604];
+      if (loc.includes('제주')) return [33.4996, 126.5312];
+      if (loc.includes('강남')) return [37.4979, 127.0276];
+      if (loc.includes('홍대') || loc.includes('마포')) return [37.5563, 126.9226];
+      if (loc.includes('대구')) return [35.8714, 128.6014];
+      if (loc.includes('광주')) return [35.1595, 126.8526];
+      if (loc.includes('수원')) return [37.2636, 127.0286];
+      return [37.5446, 127.0560];
+    };
+
     const origin: [number, number] = [37.5408, 127.0514];
-    const destination: [number, number] = CAFE_COORDS[cafeId] || [37.5446, 127.0560];
+    const destination: [number, number] = getCoords(cafeId, cafe?.location);
 
     // Initialize Map
     const map = L.map('route-map-api', {
