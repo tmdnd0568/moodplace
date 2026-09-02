@@ -503,15 +503,21 @@ const ThemeLabel = styled.span`
 
 const ModalOverlay = styled.div`
   position: fixed;
-  inset: 0;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: ${({ theme }) => theme.layout.appMaxWidth || '403px'};
   background: rgba(0, 0, 0, 0.45);
   z-index: 300;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 20px;
+  padding: 16px;
   backdrop-filter: blur(4px);
   animation: fadeIn 0.25s ease-out;
+  box-sizing: border-box;
 
   @keyframes fadeIn {
     from { opacity: 0; }
@@ -521,7 +527,6 @@ const ModalOverlay = styled.div`
 
 const ModalCard = styled.div`
   width: 100%;
-  max-width: min(420px, calc(100vw - 32px));
   background: ${({ theme }) => theme.colors.surface};
   border-radius: 20px;
   padding: 24px 20px;

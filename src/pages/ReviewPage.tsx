@@ -957,19 +957,24 @@ const PrimaryFootBtn = styled.button`
 /* ─── 리뷰 모달 관련 ─── */
 const ModalOverlay = styled.div`
   position: fixed;
-  inset: 0;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: ${({ theme }) => theme.layout.appMaxWidth || '403px'};
   background: rgba(0, 0, 0, 0.45);
   backdrop-filter: blur(5px);
   z-index: 300;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 20px;
+  padding: 16px;
+  box-sizing: border-box;
 `;
 
 const ModalCard = styled.div`
   width: 100%;
-  max-width: min(420px, calc(100vw - 32px));
   background: #ffffff;
   border-radius: 20px;
   padding: 24px 20px;

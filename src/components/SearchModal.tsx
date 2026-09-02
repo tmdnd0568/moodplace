@@ -334,24 +334,28 @@ const spin = keyframes`
 
 const ModalOverlay = styled.div`
   position: fixed;
-  inset: 0;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: ${({ theme }) => theme.layout.appMaxWidth || '403px'};
   background: rgba(0, 0, 0, 0.4);
   backdrop-filter: blur(2px);
   z-index: 200;
   display: flex;
   justify-content: center;
   align-items: flex-start;
-  padding: 0 20px; /* 메인 화면 양쪽 여백 20px과 100% 가로 길이 일치 */
-  /* 메인 화면의 검색 버튼 위치에 연결되도록 상단 여백 설정 */
+  padding: 0 16px;
   padding-top: max(146px, env(safe-area-inset-top) + 138px);
   animation: ${fadeIn} 0.25s ease;
+  box-sizing: border-box;
 `;
 
 const ModalSheet = styled.div`
   width: 100%;
-  max-width: ${({ theme }) => theme.layout.appMaxWidth};
   background: ${({ theme }) => theme.colors.surface};
-  border-radius: ${({ theme }) => theme.radius.md}; /* 검색 버튼 라운딩과 100% 동일 */
+  border-radius: ${({ theme }) => theme.radius.md};
   border: 1px solid ${({ theme }) => theme.colors.border};
   padding: 12px 16px 18px 16px;
   box-shadow: 0 12px 32px rgba(0, 0, 0, 0.16);

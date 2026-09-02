@@ -673,15 +673,21 @@ const BrandBadgeSvg = styled.svg`
 
 const ModalOverlay = styled.div`
   position: fixed;
-  inset: 0;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: ${({ theme }) => theme.layout.appMaxWidth || '403px'};
   background: rgba(0, 0, 0, 0.45);
   z-index: 300;
   display: flex;
-  align-items: center; /* 화면 정가운데 세로 정렬 */
-  justify-content: center; /* 화면 정가운데 가로 정렬 */
-  padding: 20px;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
   backdrop-filter: blur(4px);
   animation: fadeIn 0.25s ease-out;
+  box-sizing: border-box;
 
   @keyframes fadeIn {
     from { opacity: 0; }
@@ -691,9 +697,8 @@ const ModalOverlay = styled.div`
 
 const ModalCard = styled.div`
   width: 100%;
-  max-width: min(420px, calc(100vw - 32px));
   background: ${({ theme }) => theme.colors.surface};
-  border-radius: 20px; /* 전체 둥근 모서리 적용 */
+  border-radius: 20px;
   padding: 24px 20px;
   max-height: 80vh;
   max-height: 80dvh;
