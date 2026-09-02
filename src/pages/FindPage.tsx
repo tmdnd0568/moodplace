@@ -497,6 +497,7 @@ const PageContainer = styled.section`
   background: ${({ theme }) => theme.colors.bg};
   position: relative;
   height: 100vh;
+  height: 100dvh;
   width: 100%;
   overflow: hidden;
 `;
@@ -644,7 +645,7 @@ const MapCanvas = styled.div`
 
 const FindLocateBtn = styled.button<{ $isSheetOpen: boolean }>`
   position: absolute;
-  bottom: ${({ $isSheetOpen }) => ($isSheetOpen ? '260px' : '80px')};
+  bottom: ${({ $isSheetOpen }) => ($isSheetOpen ? 'calc(260px + env(safe-area-inset-bottom))' : 'calc(80px + env(safe-area-inset-bottom))')};
   right: ${({ theme }) => theme.space[4]};
   z-index: 4;
   width: 42px;
@@ -667,7 +668,7 @@ const FindLocateBtn = styled.button<{ $isSheetOpen: boolean }>`
 
 const PlaceDetailSheet = styled.div<{ $isOpen: boolean }>`
   position: absolute;
-  bottom: 60px; /* Sits exactly above the BottomNav */
+  bottom: calc(60px + env(safe-area-inset-bottom)); /* Sits exactly above the BottomNav */
   left: 0;
   right: 0;
   z-index: 10;

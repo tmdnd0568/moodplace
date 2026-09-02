@@ -75,6 +75,9 @@ export interface Cafe {
   hero: boolean;
   photo: Photo;
   detail: CafeDetail;
+  aiReason?: string;
+  isExternalRegion?: boolean;
+  targetRegion?: string;
 }
 
 export interface NearbyPlace {

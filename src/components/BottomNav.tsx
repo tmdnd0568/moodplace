@@ -34,17 +34,21 @@ export const BottomNav: React.FC<BottomNavProps> = ({ activeTab, onChangeTab }) 
 };
 
 const NavContainer = styled.nav`
-  position: absolute;
+  position: fixed;
   bottom: 0;
-  left: 0;
-  right: 0;
-  height: 60px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: ${({ theme }) => theme.layout.appMaxWidth};
+  height: calc(60px + env(safe-area-inset-bottom));
+  padding-bottom: env(safe-area-inset-bottom);
   background: ${({ theme }) => theme.colors.surface};
   border-top: 1px solid ${({ theme }) => theme.colors.border};
   display: flex;
   align-items: center;
   justify-content: space-around;
-  z-index: 10;
+  z-index: 100;
+  box-sizing: border-box;
 `;
 
 const TabButton = styled.button`

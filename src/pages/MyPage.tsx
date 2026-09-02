@@ -440,11 +440,13 @@ export const MyPage: React.FC = () => {
 
 const PageContainer = styled.section`
   background: ${({ theme }) => theme.colors.bg};
-  padding-bottom: calc(60px + ${({ theme }) => theme.space[6]}); /* bottom-nav-height + space-6 */
+  padding-bottom: calc(84px + env(safe-area-inset-bottom));
   min-height: 100vh;
+  min-height: 100dvh;
   display: flex;
   flex-direction: column;
   position: relative;
+  box-sizing: border-box;
 `;
 
 const MapHeader = styled.header`

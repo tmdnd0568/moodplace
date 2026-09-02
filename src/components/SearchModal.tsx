@@ -4,11 +4,15 @@ import { useNavigate } from 'react-router-dom';
 import { useStore } from '../store/StoreContext';
 import { MOOD_TAGS, mockAiSearch } from '../data/mockData';
 import { Icon } from './icons/Icons';
+import { searchCafesWithGemini } from '../services/geminiService';
 
 export const SearchModal: React.FC = () => {
   const { state, dispatch } = useStore();
   const navigate = useNavigate();
   const [description, setDescription] = useState('');
+  const [isRealAiResult, setIsRealAiResult] = useState(false);
+  const [isExternalRegion, setIsExternalRegion] = useState(false);
+  const [targetRegion, setTargetRegion] = useState('');
 
   if (!state.isSearchModalOpen) return null;
 
@@ -20,12 +24,23 @@ export const SearchModal: React.FC = () => {
     dispatch({ type: 'TOGGLE_MODAL_MOOD', payload: id });
   };
 
-  const handleSearch = () => {
+  const handleSearch = async () => {
     dispatch({ type: 'START_MOOD_SEARCH' });
-    setTimeout(() => {
-      const results = mockAiSearch(state.modalSelectedMoods, description);
-      dispatch({ type: 'RECEIVE_MOOD_SEARCH_RESULT', payload: results });
-    }, 1400);
+    try {
+      const res = await searchCafesWithGemini(
+        state.modalSelectedMoods,
+        description,
+        state.cafes
+      );
+      setIsRealAiResult(res.isRealAi);
+      setIsExternalRegion(!!res.isExternalRegion);
+      setTargetRegion(res.targetRegion || '');
+      dispatch({ type: 'RECEIVE_MOOD_SEARCH_RESULT', payload: res.cafes });
+    } catch (err) {
+      console.error('[Gemini Search Error]', err);
+      const fallback = mockAiSearch(state.modalSelectedMoods, description);
+      dispatch({ type: 'RECEIVE_MOOD_SEARCH_RESULT', payload: fallback });
+    }
   };
 
   const handleSelectCafe = (id: string) => {
@@ -55,8 +70,10 @@ export const SearchModal: React.FC = () => {
           <ModalHandle onClick={handleClose} />
           <ModalLoading>
             <LoadingSpinner />
-            <LoadingText>AI가 당신의 무드에 어울리는<br />공간을 찾고 있어요...</LoadingText>
-            <LoadingSubtext>잠시만 기다려주세요</LoadingSubtext>
+            <LoadingText>
+              ✨ Gemini AI가 당신의 무드와 취향을<br />분석 중입니다...
+            </LoadingText>
+            <LoadingSubtext>전국 단위 맞춤 장소를 탐색하고 있어요</LoadingSubtext>
           </ModalLoading>
         </ModalSheet>
       </ModalOverlay>
@@ -70,7 +87,13 @@ export const SearchModal: React.FC = () => {
         <ModalSheet onClick={(e) => e.stopPropagation()}>
           <ModalHandle onClick={handleClose} />
           <ResultHeader>
-            <ResultLabel>AI 추천 결과</ResultLabel>
+            <ResultLabel>
+              {isExternalRegion && targetRegion
+                ? `📍 "${targetRegion}" 지역 AI 실시간 추천`
+                : isRealAiResult
+                ? '✨ Gemini AI 맞춤 분석 추천'
+                : '✨ AI 무드 추천 결과'}
+            </ResultLabel>
             <ModalTitle>이런 공간은 어떠세요?</ModalTitle>
           </ResultHeader>
 
@@ -94,6 +117,12 @@ export const SearchModal: React.FC = () => {
                   <ResultMatch>{cafe.match || 95}% Match</ResultMatch>
                   <ResultName>{cafe.name}</ResultName>
                   <ResultDesc>{cafe.location} • {cafe.detail.description}</ResultDesc>
+                  {cafe.aiReason && (
+                    <ResultAiReason>
+                      <Icon name="sparkle" className="ai-icon" />
+                      <span>{cafe.aiReason}</span>
+                    </ResultAiReason>
+                  )}
                 </ResultInfo>
                 <ResultCardArrow>
                   <Icon name="chevronRight" />
@@ -446,6 +475,29 @@ const ResultDesc = styled.p`
   text-overflow: ellipsis;
   white-space: nowrap;
 `;
+
+const ResultAiReason = styled.div`
+  font-size: 12px;
+  color: ${({ theme }) => theme.colors.primary};
+  background: rgba(45, 82, 68, 0.08);
+  border-radius: 6px;
+  padding: 6px 9px;
+  margin-top: 6px;
+  line-height: 1.45;
+  display: flex;
+  align-items: flex-start;
+  gap: 5px;
+  font-weight: 500;
+
+  .ai-icon {
+    width: 13px;
+    height: 13px;
+    margin-top: 2px;
+    flex-shrink: 0;
+    color: ${({ theme }) => theme.colors.primary};
+  }
+`;
+
 
 const ResultCardArrow = styled.div`
   width: 18px;

@@ -58,16 +58,20 @@ export function rootReducer(state: AppState, action: AppAction): AppState {
     case 'START_MOOD_SEARCH':
       return { ...state, searchPhase: 'loading' };
 
-    case 'RECEIVE_MOOD_SEARCH_RESULT':
+    case 'RECEIVE_MOOD_SEARCH_RESULT': {
+      const existingIds = new Set(state.cafes.map((c) => c.id));
+      const newCafes = action.payload.filter((c) => !existingIds.has(c.id));
       return {
         ...state,
         searchPhase: 'result',
         searchResults: action.payload,
+        cafes: newCafes.length > 0 ? [...state.cafes, ...newCafes] : state.cafes,
         selectedMoods:
           state.modalSelectedMoods.length > 0
             ? [...state.modalSelectedMoods]
             : state.selectedMoods,
       };
+    }
 
     case 'TOGGLE_BOOKMARK': {
       const id = action.payload;

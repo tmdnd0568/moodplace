@@ -46,6 +46,12 @@ export const CafeCard: React.FC<CafeCardProps> = ({
           </TagRow>
           <CafeName>{cafe.name}</CafeName>
           <CafeMeta>{cafe.location} • {cafe.description}</CafeMeta>
+          {cafe.aiReason && (
+            <CardAiReason>
+              <Icon name="sparkle" className="ai-icon" />
+              <span>{cafe.aiReason}</span>
+            </CardAiReason>
+          )}
         </CardBody>
       </HeroCard>
     );
@@ -60,6 +66,12 @@ export const CafeCard: React.FC<CafeCardProps> = ({
         <MatchInline>{cafe.match}% Match</MatchInline>
         <CafeName>{cafe.name}</CafeName>
         <CafeMeta>{cafe.description}</CafeMeta>
+        {cafe.aiReason && (
+          <CardAiReason>
+            <Icon name="sparkle" className="ai-icon" />
+            <span>{cafe.aiReason}</span>
+          </CardAiReason>
+        )}
       </ListInfo>
       {onBookmarkToggle && (
         <BookmarkButton
@@ -247,3 +259,26 @@ const BookmarkButton = styled.button`
     height: 22px;
   }
 `;
+
+const CardAiReason = styled.div`
+  font-size: 12px;
+  color: ${({ theme }) => theme.colors.primary};
+  background: rgba(45, 82, 68, 0.08);
+  border-radius: 6px;
+  padding: 5px 8px;
+  margin-top: 6px;
+  line-height: 1.4;
+  display: flex;
+  align-items: flex-start;
+  gap: 4px;
+  font-weight: 500;
+
+  .ai-icon {
+    width: 13px;
+    height: 13px;
+    margin-top: 2px;
+    flex-shrink: 0;
+    color: ${({ theme }) => theme.colors.primary};
+  }
+`;
+

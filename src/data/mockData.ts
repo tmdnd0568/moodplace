@@ -684,16 +684,65 @@ export function getCuratorMessage(moodIds: string[]): string {
 }
 
 export function mockAiSearch(moodIds: string[], description: string): Cafe[] {
-  let results = MOCK_CAFES.filter((cafe) =>
-    moodIds.length === 0 ? true : cafe.mood.some((m) => moodIds.includes(m))
-  );
+  const query = description.trim().toLowerCase();
+  const words = query ? query.split(/\s+/).filter(Boolean) : [];
 
-  if (results.length === 0) results = [...MOCK_CAFES];
+  const scored = MOCK_CAFES.map((cafe) => {
+    let score = 0;
 
-  const seed = description.length % 5;
-  results = results
-    .map((c, i) => ({ ...c, match: Math.max(80, c.match - i * 2 - seed) }))
-    .sort((a, b) => b.match - a.match);
+    // 1. 무드 태그 일치 검사
+    moodIds.forEach((m) => {
+      if (cafe.mood.includes(m)) {
+        score += 25;
+      }
+    });
 
-  return results;
+    // 2. 검색어 키워드 매칭 검사
+    if (words.length > 0) {
+      const cafeName = cafe.name.toLowerCase();
+      const cafeDesc = cafe.description.toLowerCase();
+      const detailDesc = cafe.detail.description.toLowerCase();
+      const tagsStr = [...cafe.tags, ...cafe.detail.detailTags].join(' ').toLowerCase();
+      const menuStr = cafe.detail.menu.map((m) => `${m.name} ${m.desc}`).join(' ').toLowerCase();
+      const reviewsStr = cafe.detail.reviews.map((r) => `${r.text} ${r.tags.join(' ')}`).join(' ').toLowerCase();
+
+      words.forEach((w) => {
+        if (cafeName.includes(w)) score += 40;
+        if (tagsStr.includes(w)) score += 30;
+        if (menuStr.includes(w)) score += 35;
+        if (cafeDesc.includes(w) || detailDesc.includes(w)) score += 25;
+        if (reviewsStr.includes(w)) score += 15;
+      });
+    }
+
+    // 키워드가 없거나 매칭이 적은 경우 기본 베이스 점수 부여
+    if (words.length === 0 && moodIds.length === 0) {
+      score = cafe.match;
+    }
+
+    return { cafe, score };
+  });
+
+  // 점수 내림차순 정렬
+  scored.sort((a, b) => b.score - a.score);
+
+  const topScore = scored[0].score || 1;
+
+  return scored.map(({ cafe, score }, idx) => {
+    // 상대적 매칭률 계산 (82% ~ 99%)
+    let matchRate: number;
+    if (words.length === 0 && moodIds.length === 0) {
+      matchRate = cafe.match;
+    } else if (score > 0) {
+      matchRate = Math.min(99, Math.max(84, Math.round(85 + (score / (topScore + 10)) * 14) - idx * 2));
+    } else {
+      matchRate = Math.max(78, 86 - idx * 3);
+    }
+
+    return {
+      ...cafe,
+      match: matchRate,
+    };
+  });
 }
+

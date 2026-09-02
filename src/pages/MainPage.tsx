@@ -246,9 +246,11 @@ export const MainPage: React.FC = () => {
 
 const PageContainer = styled.section`
   background: ${({ theme }) => theme.colors.bg};
-  padding-bottom: calc(${({ theme }) => theme.layout.bottomNavHeight} + ${({ theme }) => theme.space[4]});
+  padding-bottom: calc(84px + env(safe-area-inset-bottom));
   min-height: 100vh;
+  min-height: 100dvh;
   position: relative;
+  box-sizing: border-box;
 `;
 
 const MainContent = styled.div`

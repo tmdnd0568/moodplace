@@ -121,11 +121,13 @@ export const KeepPage: React.FC = () => {
 
 const PageContainer = styled.section`
   background: ${({ theme }) => theme.colors.bg};
-  height: 100vh;
+  min-height: 100vh;
+  min-height: 100dvh;
   display: flex;
   flex-direction: column;
   position: relative;
-  padding-bottom: ${({ theme }) => theme.layout.bottomNavHeight};
+  padding-bottom: calc(84px + env(safe-area-inset-bottom));
+  box-sizing: border-box;
 `;
 
 const KeepHeader = styled.header`
