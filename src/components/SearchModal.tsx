@@ -221,52 +221,46 @@ export const SearchModal: React.FC = () => {
     );
   }
 
-  // 3. Form Phase (즉시 키보드 검색 및 최근 검색어 관리 페이지)
+  // 3. Form Phase (상단에서 아래로 펼쳐지는 즉시 키보드 검색 & 최근 검색어 모달)
   return (
     <ModalOverlay onClick={handleClose}>
       <ModalSheet onClick={(e) => e.stopPropagation()}>
-        <ModalHandle onClick={handleClose} />
-        
-        <SearchFormHeader>
-          <ModalTitle style={{ margin: 0 }}>어떤 공간을 찾으시나요?</ModalTitle>
-        </SearchFormHeader>
+        <SearchTopRow>
+          <SearchInputBox>
+            <SearchPlusIcon>
+              <Icon name="search" />
+            </SearchPlusIcon>
+            <TopSearchInput
+              ref={inputRef}
+              autoFocus
+              type="text"
+              placeholder="장소, 무드, 카페 Gemini AI에 검색..."
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  executeSearch(description);
+                }
+              }}
+            />
+            {description && (
+              <ClearInputBtn type="button" onClick={() => setDescription('')} aria-label="입력 초기화">
+                <Icon name="close" />
+              </ClearInputBtn>
+            )}
+          </SearchInputBox>
 
-        <SearchInputContainer>
-          <Icon name="search" className="search-icon" />
-          <SearchInput
-            ref={inputRef}
-            autoFocus
-            type="text"
-            placeholder="예: 대전 둔산동 분위기 좋은 카페, 성수동 조용한 북카페"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') {
-                e.preventDefault();
-                executeSearch(description);
-              }
-            }}
-          />
-          {description && (
-            <ClearInputBtn type="button" onClick={() => setDescription('')} aria-label="입력 초기화">
-              <Icon name="close" />
-            </ClearInputBtn>
-          )}
-        </SearchInputContainer>
+          <AiModeBadgeBtn type="button" onClick={() => executeSearch(description)}>
+            <Icon name="sparkle" className="ai-badge-icon" />
+            <span>AI 모드</span>
+          </AiModeBadgeBtn>
+        </SearchTopRow>
 
-        <SearchButton
-          type="button"
-          disabled={!description.trim()}
-          onClick={() => executeSearch(description)}
-        >
-          <span>AI 모드 플레이스 탐색하기</span>
-          <Icon name="sparkle" className="icon" />
-        </SearchButton>
-
-        {/* 최근 검색어 및 검색 기록 삭제/저장 관리 영역 */}
+        {/* 최근 검색어 목록 (위 이미지와 동일한 세로 수직 리스트) */}
         <HistorySection>
           <HistoryHeaderRow>
-            <HistoryTitle>최근 검색어</HistoryTitle>
+            <HistoryTitle>최근 검색 기록</HistoryTitle>
             <HistoryControls>
               <HistoryControlBtn type="button" onClick={handleToggleAutoSave}>
                 {isAutoSaveOn ? '자동저장 끄기' : '자동저장 켜기'}
@@ -285,20 +279,20 @@ export const SearchModal: React.FC = () => {
           ) : searchHistory.length === 0 ? (
             <EmptyHistoryText>최근 검색 기록이 없습니다.</EmptyHistoryText>
           ) : (
-            <HistoryList>
+            <HistoryVerticalList>
               {searchHistory.map((term, index) => (
-                <HistoryItemChip key={`${term}-${index}`}>
-                  <HistoryTextBtn
+                <HistoryListRow key={`${term}-${index}`}>
+                  <HistoryRowMainBtn
                     type="button"
                     onClick={() => {
                       setDescription(term);
                       executeSearch(term);
                     }}
                   >
-                    <Icon name="search" className="item-icon" />
-                    <span>{term}</span>
-                  </HistoryTextBtn>
-                  <HistoryDeleteBtn
+                    <Icon name="clock" className="history-clock-icon" />
+                    <HistoryTermLabel>{term}</HistoryTermLabel>
+                  </HistoryRowMainBtn>
+                  <HistoryRowDeleteBtn
                     type="button"
                     onClick={(e) => {
                       e.stopPropagation();
@@ -307,10 +301,10 @@ export const SearchModal: React.FC = () => {
                     aria-label={`${term} 검색 기록 삭제`}
                   >
                     <Icon name="close" />
-                  </HistoryDeleteBtn>
-                </HistoryItemChip>
+                  </HistoryRowDeleteBtn>
+                </HistoryListRow>
               ))}
-            </HistoryList>
+            </HistoryVerticalList>
           )}
         </HistorySection>
       </ModalSheet>
@@ -319,9 +313,15 @@ export const SearchModal: React.FC = () => {
 };
 
 /* ─── Styled Components ─── */
-const slideUp = keyframes`
-  from { transform: translateY(100%); }
-  to { transform: translateY(0); }
+const slideDown = keyframes`
+  from {
+    transform: translateY(-20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
 `;
 
 const fadeIn = keyframes`
@@ -336,26 +336,27 @@ const spin = keyframes`
 const ModalOverlay = styled.div`
   position: fixed;
   inset: 0;
-  background: ${({ theme }) => theme.colors.overlay};
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(2px);
   z-index: 200;
   display: flex;
   justify-content: center;
-  align-items: flex-end;
-  animation: ${fadeIn} 0.3s ease;
+  align-items: flex-start; /* 상단에서 아래로 드롭다운 형태로 배치 */
+  padding: 16px;
+  padding-top: max(16px, env(safe-area-inset-top));
+  animation: ${fadeIn} 0.25s ease;
 `;
 
 const ModalSheet = styled.div`
   width: 100%;
   max-width: ${({ theme }) => theme.layout.appMaxWidth};
   background: ${({ theme }) => theme.colors.surface};
-  border-top-left-radius: ${({ theme }) => theme.radius.lg};
-  border-top-right-radius: ${({ theme }) => theme.radius.lg};
-  padding: ${({ theme }) => theme.space[6]};
-  padding-bottom: calc(env(safe-area-inset-bottom) + ${({ theme }) => theme.space[6]});
-  box-shadow: ${({ theme }) => theme.shadow.float};
+  border-radius: 24px; /* 위 참고 이미지처럼 모서리 라운딩 처리 */
+  padding: 16px 18px 20px 18px;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.18);
   position: relative;
-  animation: ${slideUp} 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-  max-height: 88vh;
+  animation: ${slideDown} 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  max-height: 85vh;
   overflow-y: auto;
 `;
 
@@ -377,44 +378,51 @@ const ModalTitle = styled.h2`
   margin-bottom: ${({ theme }) => theme.space[1]};
 `;
 
-const SearchFormHeader = styled.div`
+/* ─── 참고 이미지 스타일 상단 검색 바 ─── */
+const SearchTopRow = styled.div`
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  margin-bottom: ${({ theme }) => theme.space[4]};
+  gap: 10px;
+  margin-bottom: 12px;
 `;
 
-const SearchInputContainer = styled.div`
-  position: relative;
+const SearchInputBox = styled.div`
+  flex: 1;
   display: flex;
   align-items: center;
-  background: ${({ theme }) => theme.colors.surface};
+  background: ${({ theme }) => theme.colors.bg};
   border: 1.5px solid ${({ theme }) => theme.colors.border};
-  border-radius: ${({ theme }) => theme.radius.md};
+  border-radius: 24px;
   padding: 0 14px;
-  margin-bottom: ${({ theme }) => theme.space[3]};
+  height: 48px;
   transition: all 0.2s ease;
 
   &:focus-within {
     border-color: ${({ theme }) => theme.colors.primary};
     box-shadow: 0 0 0 3px rgba(45, 82, 68, 0.12);
   }
+`;
 
-  .search-icon {
-    width: 20px;
-    height: 20px;
-    color: ${({ theme }) => theme.colors.textMuted};
-    margin-right: 10px;
-    flex-shrink: 0;
+const SearchPlusIcon = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: ${({ theme }) => theme.colors.textMuted};
+  margin-right: 8px;
+  flex-shrink: 0;
+
+  svg {
+    width: 18px;
+    height: 18px;
   }
 `;
 
-const SearchInput = styled.input`
+const TopSearchInput = styled.input`
   width: 100%;
-  height: 48px;
+  height: 100%;
   border: none;
   background: transparent;
-  font-size: 15px;
+  font-size: 14.5px;
   color: ${({ theme }) => theme.colors.text};
   outline: none;
 
@@ -428,7 +436,7 @@ const ClearInputBtn = styled.button`
   background: none;
   border: none;
   color: ${({ theme }) => theme.colors.textMuted};
-  padding: 6px;
+  padding: 4px;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -445,49 +453,50 @@ const ClearInputBtn = styled.button`
   }
 `;
 
-const SearchButton = styled.button`
-  width: 100%;
-  height: 52px;
-  background: ${({ theme }) => theme.colors.primary};
-  color: ${({ theme }) => theme.colors.surface};
-  border-radius: ${({ theme }) => theme.radius.md};
-  font-size: 15px;
-  font-weight: 700;
+const AiModeBadgeBtn = styled.button`
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: ${({ theme }) => theme.space[2]};
-  transition: opacity 0.2s;
-  border: none;
+  gap: 6px;
+  background: rgba(45, 82, 68, 0.08);
+  color: ${({ theme }) => theme.colors.primary};
+  border: 1.5px solid rgba(45, 82, 68, 0.2);
+  border-radius: 20px;
+  padding: 0 14px;
+  height: 48px;
+  font-size: 13.5px;
+  font-weight: 700;
   cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
 
-  &:disabled {
-    background: #dfdeda;
-    color: #a4a29e;
-    cursor: not-allowed;
+  &:hover {
+    background: ${({ theme }) => theme.colors.primary};
+    color: #ffffff;
+    border-color: ${({ theme }) => theme.colors.primary};
   }
 
-  .icon {
-    width: 16px;
-    height: 16px;
+  .ai-badge-icon {
+    width: 15px;
+    height: 15px;
   }
 `;
 
+/* ─── 최근 검색어 수직 리스트 (Google / Chrome 검색창 드롭다운 스타일) ─── */
 const HistorySection = styled.div`
-  margin-top: ${({ theme }) => theme.space[5]};
-  padding-top: ${({ theme }) => theme.space[4]};
-  border-top: 1px solid ${({ theme }) => theme.colors.border};
+  margin-top: 8px;
 `;
 
 const HistoryHeaderRow = styled.div`
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: ${({ theme }) => theme.space[3]};
+  padding: 8px 4px;
+  margin-bottom: 4px;
 `;
 
 const HistoryTitle = styled.h4`
-  font-size: 13.5px;
+  font-size: 13px;
   font-weight: 700;
   color: ${({ theme }) => theme.colors.text};
   margin: 0;
@@ -519,58 +528,62 @@ const HistoryDivider = styled.span`
   background: ${({ theme }) => theme.colors.border};
 `;
 
-const HistoryList = styled.div`
+const HistoryVerticalList = styled.div`
   display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
+  flex-direction: column;
+  gap: 2px;
 `;
 
-const HistoryItemChip = styled.div`
-  display: inline-flex;
+const HistoryListRow = styled.div`
+  display: flex;
   align-items: center;
-  background: ${({ theme }) => theme.colors.surface};
-  border: 1px solid ${({ theme }) => theme.colors.border};
-  border-radius: 20px;
-  padding: 6px 12px;
-  font-size: 13px;
-  color: ${({ theme }) => theme.colors.text};
-  transition: all 0.2s ease;
+  justify-content: space-between;
+  padding: 10px 8px;
+  border-radius: 12px;
+  transition: background 0.18s ease;
 
   &:hover {
-    border-color: ${({ theme }) => theme.colors.primary};
-    background: rgba(45, 82, 68, 0.04);
+    background: rgba(0, 0, 0, 0.04);
   }
 `;
 
-const HistoryTextBtn = styled.button`
-  background: none;
-  border: none;
-  color: inherit;
-  font-size: inherit;
-  cursor: pointer;
+const HistoryRowMainBtn = styled.button`
+  flex: 1;
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 12px;
+  background: none;
+  border: none;
+  text-align: left;
+  cursor: pointer;
   padding: 0;
 
-  .item-icon {
-    width: 13px;
-    height: 13px;
+  .history-clock-icon {
+    width: 18px;
+    height: 18px;
     color: ${({ theme }) => theme.colors.textMuted};
+    flex-shrink: 0;
   }
 `;
 
-const HistoryDeleteBtn = styled.button`
+const HistoryTermLabel = styled.span`
+  font-size: 14.5px;
+  font-weight: 500;
+  color: ${({ theme }) => theme.colors.text};
+`;
+
+const HistoryRowDeleteBtn = styled.button`
   background: none;
   border: none;
   color: ${({ theme }) => theme.colors.textMuted};
   cursor: pointer;
-  margin-left: 6px;
-  padding: 2px;
+  padding: 4px;
   display: flex;
   align-items: center;
   justify-content: center;
   border-radius: 50%;
+  flex-shrink: 0;
+  transition: color 0.15s ease, background 0.15s ease;
 
   &:hover {
     color: #e74c3c;
@@ -578,8 +591,8 @@ const HistoryDeleteBtn = styled.button`
   }
 
   svg {
-    width: 12px;
-    height: 12px;
+    width: 14px;
+    height: 14px;
   }
 `;
 
