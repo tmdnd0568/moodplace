@@ -1185,28 +1185,32 @@ const FeedbackSubmitBtn = styled.button`
 const NavModalOverlay = styled.div`
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.4);
+  background: rgba(0, 0, 0, 0.45);
   backdrop-filter: blur(6px);
   z-index: 500;
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   justify-content: center;
+  padding: 20px;
 `;
 
 const NavModalCard = styled.div`
   width: 100%;
-  max-width: ${({ theme }) => theme.layout.appMaxWidth};
+  max-width: min(420px, calc(100vw - 32px));
   background: #ffffff;
-  border-top-left-radius: 24px;
-  border-top-right-radius: 24px;
+  border-radius: 20px;
   padding: 24px 20px;
-  box-shadow: 0 -4px 30px rgba(0, 0, 0, 0.15);
-  animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.25);
+  max-height: 80vh;
+  max-height: 80dvh;
+  display: flex;
+  flex-direction: column;
+  animation: popCenter 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   box-sizing: border-box;
 
-  @keyframes slideUp {
-    from { transform: translateY(100%); }
-    to { transform: translateY(0); }
+  @keyframes popCenter {
+    from { transform: scale(0.92); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
   }
 `;
 

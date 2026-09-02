@@ -960,28 +960,30 @@ const ModalOverlay = styled.div`
   inset: 0;
   background: rgba(0, 0, 0, 0.45);
   backdrop-filter: blur(5px);
-  z-index: 100;
+  z-index: 300;
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   justify-content: center;
+  padding: 20px;
 `;
 
 const ModalCard = styled.div`
   width: 100%;
-  max-width: 390px;
+  max-width: min(420px, calc(100vw - 32px));
   background: #ffffff;
-  border-top-left-radius: 24px;
-  border-top-right-radius: 24px;
+  border-radius: 20px;
   padding: 24px 20px;
-  box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.15);
-  max-height: 90vh;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.25);
+  max-height: 80vh;
+  max-height: 80dvh;
   display: flex;
   flex-direction: column;
-  animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  animation: popCenter 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  box-sizing: border-box;
 
-  @keyframes slideUp {
-    from { transform: translateY(100%); }
-    to { transform: translateY(0); }
+  @keyframes popCenter {
+    from { transform: scale(0.92); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
   }
 `;
 
