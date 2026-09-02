@@ -315,7 +315,7 @@ export const SearchModal: React.FC = () => {
 /* ─── Styled Components ─── */
 const slideDown = keyframes`
   from {
-    transform: translateY(-20px);
+    transform: translateY(-14px);
     opacity: 0;
   }
   to {
@@ -336,14 +336,15 @@ const spin = keyframes`
 const ModalOverlay = styled.div`
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.45);
+  background: rgba(0, 0, 0, 0.4);
   backdrop-filter: blur(2px);
   z-index: 200;
   display: flex;
   justify-content: center;
-  align-items: flex-start; /* 상단에서 아래로 드롭다운 형태로 배치 */
+  align-items: flex-start;
   padding: 16px;
-  padding-top: max(16px, env(safe-area-inset-top));
+  /* 메인 화면의 '오늘은 어떤장소를 찾으시나요' 검색 버튼 위치에 직접 연결되도록 상단 여백 정밀 조정 */
+  padding-top: max(146px, env(safe-area-inset-top) + 138px);
   animation: ${fadeIn} 0.25s ease;
 `;
 
@@ -351,12 +352,13 @@ const ModalSheet = styled.div`
   width: 100%;
   max-width: ${({ theme }) => theme.layout.appMaxWidth};
   background: ${({ theme }) => theme.colors.surface};
-  border-radius: 24px; /* 위 참고 이미지처럼 모서리 라운딩 처리 */
+  border-radius: 20px;
   padding: 16px 18px 20px 18px;
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.18);
+  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.18);
   position: relative;
-  animation: ${slideDown} 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-  max-height: 85vh;
+  animation: ${slideDown} 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  max-height: calc(100vh - 170px);
+  max-height: calc(100dvh - 170px);
   overflow-y: auto;
 `;
 
