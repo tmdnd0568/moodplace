@@ -13,18 +13,35 @@ const PLACE_COORDS: Record<string, [number, number]> = {
   'brick-atelier': [37.54145, 127.06208],
 };
 
+// Haversine 두 좌표 간 거리 계산 (km)
+function getDistanceFromLatLonInKm(lat1: number, lon1: number, lat2: number, lon2: number) {
+  const R = 6371;
+  const dLat = (lat2 - lat1) * (Math.PI / 180);
+  const dLon = (lon2 - lon1) * (Math.PI / 180);
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(lat1 * (Math.PI / 180)) * Math.cos(lat2 * (Math.PI / 180)) *
+    Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
+}
+
 export const FindPage: React.FC = () => {
   const navigate = useNavigate();
   const { state, dispatch } = useStore();
   
   const [selectedPlaceId, setSelectedPlaceId] = useState<string>('calm-forest');
-  const selectedPlace = NEARBY_PLACES.find((p) => p.id === selectedPlaceId) || NEARBY_PLACES[0];
   const [isSheetOpen, setIsSheetOpen] = useState<boolean>(true);
   const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
   const [mapType, setMapType] = useState<'standard' | 'satellite' | 'terrain'>('standard');
   const [showTraffic, setShowTraffic] = useState<boolean>(false);
   const [showBicycle, setShowBicycle] = useState<boolean>(false);
   const [downloadProgress, setDownloadProgress] = useState<number | null>(null);
+
+  // 내 실시간 위치 및 반경 3km 설정
+  const [userCoords, setUserCoords] = useState<[number, number]>([36.3537, 127.3872]); // 기본 대전/GPS 중심
+  const [radiusKm, setRadiusKm] = useState<number>(3.0); // 반경 3km (기본)
+  const [userLocationName, setUserLocationName] = useState<string>('내 현재 위치 (대전 둔산동)');
 
   // Drag Gesture States for Bottom Sheet
   const [dragOffset, setDragOffset] = useState<number>(0);
@@ -34,6 +51,134 @@ export const FindPage: React.FC = () => {
   // Search States
   const [isSearchActive, setIsSearchActive] = useState<boolean>(false);
   const [searchQuery, setSearchQuery] = useState<string>(window.localStorage.getItem('searchQuery') || '');
+
+  // 위치 탐색 (GPS 및 IP 기반 감지)
+  React.useEffect(() => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          const lat = pos.coords.latitude;
+          const lng = pos.coords.longitude;
+          setUserCoords([lat, lng]);
+          if (lat >= 36.2 && lat <= 36.5 && lng >= 127.2 && lng <= 127.5) {
+            setUserLocationName('내 현재 위치 (대전광역시)');
+          } else {
+            setUserLocationName('내 현재 위치 (실시간 GPS)');
+          }
+        },
+        () => {
+          setUserCoords([36.3537, 127.3872]);
+          setUserLocationName('내 현재 위치 (대전 둔산동)');
+        },
+        { enableHighAccuracy: true, timeout: 5000 }
+      );
+    }
+  }, []);
+
+  // 전체 카페 정보 통합 리스트
+  const allCafes = React.useMemo(() => {
+    const list: Array<{
+      id: string;
+      name: string;
+      address: string;
+      description: string;
+      photos: string[];
+      tags: Array<{ icon: string; label: string }>;
+      coords: [number, number];
+    }> = [];
+
+    const seen = new Set<string>();
+
+    NEARBY_PLACES.forEach((p) => {
+      seen.add(p.id);
+      list.push({
+        id: p.id,
+        name: p.name,
+        address: p.address,
+        description: p.description,
+        photos: p.photos,
+        tags: p.tags,
+        coords: PLACE_COORDS[p.id] || [37.54117, 127.05594],
+      });
+    });
+
+    const storeCafes = [...state.cafes, ...state.searchResults];
+    storeCafes.forEach((c, idx) => {
+      if (!seen.has(c.id)) {
+        seen.add(c.id);
+        const loc = (c.location || c.name || '').toLowerCase();
+        let coords: [number, number] = [37.54457, 127.05761];
+
+        if (loc.includes('대전') || loc.includes('둔산')) {
+          coords = [36.3537 + ((idx % 5) * 0.003 - 0.006), 127.3872 + ((idx % 4) * 0.004 - 0.006)];
+        } else if (loc.includes('부산')) {
+          coords = [35.1587 + (idx * 0.003), 129.1604 + (idx * 0.003)];
+        } else {
+          coords = [37.54457 + ((idx % 5) * 0.002 - 0.004), 127.05761 + ((idx % 4) * 0.003 - 0.005)];
+        }
+
+        list.push({
+          id: c.id,
+          name: c.name,
+          address: c.location,
+          description: c.detail?.description || `${c.name} - 감성 무드 맞춤 추천 카페`,
+          photos: (c.photo.type === 'image' && c.photo.image) ? [c.photo.image] : ['/assets/caffe_001.jpg'],
+          tags: c.mood.map((m) => ({ icon: 'warm', label: m })),
+          coords,
+        });
+      }
+    });
+
+    return list;
+  }, [state.cafes, state.searchResults]);
+
+  // 내 위치 기준 모든 카페 거리 계산 및 3km 반경 필터링
+  const cafesWithDistance = React.useMemo(() => {
+    return allCafes.map((cafe) => {
+      const distKm = getDistanceFromLatLonInKm(
+        userCoords[0],
+        userCoords[1],
+        cafe.coords[0],
+        cafe.coords[1]
+      );
+      const distText = distKm < 1 ? `${Math.round(distKm * 1000)}m` : `${distKm.toFixed(1)}km`;
+      return {
+        ...cafe,
+        distKm,
+        distText,
+      };
+    });
+  }, [allCafes, userCoords]);
+
+  // 3km 반경 내 카페 필터링 (가까운 순 정렬)
+  const cafesWithin3km = React.useMemo(() => {
+    return cafesWithDistance
+      .filter((c) => c.distKm <= radiusKm)
+      .sort((a, b) => a.distKm - b.distKm);
+  }, [cafesWithDistance, radiusKm]);
+
+  const selectedPlace = cafesWithin3km.find((p) => p.id === selectedPlaceId) || cafesWithin3km[0] || cafesWithDistance[0];
+
+  const handleOfflineDownload = () => {
+    if (downloadProgress !== null) return;
+    setDownloadProgress(0);
+    const interval = setInterval(() => {
+      setDownloadProgress((prev) => {
+        if (prev === null) return null;
+        if (prev >= 100) {
+          clearInterval(interval);
+          alert('주변 오프라인 지도가 성공적으로 저장되었습니다!');
+          return null;
+        }
+        return prev + 20;
+      });
+    }, 250);
+  };
+
+  const handleNaverMapRedirect = () => {
+    const naverMapUrl = `https://map.naver.com/v5/search/${encodeURIComponent(selectedPlace.name)}`;
+    window.open(naverMapUrl, '_blank', 'noopener,noreferrer');
+  };
 
   const handleDragStart = (clientY: number) => {
     if (!isSheetOpen) return;
@@ -58,7 +203,7 @@ export const FindPage: React.FC = () => {
     setDragOffset(0);
   };
 
-  const filteredPlaces = NEARBY_PLACES.filter((place) =>
+  const filteredPlaces = cafesWithin3km.filter((place) =>
     place.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     place.address.toLowerCase().includes(searchQuery.toLowerCase())
   );
@@ -71,19 +216,18 @@ export const FindPage: React.FC = () => {
 
   const mapRef = React.useRef<any>(null);
   const markersRef = React.useRef<Record<string, any>>({});
+  const circleRef = React.useRef<any>(null);
   const tileLayerRef = React.useRef<any>(null);
-  const trafficLayersRef = React.useRef<any[]>([]);
-  const bicycleLayersRef = React.useRef<any[]>([]);
 
   React.useEffect(() => {
     const L = (window as any).L;
     if (!L) return;
 
-    // Initialize Map
+    // Map 초기화 (내 위치 중심으로 설정)
     const map = L.map('find-map-api', {
       zoomControl: false,
       attributionControl: false
-    }).setView([37.5428, 127.0544], 15);
+    }).setView(userCoords, 14);
 
     const standardLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       maxZoom: 19
@@ -92,7 +236,6 @@ export const FindPage: React.FC = () => {
 
     mapRef.current = map;
 
-    // Clean up on unmount
     return () => {
       if (mapRef.current) {
         mapRef.current.remove();
@@ -101,135 +244,46 @@ export const FindPage: React.FC = () => {
     };
   }, []);
 
-  // Update Tile Layer when mapType changes
+  // 3km 반경 원(Circle) 및 반경 내 카페 마커 업데이트
   React.useEffect(() => {
     const L = (window as any).L;
     const map = mapRef.current;
     if (!L || !map) return;
 
-    if (tileLayerRef.current) {
-      map.removeLayer(tileLayerRef.current);
-    }
-
-    let url = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
-    if (mapType === 'satellite') {
-      url = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
-    } else if (mapType === 'terrain') {
-      url = 'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png';
-    }
-
-    const newLayer = L.tileLayer(url, {
-      maxZoom: mapType === 'satellite' ? 18 : 19
-    }).addTo(map);
-    tileLayerRef.current = newLayer;
-  }, [mapType]);
-
-  // Traffic Flow Overlay Effect
-  React.useEffect(() => {
-    const L = (window as any).L;
-    const map = mapRef.current;
-    if (!L || !map) return;
-
-    trafficLayersRef.current.forEach((l) => l.remove());
-    trafficLayersRef.current = [];
-
-    if (showTraffic) {
-      const TRAFFIC_PATHS = [
-        { coords: [[37.5446, 127.0560], [37.5408, 127.0514]], color: '#e2574c' }, // Seongsu-ro (heavy: red)
-        { coords: [[37.5408, 127.0514], [37.5385, 127.0565]], color: '#2d5244' }, // Achasan-ro (smooth: green)
-        { coords: [[37.5408, 127.0514], [37.5428, 127.0544]], color: '#f5a623' }  // Yeonmujang-gil (moderate: orange)
-      ];
-
-      TRAFFIC_PATHS.forEach((path) => {
-        const line = L.polyline(path.coords, {
-          color: path.color,
-          weight: 6,
-          opacity: 0.75,
-          dashArray: '3, 6'
-        }).addTo(map);
-        trafficLayersRef.current.push(line);
-      });
-    }
-  }, [showTraffic]);
-
-  // Bicycle Path Overlay Effect
-  React.useEffect(() => {
-    const L = (window as any).L;
-    const map = mapRef.current;
-    if (!L || !map) return;
-
-    bicycleLayersRef.current.forEach((l) => l.remove());
-    bicycleLayersRef.current = [];
-
-    if (showBicycle) {
-      const BICYCLE_PATHS = [
-        [[37.5428, 127.0544], [37.5450, 127.0520], [37.5480, 127.0520]]
-      ];
-
-      BICYCLE_PATHS.forEach((coords) => {
-        const line = L.polyline(coords, {
-          color: '#00aa55',
-          weight: 4,
-          opacity: 0.8,
-          dashArray: '10, 10'
-        }).addTo(map);
-        bicycleLayersRef.current.push(line);
-      });
-    }
-  }, [showBicycle]);
-
-  const handleOfflineDownload = () => {
-    if (downloadProgress !== null) return;
-    setDownloadProgress(0);
-    const interval = setInterval(() => {
-      setDownloadProgress((prev) => {
-        if (prev === null) return null;
-        if (prev >= 100) {
-          clearInterval(interval);
-          alert('성수동 주변 오프라인 지도가 성공적으로 저장되었습니다!');
-          return null;
-        }
-        return prev + 20;
-      });
-    }, 250);
-  };
-
-  const handleNaverMapRedirect = () => {
-    const naverMapUrl = `https://map.naver.com/v5/search/${encodeURIComponent(selectedPlace.name)}`;
-    window.open(naverMapUrl, '_blank', 'noopener,noreferrer');
-  };
-
-  // Update markers and pan
-  React.useEffect(() => {
-    const L = (window as any).L;
-    const map = mapRef.current;
-    if (!L || !map) return;
-
-    // Clear old markers
+    // 기존 3km 원 및 마커 제거
+    if (circleRef.current) circleRef.current.remove();
     Object.values(markersRef.current).forEach((m: any) => m.remove());
     markersRef.current = {};
 
-    NEARBY_PLACES.forEach((place) => {
-      const coords = PLACE_COORDS[place.id];
-      if (!coords) return;
+    // 1. 내 위치 중심 반경 3km (3000m) 원(Circle) 레이어 표시
+    const circle = L.circle(userCoords, {
+      radius: radiusKm * 1000,
+      color: '#2d5244',
+      fillColor: '#2d5244',
+      fillOpacity: 0.08,
+      weight: 2,
+      dashArray: '6, 6'
+    }).addTo(map);
+    circleRef.current = circle;
 
+    // 2. 반경 내 모든 카페 마커 생성 및 핀 표시
+    cafesWithin3km.forEach((place) => {
       const isActive = place.id === selectedPlaceId;
-      
       const pinSvg = `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>`;
 
       const customIcon = L.divIcon({
         className: 'leaflet-custom-marker-container',
         html: `
           <div class="custom-marker ${isActive ? 'is-active' : ''}">
-            <span class="marker-label">${place.name}</span>
+            <span class="marker-label">${place.name} (${place.distText})</span>
             <span class="marker-pin">${pinSvg}</span>
           </div>
         `,
-        iconSize: [120, 50],
-        iconAnchor: [60, 48]
+        iconSize: [140, 50],
+        iconAnchor: [70, 48]
       });
 
-      const marker = L.marker(coords, { icon: customIcon }).addTo(map);
+      const marker = L.marker(place.coords, { icon: customIcon }).addTo(map);
       marker.on('click', () => {
         handlePlaceSelect(place.id);
       });
@@ -237,11 +291,14 @@ export const FindPage: React.FC = () => {
       markersRef.current[place.id] = marker;
     });
 
-    const activeCoords = PLACE_COORDS[selectedPlaceId];
-    if (activeCoords) {
-      map.panTo(activeCoords);
+    // 선택된 카페 또는 반경으로 지도 뷰 조정
+    const activeCafe = cafesWithin3km.find((c) => c.id === selectedPlaceId);
+    if (activeCafe) {
+      map.panTo(activeCafe.coords);
+    } else if (cafesWithin3km.length > 0) {
+      map.panTo(userCoords);
     }
-  }, [selectedPlaceId]);
+  }, [userCoords, radiusKm, cafesWithin3km, selectedPlaceId]);
 
   const handlePlaceSelect = (id: string) => {
     setSelectedPlaceId(id);
@@ -360,6 +417,19 @@ export const FindPage: React.FC = () => {
       {/* 2) Map Canvas */}
       <MapCanvas className="find-map-canvas">
         <div id="find-map-api" style={{ width: '100%', height: '100%', position: 'relative', zIndex: 1 }} />
+        
+        {/* 3km 반경 카페 탐색 상단 플로팅 바 */}
+        <RadiusInfoFloatingBar>
+          <RadiusBadgeText>
+            📍 <strong>{userLocationName}</strong> 기준 반경 <strong>{radiusKm}km</strong> 이내 <strong>{cafesWithin3km.length}개</strong> 카페 탐색됨
+          </RadiusBadgeText>
+          <RadiusFilterChips>
+            <RadiusChipBtn type="button" $active={radiusKm === 1.0} onClick={() => setRadiusKm(1.0)}>1km</RadiusChipBtn>
+            <RadiusChipBtn type="button" $active={radiusKm === 3.0} onClick={() => setRadiusKm(3.0)}>3km (추천)</RadiusChipBtn>
+            <RadiusChipBtn type="button" $active={radiusKm === 5.0} onClick={() => setRadiusKm(5.0)}>5km</RadiusChipBtn>
+            <RadiusChipBtn type="button" $active={radiusKm === 20.0} onClick={() => setRadiusKm(20.0)}>전체</RadiusChipBtn>
+          </RadiusFilterChips>
+        </RadiusInfoFloatingBar>
       </MapCanvas>
 
       <FindLocateBtn type="button" $isSheetOpen={isSheetOpen} onClick={handleLocateClick} aria-label="현재 위치로 이동">
@@ -393,7 +463,12 @@ export const FindPage: React.FC = () => {
         </SheetHandleWrapper>
 
         <PlaceRow className="find-place-row">
-          <PlaceName className="find-place-name">{selectedPlace.name}</PlaceName>
+          <PlaceName className="find-place-name">
+            {selectedPlace.name}
+            <span style={{ fontSize: '12.5px', fontWeight: '700', color: '#2d5244', marginLeft: '8px' }}>
+              📍 내 위치에서 {selectedPlace.distText}
+            </span>
+          </PlaceName>
           <BookmarkBtn
             type="button"
             className={`find-save-btn ${isBookmarked ? 'is-saved' : ''}`}
@@ -548,7 +623,7 @@ const MapCanvas = styled.div`
   bottom: 0;
   z-index: 1;
   background: #e9efe4;
-  
+
   .leaflet-container {
     width: 100%;
     height: 100%;
@@ -592,27 +667,22 @@ const MapCanvas = styled.div`
     width: 28px;
     height: 28px;
     color: ${({ theme }) => theme.colors.textMuted};
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.15));
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
     transition: all 0.2s ease;
-
-    svg {
-      width: 28px;
-      height: 28px;
-    }
   }
 
   .custom-marker.is-active {
+    z-index: 99;
     .marker-label {
       background: ${({ theme }) => theme.colors.primary};
       color: #ffffff;
       border-color: ${({ theme }) => theme.colors.primary};
+      transform: scale(1.08);
+      box-shadow: 0 4px 12px rgba(45, 82, 68, 0.3);
     }
     .marker-pin {
       color: ${({ theme }) => theme.colors.primary};
-      transform: scale(1.2);
+      transform: scale(1.15);
     }
   }
 
@@ -640,6 +710,58 @@ const MapCanvas = styled.div`
     100% {
       box-shadow: 0 0 0 0 rgba(0, 122, 255, 0);
     }
+  }
+`;
+
+const RadiusInfoFloatingBar = styled.div`
+  position: absolute;
+  top: 72px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+  width: calc(100% - 32px);
+  max-width: 380px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(8px);
+  border-radius: 16px;
+  padding: 10px 14px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  border: 1px solid rgba(45, 82, 68, 0.15);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+`;
+
+const RadiusBadgeText = styled.div`
+  font-size: 13px;
+  color: ${({ theme }) => theme.colors.text};
+  text-align: center;
+
+  strong {
+    color: ${({ theme }) => theme.colors.primary};
+    font-weight: 800;
+  }
+`;
+
+const RadiusFilterChips = styled.div`
+  display: flex;
+  gap: 6px;
+`;
+
+const RadiusChipBtn = styled.button<{ $active?: boolean }>`
+  background: ${({ $active, theme }) => ($active ? theme.colors.primary : 'rgba(45, 82, 68, 0.08)')};
+  color: ${({ $active }) => ($active ? '#ffffff' : '#2d5244')};
+  border: none;
+  border-radius: 12px;
+  padding: 3px 10px;
+  font-size: 11.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    opacity: 0.9;
   }
 `;
 
