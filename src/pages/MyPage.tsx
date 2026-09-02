@@ -11,7 +11,7 @@ export const MyPage: React.FC = () => {
   const { state, dispatch } = useStore();
 
   // Modals state
-  const [activeModal, setActiveModal] = useState<'notifications' | 'settings' | 'editProfile' | 'privacy' | 'help' | 'logout' | null>(null);
+  const [activeModal, setActiveModal] = useState<'notifications' | 'settings' | 'editProfile' | 'privacy' | 'help' | 'logout' | 'saved' | 'reviews' | 'visits' | null>(null);
   
   // Dynamic profile state
   const [profileName, setProfileName] = useState<string>(
@@ -104,15 +104,15 @@ export const MyPage: React.FC = () => {
 
       {/* 3) Stats row */}
       <StatsRow className="my-stats-row">
-        <StatCard className="my-stat-card">
+        <StatCard className="my-stat-card" onClick={() => setActiveModal('saved')} role="button" tabIndex={0}>
           <StatValue className="my-stat-value">{state.bookmarkedIds.length}</StatValue>
           <StatLabel className="my-stat-label">저장</StatLabel>
         </StatCard>
-        <StatCard className="my-stat-card">
+        <StatCard className="my-stat-card" onClick={() => setActiveModal('reviews')} role="button" tabIndex={0}>
           <StatValue className="my-stat-value">{MY_PROFILE.stats.reviews}</StatValue>
           <StatLabel className="my-stat-label">리뷰</StatLabel>
         </StatCard>
-        <StatCard className="my-stat-card">
+        <StatCard className="my-stat-card" onClick={() => setActiveModal('visits')} role="button" tabIndex={0}>
           <StatValue className="my-stat-value">{MY_PROFILE.stats.visits}</StatValue>
           <StatLabel className="my-stat-label">방문</StatLabel>
         </StatCard>
@@ -434,6 +434,194 @@ export const MyPage: React.FC = () => {
           </ModalCard>
         </ModalOverlay>
       )}
+
+      {/* 7. Saved Modal (저장한 장소) */}
+      {activeModal === 'saved' && (
+        <ModalOverlay onClick={() => setActiveModal(null)}>
+          <ModalCard onClick={(e) => e.stopPropagation()}>
+            <ModalHeaderRow>
+              <ModalTitle>저장한 장소 ({state.bookmarkedIds.length})</ModalTitle>
+              <CloseBtn onClick={() => setActiveModal(null)} aria-label="닫기">
+                <Icon name="close" />
+              </CloseBtn>
+            </ModalHeaderRow>
+            <ModalScrollContent>
+              {state.bookmarkedIds.length > 0 ? (
+                <StatItemList>
+                  {state.cafes
+                    .filter((cafe) => state.bookmarkedIds.includes(cafe.id))
+                    .map((cafe) => (
+                      <StatItemCard
+                        key={cafe.id}
+                        onClick={() => {
+                          setActiveModal(null);
+                          dispatch({ type: 'SELECT_CAFE', payload: cafe.id });
+                          navigate(`/review/${cafe.id}`);
+                        }}
+                      >
+                        <StatItemImage $image={cafe.photo.image || '/assets/caffe_001.jpg'} />
+                        <StatItemMeta>
+                          <StatItemName>{cafe.name}</StatItemName>
+                          <StatItemSub>{cafe.location}</StatItemSub>
+                          <StatItemTagGroup>
+                            {cafe.tags.map((t) => (
+                              <span key={t} className="tag">#{t}</span>
+                            ))}
+                          </StatItemTagGroup>
+                        </StatItemMeta>
+                        <StatActionBtn
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            dispatch({ type: 'TOGGLE_BOOKMARK', payload: cafe.id });
+                          }}
+                          aria-label="저장 취소"
+                        >
+                          <Icon name="heartFilled" />
+                        </StatActionBtn>
+                      </StatItemCard>
+                    ))}
+                </StatItemList>
+              ) : (
+                <EmptyState>
+                  저장된 장소가 없습니다.<br />
+                  마음에 드는 카페를 저장해 보세요!
+                </EmptyState>
+              )}
+            </ModalScrollContent>
+          </ModalCard>
+        </ModalOverlay>
+      )}
+
+      {/* 8. Reviews Modal (작성한 리뷰) */}
+      {activeModal === 'reviews' && (
+        <ModalOverlay onClick={() => setActiveModal(null)}>
+          <ModalCard onClick={(e) => e.stopPropagation()}>
+            <ModalHeaderRow>
+              <ModalTitle>내 리뷰 ({MY_PROFILE.stats.reviews})</ModalTitle>
+              <CloseBtn onClick={() => setActiveModal(null)} aria-label="닫기">
+                <Icon name="close" />
+              </CloseBtn>
+            </ModalHeaderRow>
+            <ModalScrollContent>
+              <StatItemList>
+                {[
+                  {
+                    id: 'rev-1',
+                    cafeName: '어니언 성수',
+                    rating: 5,
+                    date: '2026.08.28',
+                    comment: '아침 일찍 다녀왔는데 빵도 따뜻하고 루프탑 테라스 분위기가 인상적이었어요. 시그니처 팡도르는 필수입니다!',
+                    tags: ['#팡도르맛집', '#성수동카페']
+                  },
+                  {
+                    id: 'rev-2',
+                    cafeName: '센터커피 서울숲점',
+                    rating: 4.5,
+                    date: '2026.08.15',
+                    comment: '통창 너머로 보이는 서울숲 푸른 뷰가 마음을 평온하게 해줍니다. 핸드드립 산미도 깔끔했어요.',
+                    tags: ['#서울숲뷰', '#스페셜티커피']
+                  },
+                  {
+                    id: 'rev-3',
+                    cafeName: '맛차차',
+                    rating: 5,
+                    date: '2026.08.02',
+                    comment: '차분하게 다도 코스를 경험할 수 있어 힐링되었습니다. 말차 라떼의 깊은 다향이 최고예요.',
+                    tags: ['#티하우스', '#말차라떼']
+                  },
+                  {
+                    id: 'rev-4',
+                    cafeName: '카페 할아버지공장',
+                    rating: 4.8,
+                    date: '2026.07.20',
+                    comment: '오두막 정원이 동화 같은 매력이 있어요. 대형 창고형 카페라 넓어서 답답하지 않았습니다.',
+                    tags: ['#자연친화적', '#포토스팟']
+                  }
+                ].map((item) => (
+                  <ReviewModalCard key={item.id}>
+                    <ReviewHeaderRow>
+                      <ReviewCafeName>{item.cafeName}</ReviewCafeName>
+                      <ReviewRating>★ {item.rating}</ReviewRating>
+                    </ReviewHeaderRow>
+                    <ReviewDate>{item.date}</ReviewDate>
+                    <ReviewComment>{item.comment}</ReviewComment>
+                    <ReviewTagRow>
+                      {item.tags.map((t) => (
+                        <span key={t} className="tag">{t}</span>
+                      ))}
+                    </ReviewTagRow>
+                  </ReviewModalCard>
+                ))}
+              </StatItemList>
+            </ModalScrollContent>
+          </ModalCard>
+        </ModalOverlay>
+      )}
+
+      {/* 9. Visits Modal (방문한 페이지 / 역사) */}
+      {activeModal === 'visits' && (
+        <ModalOverlay onClick={() => setActiveModal(null)}>
+          <ModalCard onClick={(e) => e.stopPropagation()}>
+            <ModalHeaderRow>
+              <ModalTitle>방문한 장소 ({MY_PROFILE.stats.visits})</ModalTitle>
+              <CloseBtn onClick={() => setActiveModal(null)} aria-label="닫기">
+                <Icon name="close" />
+              </CloseBtn>
+            </ModalHeaderRow>
+            <ModalScrollContent>
+              <StatItemList>
+                {[
+                  {
+                    id: 'visit-1',
+                    name: '어니언 성수',
+                    visitDate: '2026.08.28 방문',
+                    address: '서울 성동구 아차산로9길 8',
+                    image: '/assets/onion_cafe.jpg'
+                  },
+                  {
+                    id: 'visit-2',
+                    name: '센터커피 서울숲점',
+                    visitDate: '2026.08.15 방문',
+                    address: '서울 성동구 서울숲2길 28-11',
+                    image: '/assets/center_coffee.jpg'
+                  },
+                  {
+                    id: 'visit-3',
+                    name: '맛차차',
+                    visitDate: '2026.08.02 방문',
+                    address: '서울 성동구 서울숲2길 18-11',
+                    image: '/assets/matchacha.jpg'
+                  },
+                  {
+                    id: 'visit-4',
+                    name: '카페 할아버지공장',
+                    visitDate: '2026.07.20 방문',
+                    address: '서울 성동구 성수이로74길 9',
+                    image: '/assets/grandpa_factory.jpg'
+                  },
+                  {
+                    id: 'visit-5',
+                    name: '대림창고 갤러리',
+                    visitDate: '2026.07.11 방문',
+                    address: '서울 성동구 성수이로 78',
+                    image: '/assets/daelim_changgo.jpg'
+                  }
+                ].map((visit) => (
+                  <StatItemCard key={visit.id}>
+                    <StatItemImage $image={visit.image} />
+                    <StatItemMeta>
+                      <StatItemName>{visit.name}</StatItemName>
+                      <StatItemSub>{visit.address}</StatItemSub>
+                      <VisitBadge>{visit.visitDate}</VisitBadge>
+                    </StatItemMeta>
+                  </StatItemCard>
+                ))}
+              </StatItemList>
+            </ModalScrollContent>
+          </ModalCard>
+        </ModalOverlay>
+      )}
     </PageContainer>
   );
 };
@@ -547,6 +735,17 @@ const StatCard = styled.div`
   padding: ${({ theme }) => theme.space[4]} ${({ theme }) => theme.space[2]};
   text-align: center;
   box-shadow: 0 2px 10px rgba(26, 26, 26, 0.04);
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
 `;
 
 const StatValue = styled.p`
@@ -1083,3 +1282,156 @@ const HelpItem = styled.div`
     color: ${({ theme }) => theme.colors.textMuted};
   }
 `;
+
+const StatItemList = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+`;
+
+const StatItemCard = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px;
+  background: ${({ theme }) => theme.colors.bg};
+  border-radius: 10px;
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  }
+`;
+
+const StatItemImage = styled.div<{ $image: string }>`
+  width: 54px;
+  height: 54px;
+  border-radius: 8px;
+  background-image: url('${({ $image }) => $image}');
+  background-size: cover;
+  background-position: center;
+  flex-shrink: 0;
+`;
+
+const StatItemMeta = styled.div`
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+`;
+
+const StatItemName = styled.p`
+  font-size: 14px;
+  font-weight: 700;
+  color: ${({ theme }) => theme.colors.text};
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+`;
+
+const StatItemSub = styled.p`
+  font-size: 11.5px;
+  color: ${({ theme }) => theme.colors.textMuted};
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+`;
+
+const StatItemTagGroup = styled.div`
+  display: flex;
+  gap: 4px;
+  margin-top: 2px;
+
+  .tag {
+    font-size: 10.5px;
+    color: ${({ theme }) => theme.colors.primary};
+    background: ${({ theme }) => theme.colors.primaryLight};
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-weight: 600;
+  }
+`;
+
+const StatActionBtn = styled.button`
+  background: none;
+  border: none;
+  color: #e54848;
+  padding: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  svg {
+    width: 20px;
+    height: 20px;
+  }
+`;
+
+const ReviewModalCard = styled.div`
+  background: ${({ theme }) => theme.colors.bg};
+  padding: 14px;
+  border-radius: 10px;
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+`;
+
+const ReviewHeaderRow = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+`;
+
+const ReviewCafeName = styled.span`
+  font-size: 14.5px;
+  font-weight: 700;
+  color: ${({ theme }) => theme.colors.text};
+`;
+
+const ReviewRating = styled.span`
+  font-size: 13px;
+  font-weight: 700;
+  color: #f59e0b;
+`;
+
+const ReviewDate = styled.span`
+  font-size: 11px;
+  color: ${({ theme }) => theme.colors.textMuted};
+`;
+
+const ReviewComment = styled.p`
+  font-size: 13px;
+  line-height: 1.5;
+  color: ${({ theme }) => theme.colors.text};
+  margin-top: 4px;
+`;
+
+const ReviewTagRow = styled.div`
+  display: flex;
+  gap: 6px;
+  margin-top: 4px;
+
+  .tag {
+    font-size: 11px;
+    color: ${({ theme }) => theme.colors.primary};
+    font-weight: 600;
+  }
+`;
+
+const VisitBadge = styled.span`
+  display: inline-block;
+  font-size: 10.5px;
+  font-weight: 600;
+  color: #2563eb;
+  background: #eff6ff;
+  padding: 2px 6px;
+  border-radius: 4px;
+  align-self: flex-start;
+  margin-top: 2px;
+`;
+

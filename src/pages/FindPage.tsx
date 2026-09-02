@@ -528,25 +528,25 @@ export const FindPage: React.FC = () => {
 
   const handleLocateClick = () => {
     const map = mapRef.current;
-    if (!map) return;
-
     const L = (window as any).L;
-    if (!L) return;
 
     const showLocation = (lat: number, lng: number) => {
-      if (userMarkerRef.current) {
-        userMarkerRef.current.remove();
+      setUserCoords([lat, lng]);
+      if (map && L) {
+        if (userMarkerRef.current) {
+          userMarkerRef.current.remove();
+        }
+
+        const blueDotIcon = L.divIcon({
+          className: 'leaflet-user-location-dot',
+          html: `<div class="user-gps-dot"></div>`,
+          iconSize: [20, 20],
+          iconAnchor: [10, 10]
+        });
+
+        userMarkerRef.current = L.marker([lat, lng], { icon: blueDotIcon }).addTo(map);
+        map.flyTo([lat, lng], 16, { animate: true, duration: 1.2 });
       }
-
-      const blueDotIcon = L.divIcon({
-        className: 'leaflet-user-location-dot',
-        html: `<div class="user-gps-dot"></div>`,
-        iconSize: [20, 20],
-        iconAnchor: [10, 10]
-      });
-
-      userMarkerRef.current = L.marker([lat, lng], { icon: blueDotIcon }).addTo(map);
-      map.flyTo([lat, lng], 16);
     };
 
     if (navigator.geolocation) {
@@ -555,13 +555,13 @@ export const FindPage: React.FC = () => {
           showLocation(position.coords.latitude, position.coords.longitude);
         },
         (error) => {
-          console.warn('GPS location error, falling back to mock:', error);
-          showLocation(37.5408, 127.0514);
+          console.warn('GPS location error, falling back:', error);
+          showLocation(userCoords[0], userCoords[1]);
         },
-        { enableHighAccuracy: true, timeout: 5000 }
+        { enableHighAccuracy: true, timeout: 6000, maximumAge: 0 }
       );
     } else {
-      showLocation(37.5408, 127.0514);
+      showLocation(userCoords[0], userCoords[1]);
     }
   };
 

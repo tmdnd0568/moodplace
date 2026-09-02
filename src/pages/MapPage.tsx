@@ -270,44 +270,53 @@ export const MapPage: React.FC = () => {
 
   const handleLocateClick = () => {
     const map = mapRef.current;
-    if (!map) return;
-
     const L = (window as any).L;
-    if (!L) return;
 
-    const showLocation = (lat: number, lng: number) => {
-      if (userMarkerRef.current) {
-        userMarkerRef.current.remove();
+    const showLocation = (lat: number, lng: number, labelText?: string) => {
+      setUserGpsCoords([lat, lng]);
+      if (labelText) {
+        setUserLocationLabel(labelText);
+      } else {
+        setUserLocationLabel('내 현재 위치 (실시간 GPS)');
       }
 
-      const blueDotIcon = L.divIcon({
-        className: 'leaflet-user-location-dot',
-        html: `<div class="user-gps-dot"></div>`,
-        iconSize: [20, 20],
-        iconAnchor: [10, 10]
-      });
+      if (map && L) {
+        if (userMarkerRef.current) {
+          userMarkerRef.current.remove();
+        }
 
-      userMarkerRef.current = L.marker([lat, lng], { icon: blueDotIcon }).addTo(map);
-      map.flyTo([lat, lng], 16);
+        const blueDotIcon = L.divIcon({
+          className: 'leaflet-user-location-dot',
+          html: `<div class="user-gps-dot"></div>`,
+          iconSize: [20, 20],
+          iconAnchor: [10, 10]
+        });
+
+        userMarkerRef.current = L.marker([lat, lng], { icon: blueDotIcon }).addTo(map);
+        map.flyTo([lat, lng], 16, { animate: true, duration: 1.2 });
+      }
     };
 
-    if (userGpsCoords) {
-      showLocation(userGpsCoords[0], userGpsCoords[1]);
-    } else if (navigator.geolocation) {
+    if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
           const lat = position.coords.latitude;
           const lng = position.coords.longitude;
-          setUserGpsCoords([lat, lng]);
-          showLocation(lat, lng);
+          showLocation(lat, lng, '내 현재 위치 (실시간 GPS)');
         },
-        () => {
-          showLocation(37.5408, 127.0514);
+        (error) => {
+          console.warn('GPS location request error or denied:', error);
+          const fallbackLat = userGpsCoords ? userGpsCoords[0] : (isDaejeonTarget ? 36.3537 : 37.5408);
+          const fallbackLng = userGpsCoords ? userGpsCoords[1] : (isDaejeonTarget ? 127.3872 : 127.0514);
+          const fallbackLabel = isDaejeonTarget ? '내 현재 위치 (대전광역시 둔산동)' : '내 현재 위치 (서울 성수동)';
+          showLocation(fallbackLat, fallbackLng, fallbackLabel);
         },
-        { enableHighAccuracy: true, timeout: 5000 }
+        { enableHighAccuracy: true, timeout: 6000, maximumAge: 0 }
       );
     } else {
-      showLocation(37.5408, 127.0514);
+      const fallbackLat = userGpsCoords ? userGpsCoords[0] : 37.5408;
+      const fallbackLng = userGpsCoords ? userGpsCoords[1] : 127.0514;
+      showLocation(fallbackLat, fallbackLng, '내 현재 위치 (서울 성수동)');
     }
   };
 
