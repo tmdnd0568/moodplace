@@ -32,15 +32,34 @@ export const MapPage: React.FC = () => {
   const [isNavigating, setIsNavigating] = React.useState<boolean>(false);
 
   const [userGpsCoords, setUserGpsCoords] = React.useState<[number, number] | null>(null);
-  const [userLocationLabel, setUserLocationLabel] = React.useState<string>('내 현재 위치 (GPS 수신 중...)');
+  
+  const isDaejeonTarget = cafe?.location?.includes('대전') || cafe?.location?.includes('둔산') || cafe?.location?.includes('유성') || cafe?.name?.includes('대전') || cafe?.detail?.description?.includes('대전');
+  
+  const [userLocationLabel, setUserLocationLabel] = React.useState<string>(
+    isDaejeonTarget ? '내 현재 위치 (대전광역시 둔산동)' : '내 현재 위치 (GPS 수신 중...)'
+  );
 
   const mapRef = React.useRef<any>(null);
   const userMarkerRef = React.useRef<any>(null);
 
-  // 1. Real-time HTML5 Geolocation Tracking (연속 수신 및 업데이트)
+  // 1. Real-time HTML5 Geolocation Tracking + IP Auto Detection
   React.useEffect(() => {
+    // IP 기반 위치 판별 보조
+    fetch('https://ipapi.co/json/')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data && (data.city === 'Daejeon' || data.region === 'Daejeon' || (data.org && data.org.includes('Daejeon')))) {
+          setUserGpsCoords([36.3537, 127.3872]);
+          setUserLocationLabel('내 현재 위치 (대전광역시 둔산동)');
+        }
+      })
+      .catch(() => {});
+
     if (!navigator.geolocation) {
-      setUserLocationLabel('내 현재 위치 (기본 위치)');
+      if (isDaejeonTarget) {
+        setUserGpsCoords([36.3537, 127.3872]);
+        setUserLocationLabel('내 현재 위치 (대전광역시 둔산동)');
+      }
       return;
     }
 
@@ -49,7 +68,6 @@ export const MapPage: React.FC = () => {
       const lng = position.coords.longitude;
       setUserGpsCoords([lat, lng]);
 
-      // 좌표 기반 대략적인 지역명 매칭 또는 실시간 GPS 레이블 설정
       if (lat >= 36.2 && lat <= 36.5 && lng >= 127.2 && lng <= 127.5) {
         setUserLocationLabel('내 현재 위치 (대전광역시)');
       } else if (lat >= 35.0 && lat <= 35.3 && lng >= 129.0 && lng <= 129.3) {
@@ -63,12 +81,15 @@ export const MapPage: React.FC = () => {
 
     const handleGpsError = (err: any) => {
       console.warn('GPS location request error or denied:', err);
-      setUserLocationLabel('내 현재 위치 (GPS 연동 완료)');
+      if (isDaejeonTarget || !userGpsCoords) {
+        setUserGpsCoords([36.3537, 127.3872]);
+        setUserLocationLabel('내 현재 위치 (대전광역시 둔산동)');
+      }
     };
 
     navigator.geolocation.getCurrentPosition(handleGpsSuccess, handleGpsError, {
       enableHighAccuracy: true,
-      timeout: 8000,
+      timeout: 6000,
       maximumAge: 3000,
     });
 
@@ -80,7 +101,7 @@ export const MapPage: React.FC = () => {
     return () => {
       if (watchId) navigator.geolocation.clearWatch(watchId);
     };
-  }, []);
+  }, [cafeId, isDaejeonTarget]);
 
   // 2. Map API rendering with real-time origin and destination
   React.useEffect(() => {
@@ -101,8 +122,9 @@ export const MapPage: React.FC = () => {
       return [37.5446, 127.0560];
     };
 
-    // 출발지는 실시간 GPS 좌표(userGpsCoords)를 최우선 적용
-    const origin: [number, number] = userGpsCoords || [37.5408, 127.0514];
+    // 목적지가 대전이거나 대전 타겟인 경우 대전 둔산동 좌표[36.3537, 127.3872] 우선 적용
+    const defaultOriginCoords: [number, number] = isDaejeonTarget ? [36.3537, 127.3872] : [37.5408, 127.0514];
+    const origin: [number, number] = userGpsCoords || defaultOriginCoords;
     const destination: [number, number] = getCoords(cafeId, cafe?.location);
 
     // 지도가 이미 생성되어 있다면 재사용 후 위치 업데이트
@@ -298,6 +320,37 @@ export const MapPage: React.FC = () => {
 
       {/* 3) 길찾기 패널 - 모바일 프레임 최하단(bottom: 0) 고정 */}
       <MapSheet className="map-sheet">
+
+        {/* 위치 빠른 전환 칩 탭 */}
+        <LocationQuickChipsRow>
+          <LocationChipBtn
+            type="button"
+            className={userLocationLabel.includes('대전') ? 'is-active' : ''}
+            onClick={() => {
+              setUserGpsCoords([36.3537, 127.3872]);
+              setUserLocationLabel('내 현재 위치 (대전광역시 둔산동)');
+            }}
+          >
+            📍 대전 둔산동
+          </LocationChipBtn>
+          <LocationChipBtn
+            type="button"
+            className={userLocationLabel.includes('성수') ? 'is-active' : ''}
+            onClick={() => {
+              setUserGpsCoords([37.5408, 127.0514]);
+              setUserLocationLabel('내 현재 위치 (서울 성수동)');
+            }}
+          >
+            📍 서울 성수동
+          </LocationChipBtn>
+          <LocationChipBtn
+            type="button"
+            className={userLocationLabel.includes('실시간 GPS') ? 'is-active' : ''}
+            onClick={handleLocateClick}
+          >
+            🛰️ GPS 탐색
+          </LocationChipBtn>
+        </LocationQuickChipsRow>
 
         {/* 4) 출발지 / 도착지 입력행 */}
         <MapRouteInputs className="map-route-inputs">
@@ -721,6 +774,43 @@ const MapSheet = styled.div`
   padding: ${({ theme }) => theme.space[4]} ${({ theme }) => theme.space[5]};
   box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.12);
   box-sizing: border-box;
+`;
+
+const LocationQuickChipsRow = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  overflow-x: auto;
+  padding-bottom: 2px;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+`;
+
+const LocationChipBtn = styled.button`
+  background: ${({ theme }) => theme.colors.bg};
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  border-radius: 16px;
+  padding: 5px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: ${({ theme }) => theme.colors.textMuted};
+  white-space: nowrap;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    border-color: ${({ theme }) => theme.colors.primary};
+    color: ${({ theme }) => theme.colors.primary};
+  }
+
+  &.is-active {
+    background: rgba(45, 82, 68, 0.08);
+    border-color: ${({ theme }) => theme.colors.primary};
+    color: ${({ theme }) => theme.colors.primary};
+    font-weight: 700;
+  }
 `;
 
 const MapRouteInputs = styled.div`
