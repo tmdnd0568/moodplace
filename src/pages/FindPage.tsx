@@ -61,10 +61,7 @@ const MENU_PHOTOS = [
   'https://images.unsplash.com/photo-1565299585323-38d6b0865b47?auto=format&fit=crop&w=600&q=80',
   'https://images.unsplash.com/photo-1589301760014-d929f3979dbc?auto=format&fit=crop&w=600&q=80',
   'https://images.unsplash.com/photo-1579888926999-2917304434c2?auto=format&fit=crop&w=600&q=80',
-  'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=600&q=80',
-  'https://images.unsplash.com/photo-1559496417-e7f25cb247f3?auto=format&fit=crop&w=600&q=80',
-  'https://images.unsplash.com/photo-1508766917616-d22f3f1eea14?auto=format&fit=crop&w=600&q=80',
-  'https://images.unsplash.com/photo-1512568400610-62da28bc8a13?auto=format&fit=crop&w=600&q=80'
+  'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=600&q=80'
 ];
 
 function getUniqueHash(str: string): number {
@@ -77,17 +74,26 @@ function getUniqueHash(str: string): number {
 }
 
 // 탐색된 모든 카페마다 완전히 고유한 분위기 1장 + 대표 메뉴 1장 이미지 매핑
-function getAIImagesForCafe(name: string, _tags: Array<{ label: string }>, id?: string) {
+function getAIImagesForCafe(name: string, _tags: Array<{ label: string }>, id?: string, placePhotos?: string[]) {
+  if (placePhotos && placePhotos.length >= 2 && placePhotos[0].startsWith('http')) {
+    return [placePhotos[0], placePhotos[1]];
+  }
+
   const seed = id || name;
   const hash = getUniqueHash(seed);
 
   const atmoIndex = hash % ATMOSPHERE_PHOTOS.length;
   const menuIndex = (hash * 13 + 7) % MENU_PHOTOS.length;
 
-  return [
-    ATMOSPHERE_PHOTOS[atmoIndex],
-    MENU_PHOTOS[menuIndex]
-  ];
+  const atmoUrl = (placePhotos && placePhotos[0] && placePhotos[0].startsWith('http'))
+    ? placePhotos[0]
+    : ATMOSPHERE_PHOTOS[atmoIndex];
+
+  const menuUrl = (placePhotos && placePhotos[1] && placePhotos[1].startsWith('http'))
+    ? placePhotos[1]
+    : MENU_PHOTOS[menuIndex];
+
+  return [atmoUrl, menuUrl];
 }
 
 export const FindPage: React.FC = () => {
@@ -360,7 +366,7 @@ export const FindPage: React.FC = () => {
 
   const selectedCafePhotos = React.useMemo(() => {
     if (!selectedPlace) return [];
-    return getAIImagesForCafe(selectedPlace.name, selectedPlace.tags, selectedPlace.id);
+    return getAIImagesForCafe(selectedPlace.name, selectedPlace.tags, selectedPlace.id, selectedPlace.photos);
   }, [selectedPlace]);
 
   const handleOfflineDownload = () => {
@@ -736,7 +742,7 @@ export const FindPage: React.FC = () => {
               style={{ backgroundImage: `url('${photo}')`, position: 'relative' }}
               onClick={() => setPreviewPhotoUrl(photo)}
             >
-              <PhotoLabelBadge>{i === 0 ? '🏰 카페 분위기' : '☕ 대표 메뉴'}</PhotoLabelBadge>
+              <PhotoLabelBadge>{i === 0 ? '카페 분위기' : '대표 메뉴'}</PhotoLabelBadge>
             </PhotoThumb>
           ))}
         </PhotoRow>

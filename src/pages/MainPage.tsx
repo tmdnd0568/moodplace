@@ -171,7 +171,7 @@ export const MainPage: React.FC = () => {
             <CuratorMessage>"{curatorMessage}"</CuratorMessage>
             {recommendedCafe && (
               <CuratorLinkButton type="button" onClick={() => handleCafeClick(recommendedCafe.id)}>
-                👉 {recommendedCafe.name} 상세 정보 보기
+                {recommendedCafe.name} 상세 정보 보기
               </CuratorLinkButton>
             )}
           </CuratorBody>
