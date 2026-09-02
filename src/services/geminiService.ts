@@ -210,6 +210,85 @@ function createExternalCafe(item: any, idx: number): Cafe {
   const cafeLoc = item.location || '원하시는 검색 지역';
   const selectedImage = item.image || realImages[idx % realImages.length];
 
+  const getMenuPhoto = (name: string, mIdx: number): string => {
+    const lower = (name || '').toLowerCase();
+    if (lower.includes('말차') || lower.includes('녹차') || lower.includes('티')) return '/assets/menu_matcha_latte.jpg';
+    if (lower.includes('크림') || lower.includes('아인슈페너') || lower.includes('에스프레소')) return '/assets/menu_grandpa_einspanner.jpg';
+    if (lower.includes('케이크') || lower.includes('타르트') || lower.includes('디저트')) return '/assets/menu_daelim_tart.jpg';
+    if (lower.includes('크로플') || lower.includes('스콘') || lower.includes('와플')) return '/assets/menu_center_scone.jpg';
+    if (lower.includes('도넛') || lower.includes('빵') || lower.includes('롤') || lower.includes('팡도르')) return '/assets/menu_onion_pandoro.jpg';
+    
+    const defaults = [
+      '/assets/menu_onion_coffee.jpg',
+      '/assets/menu_daelim_cream.jpg',
+      '/assets/menu_grandpa_einspanner.jpg',
+      '/assets/menu_matchacha_dessert.jpg',
+    ];
+    return defaults[mIdx % defaults.length];
+  };
+
+  const menuItems = Array.isArray(item.menu) && item.menu.length > 0
+    ? item.menu.map((m: any, mIdx: number) => ({
+        id: `m-${idx}-${mIdx}`,
+        name: m.name || `${cafeName} 시그니처 음료`,
+        price: m.price || '6,500원',
+        desc: m.desc || `${cafeName}만의 정성이 담긴 깊은 풍미의 시그니처 메뉴입니다.`,
+        image: m.image || getMenuPhoto(m.name || '', mIdx),
+      }))
+    : [
+        {
+          id: `m-${idx}-0`,
+          name: `${cafeName} 시그니처 크림 라떼`,
+          price: '6,500원',
+          desc: '고소하고 부드러운 수제 생크림과 딥한 샷이 어우러진 시그니처 음료',
+          image: '/assets/menu_grandpa_einspanner.jpg',
+        },
+        {
+          id: `m-${idx}-1`,
+          name: `${cafeName} 수제 대표 디저트`,
+          price: '7,500원',
+          desc: '매일 아침 매장에서 직접 구워내는 달콤하고 고소한 수제 대표 디저트',
+          image: '/assets/menu_daelim_tart.jpg',
+        },
+      ];
+
+  const reviewsList = Array.isArray(item.reviews) && item.reviews.length > 0
+    ? item.reviews.map((r: any, rIdx: number) => ({
+        id: `r-${idx}-${rIdx}`,
+        author: r.author || (rIdx === 0 ? '김민지' : '박지훈'),
+        initial: r.author ? r.author[0] : (rIdx === 0 ? 'K' : 'P'),
+        rating: r.rating || 5,
+        date: r.date || `${rIdx + 1}일 전`,
+        text: r.text || `${cafeName} 방문했는데 인테리어가 정말 아늑하고 시그니처 음료와 디저트 조합이 최고였습니다!`,
+        tags: Array.isArray(r.tags) ? r.tags : ['#분위기맛집', '#데이트추천'],
+        likes: 12 - rIdx * 3,
+        likedByUser: false,
+      }))
+    : [
+        {
+          id: `r-${idx}-0`,
+          author: '김민지',
+          initial: 'K',
+          rating: 5,
+          date: '1일 전',
+          text: `${cafeName} 방문했는데 요청했던 인테리어 분위기가 기대 이상으로 정말 좋았어요! 시그니처 음료도 부드럽고 수제 디저트와의 조합이 최고입니다.`,
+          tags: ['#분위기맛집', '#AI추천명소'],
+          likes: 14,
+          likedByUser: false,
+        },
+        {
+          id: `r-${idx}-1`,
+          author: '박지훈',
+          initial: 'P',
+          rating: 5,
+          date: '3일 전',
+          text: `주말에 다녀왔는데 공간도 쾌적하고 조명과 인테리어 감성이 진짜 인상적이네요. 재방문 의사 200%입니다!`,
+          tags: ['#재방문의사있음', '#감성카페'],
+          likes: 8,
+          likedByUser: false,
+        },
+      ];
+
   return {
     id: cafeId,
     name: cafeName,
@@ -235,38 +314,12 @@ function createExternalCafe(item: any, idx: number): Cafe {
       description: item.description || `${cafeName}은(는) 해당 지역에서 분위기와 커피 맛으로 사랑받는 장소입니다.`,
       rating: 4.8,
       hoursLabel: '10:00 - 22:00',
-      reviewCount: 120,
-      menu: [
-        {
-          id: `m1-${idx}`,
-          name: '시그니처 특제 커피 / 음료',
-          price: '6,500원',
-          desc: '해당 카페의 정성이 담긴 대표 시그니처 음료',
-          image: '/assets/menu_onion_coffee.jpg',
-        },
-        {
-          id: `m2-${idx}`,
-          name: '수제 갓 구운 베이커리 & 디저트',
-          price: '7,500원',
-          desc: '매일 아침 구워내는 수제 대표 디저트',
-          image: '/assets/menu_onion_pandoro.jpg',
-        },
-      ],
-      reviews: [
-        {
-          id: `r1-${idx}`,
-          author: 'AI 큐레이터',
-          initial: 'A',
-          rating: 5,
-          date: '방금 전',
-          text: item.aiReason || '인테리어와 분위기가 무드에 잘 맞으며 방문객 만족도가 높은 공간입니다.',
-          tags: ['#AI맞춤추천', '#분위기맛집'],
-          likes: 15,
-        },
-      ],
+      reviewCount: 120 + idx * 15,
+      menu: menuItems,
+      reviews: reviewsList,
       reservation: {
         rating: 4.8,
-        reviewCountLabel: '리뷰 120+',
+        reviewCountLabel: `리뷰 ${120 + idx * 15}+`,
         description: `${cafeName}의 정보입니다.`,
         facilities: ['wifi', 'parking', 'group'],
         notice: '• 이용 시간 및 주차 정보는 방문 전 확인을 추천합니다.',
