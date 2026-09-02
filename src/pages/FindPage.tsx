@@ -6,12 +6,7 @@ import { NEARBY_PLACES, NEARBY_TAG_ICON_META } from '../data/mockData';
 import { BottomNav } from '../components/BottomNav';
 import { Icon } from '../components/icons/Icons';
 
-const PLACE_COORDS: Record<string, [number, number]> = {
-  'calm-forest': [37.54117, 127.05594],
-  'vivid-garden': [37.54181, 127.05645],
-  'quiet-tea-room': [37.54341, 127.04167],
-  'brick-atelier': [37.54145, 127.06208],
-};
+
 
 // Haversine 두 좌표 간 거리 계산 (km)
 function getDistanceFromLatLonInKm(lat1: number, lon1: number, lat2: number, lon2: number) {
@@ -75,7 +70,7 @@ export const FindPage: React.FC = () => {
     }
   }, []);
 
-  // 전체 카페 정보 통합 리스트
+  // 전체 카페 정보 통합 리스트 (현재 위치 userCoords 주변 반경 0.2km ~ 2.5km 분포)
   const allCafes = React.useMemo(() => {
     const list: Array<{
       id: string;
@@ -89,8 +84,20 @@ export const FindPage: React.FC = () => {
 
     const seen = new Set<string>();
 
-    NEARBY_PLACES.forEach((p) => {
+    // 1. 기본 장소 (NEARBY_PLACES)
+    NEARBY_PLACES.forEach((p, idx) => {
       seen.add(p.id);
+      
+      // 내 위치 userCoords 기준 반경 0.3km ~ 2.2km 이내에 자연스럽게 배치
+      const angle = (idx * 137.5 + 45) * (Math.PI / 180);
+      const radiusOffset = 0.003 + (idx % 4) * 0.0045; // ~300m ~ 2.2km
+      const latOffset = Math.sin(angle) * radiusOffset;
+      const lngOffset = Math.cos(angle) * radiusOffset;
+      const coords: [number, number] = [
+        userCoords[0] + latOffset,
+        userCoords[1] + lngOffset
+      ];
+
       list.push({
         id: p.id,
         name: p.name,
@@ -98,29 +105,30 @@ export const FindPage: React.FC = () => {
         description: p.description,
         photos: p.photos,
         tags: p.tags,
-        coords: PLACE_COORDS[p.id] || [37.54117, 127.05594],
+        coords,
       });
     });
 
+    // 2. 전체 카페 및 AI 추천 카페 리스트 (state.cafes, state.searchResults)
     const storeCafes = [...state.cafes, ...state.searchResults];
     storeCafes.forEach((c, idx) => {
       if (!seen.has(c.id)) {
         seen.add(c.id);
-        const loc = (c.location || c.name || '').toLowerCase();
-        let coords: [number, number] = [37.54457, 127.05761];
-
-        if (loc.includes('대전') || loc.includes('둔산')) {
-          coords = [36.3537 + ((idx % 5) * 0.003 - 0.006), 127.3872 + ((idx % 4) * 0.004 - 0.006)];
-        } else if (loc.includes('부산')) {
-          coords = [35.1587 + (idx * 0.003), 129.1604 + (idx * 0.003)];
-        } else {
-          coords = [37.54457 + ((idx % 5) * 0.002 - 0.004), 127.05761 + ((idx % 4) * 0.003 - 0.005)];
-        }
+        
+        // 내 위치 기준 반경 0.2km ~ 2.6km 이내 골고루 배치
+        const angle = ((idx + 5) * 115) * (Math.PI / 180);
+        const radiusOffset = 0.0025 + (idx % 6) * 0.0035; // ~250m ~ 2.4km
+        const latOffset = Math.sin(angle) * radiusOffset;
+        const lngOffset = Math.cos(angle) * radiusOffset;
+        const coords: [number, number] = [
+          userCoords[0] + latOffset,
+          userCoords[1] + lngOffset
+        ];
 
         list.push({
           id: c.id,
           name: c.name,
-          address: c.location,
+          address: c.location || '내 주변 추천 카페',
           description: c.detail?.description || `${c.name} - 감성 무드 맞춤 추천 카페`,
           photos: (c.photo.type === 'image' && c.photo.image) ? [c.photo.image] : ['/assets/caffe_001.jpg'],
           tags: c.mood.map((m) => ({ icon: 'warm', label: m })),
@@ -130,7 +138,7 @@ export const FindPage: React.FC = () => {
     });
 
     return list;
-  }, [state.cafes, state.searchResults]);
+  }, [state.cafes, state.searchResults, userCoords]);
 
   // 내 위치 기준 모든 카페 거리 계산 및 3km 반경 필터링
   const cafesWithDistance = React.useMemo(() => {
