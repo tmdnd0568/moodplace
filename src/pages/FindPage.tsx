@@ -70,7 +70,29 @@ export const FindPage: React.FC = () => {
     }
   }, []);
 
-  // 전체 카페 정보 통합 리스트 (현재 위치 userCoords 주변 반경 0.2km ~ 2.5km 분포)
+  // 28개 이상의 주변 카페 통합 데이터베이스 (내 위치 반경 0.1km ~ 2.8km에 핀 배치)
+  const EXTRA_LOCAL_CAFES = React.useMemo(() => [
+    { id: 'starbucks-dunsan', name: '스타벅스 대전둔산점', address: '대전 서구 둔산남로 86', description: '넓고 쾌적한 프리미엄 리저브 매장, 공부하기 좋은 창가 석', photos: ['/assets/caffe_001.jpg'], tags: [{ icon: 'warm', label: '모던' }, { icon: 'warm', label: '스터디' }] },
+    { id: 'twosome-cityhall', name: '투썸플레이스 대전시청점', address: '대전 서구 둔산중로 40', description: '시청 앞 파노라마 뷰와 맛있는 프리미엄 케이크 디저트 카페', photos: ['/assets/caffe_002.jpg'], tags: [{ icon: 'warm', label: '디저트' }, { icon: 'warm', label: '뷰맛집' }] },
+    { id: 'hollys-galleria', name: '할리스 대전둔산 갤러리아점', address: '대전 서구 대덕대로 211', description: '24시간 아늑하게 이용 가능한 스터디존 내장 브랜드 카페', photos: ['/assets/caffe_003.jpg'], tags: [{ icon: 'warm', label: '24시' }, { icon: 'warm', label: '아늑한' }] },
+    { id: 'ediya-galma', name: '이디야커피 대전갈마점', address: '대전 서구 갈마로 42', description: '부담없이 들러 커피와 스틱케이크를 즐길 수 있는 코지 카페', photos: ['/assets/caffe_004.jpg'], tags: [{ icon: 'warm', label: '가성비' }, { icon: 'warm', label: '편안한' }] },
+    { id: 'paulbassett-dunsan', name: '폴바셋 대전둔산타워점', address: '대전 서구 대덕대로 226', description: '고소한 룽고와 시그니처 상하목장 아이스크림 라떼 맛집', photos: ['/assets/caffe_005.jpg'], tags: [{ icon: 'warm', label: '스페셜티' }, { icon: 'warm', label: '아이스크림' }] },
+    { id: 'galma-bakery', name: '갈마동 아뜰리에 & 베이커리', address: '대전 서구 갈마역로 18', description: '매일 아침 직접 구워내는 따끈따끈한 수제 소금빵 & 크루아상', photos: ['/assets/caffe_001.jpg'], tags: [{ icon: 'warm', label: '베이커리' }, { icon: 'warm', label: '갓구운' }] },
+    { id: 'flatwhite-tanbang', name: '탄방동 플랫화이트 랩', address: '대전 서구 문정로 60', description: '호주식 다크 로스팅 원두와 진한 플랫화이트 시그니처 에스프레소 바', photos: ['/assets/caffe_002.jpg'], tags: [{ icon: 'warm', label: '에스프레소' }, { icon: 'warm', label: '힙한' }] },
+    { id: 'yuseong-spa-terrace', name: '유성 온천 테라스 가든', address: '대전 유성구 온천로 55', description: '온천 공원 앞 야외 야자수 테라스와 프라이빗 가든 뷰', photos: ['/assets/caffe_003.jpg'], tags: [{ icon: 'warm', label: '야외테라스' }, { icon: 'warm', label: '힐링' }] },
+    { id: 'central-teahouse', name: '월평동 센트럴 티하우스', address: '대전 서구 청사로 120', description: '조용한 거문고 음악과 은은한 수제 잎차 한 잔의 명상 공간', photos: ['/assets/caffe_004.jpg'], tags: [{ icon: 'warm', label: '전통찻집' }, { icon: 'warm', label: '조용한' }] },
+    { id: 'mannyeon-espresso', name: '만년동 에스프레소 클럽', address: '대전 서구 만년남로 30', description: '이탈리아 스탠딩 바 감성의 깊고 진한 쇼콜라또 에스프레소', photos: ['/assets/caffe_005.jpg'], tags: [{ icon: 'warm', label: '이탈리아' }, { icon: 'warm', label: '감성' }] },
+    { id: 'yongmun-vintage', name: '용문동 빈티지 오르간', address: '대전 서구 용문로 77', description: '클래식 LP 레코드 음악과 빈티지 우드 가구의 잔잔한 분위기', photos: ['/assets/caffe_001.jpg'], tags: [{ icon: 'warm', label: '레트로' }, { icon: 'warm', label: 'LP음악' }] },
+    { id: 'goejeong-dessert', name: '괴정동 갓파티 디저트', address: '대전 서구 도솔로 110', description: '프랑스 버터로 만든 딸기 타르트와 달콤한 바닐라 슈크림', photos: ['/assets/caffe_002.jpg'], tags: [{ icon: 'warm', label: '디저트맛집' }, { icon: 'warm', label: '달콤한' }] },
+    { id: 'government-greengarden', name: '대전정부청사 그린가든', address: '대전 서구 청사서로 15', description: '정부청사 푸른 산책로를 감상할 수 있는 햇살 통창 카페', photos: ['/assets/caffe_003.jpg'], tags: [{ icon: 'warm', label: '햇살맛집' }, { icon: 'warm', label: '산책' }] },
+    { id: 'seogu-gallery-cafe', name: '서구청 갤러리 앤 커피', address: '대전 서구 둔산서로 25', description: '매달 새로운 미디어 아트 전시회가 열리는 문화 예술 공간', photos: ['/assets/caffe_004.jpg'], tags: [{ icon: 'warm', label: '전시회' }, { icon: 'warm', label: '갤러리' }] },
+    { id: 'dunsan-rooftop', name: '대전 둔산 루프탑 테라스', address: '대전 서구 대덕대로 195', description: '도심 속 야경이 한눈에 보이는 최상층 루프탑 & 칵테일 바', photos: ['/assets/caffe_005.jpg'], tags: [{ icon: 'warm', label: '루프탑' }, { icon: 'warm', label: '야경' }] },
+    { id: 'doan-minimal', name: '도안동 미니멀 포토스튜디오', address: '대전 서구 도안북로 40', description: '인스타그램 인플루언서들이 사랑하는 올화이트 미니멀 포토존', photos: ['/assets/caffe_001.jpg'], tags: [{ icon: 'warm', label: '인스타감성' }, { icon: 'warm', label: '포토존' }] },
+    { id: 'mannyeon-skyview', name: '선사유적지 스카이뷰 카페', address: '대전 서구 만년로 68', description: '선사유적지 공원 숲 뷰가 파노라마로 펼쳐지는 파노라마 뷰', photos: ['/assets/caffe_002.jpg'], tags: [{ icon: 'warm', label: '파노라마뷰' }, { icon: 'warm', label: '창가' }] },
+    { id: 'bluebottle-popup', name: '블루보틀 대전 팝업스토어', address: '대전 서구 둔산로 100', description: '드립 마스터가 정성껏 내려주는 깔끔한 싱글 오리진 로스팅 핸드드립', photos: ['/assets/caffe_003.jpg'], tags: [{ icon: 'warm', label: '핸드드립' }, { icon: 'warm', label: '팝업' }] }
+  ], []);
+
+  // 전체 카페 정보 통합 리스트 (현재 위치 userCoords 주변 반경 0.1km ~ 2.8km 촘촘하게 핀 배치)
   const allCafes = React.useMemo(() => {
     const list: Array<{
       id: string;
@@ -88,9 +110,8 @@ export const FindPage: React.FC = () => {
     NEARBY_PLACES.forEach((p, idx) => {
       seen.add(p.id);
       
-      // 내 위치 userCoords 기준 반경 0.3km ~ 2.2km 이내에 자연스럽게 배치
-      const angle = (idx * 137.5 + 45) * (Math.PI / 180);
-      const radiusOffset = 0.003 + (idx % 4) * 0.0045; // ~300m ~ 2.2km
+      const angle = (idx * 55 + 20) * (Math.PI / 180);
+      const radiusOffset = 0.002 + (idx % 4) * 0.0035; // ~200m ~ 1.6km
       const latOffset = Math.sin(angle) * radiusOffset;
       const lngOffset = Math.cos(angle) * radiusOffset;
       const coords: [number, number] = [
@@ -115,9 +136,8 @@ export const FindPage: React.FC = () => {
       if (!seen.has(c.id)) {
         seen.add(c.id);
         
-        // 내 위치 기준 반경 0.2km ~ 2.6km 이내 골고루 배치
-        const angle = ((idx + 5) * 115) * (Math.PI / 180);
-        const radiusOffset = 0.0025 + (idx % 6) * 0.0035; // ~250m ~ 2.4km
+        const angle = ((idx + 3) * 75) * (Math.PI / 180);
+        const radiusOffset = 0.0018 + (idx % 5) * 0.0038; // ~180m ~ 2.1km
         const latOffset = Math.sin(angle) * radiusOffset;
         const lngOffset = Math.cos(angle) * radiusOffset;
         const coords: [number, number] = [
@@ -137,8 +157,37 @@ export const FindPage: React.FC = () => {
       }
     });
 
+    // 3. 둔산동/유성/대전 브랜드 & 주변 인기 카페 (EXTRA_LOCAL_CAFES) 18종 촘촘히 배치
+    EXTRA_LOCAL_CAFES.forEach((c, idx) => {
+      if (!seen.has(c.id)) {
+        seen.add(c.id);
+        
+        // 내 위치 중심 0.15km ~ 2.7km 반경 내에 피보나치 나선형으로 골고루 수놓기
+        const phi = (1 + Math.sqrt(5)) / 2;
+        const angle = 2 * Math.PI * idx / phi;
+        const radiusOffset = 0.0015 + (idx / EXTRA_LOCAL_CAFES.length) * 0.021; // 150m ~ 2.7km
+        
+        const latOffset = Math.sin(angle) * radiusOffset;
+        const lngOffset = Math.cos(angle) * radiusOffset;
+        const coords: [number, number] = [
+          userCoords[0] + latOffset,
+          userCoords[1] + lngOffset
+        ];
+
+        list.push({
+          id: c.id,
+          name: c.name,
+          address: c.address,
+          description: c.description,
+          photos: c.photos,
+          tags: c.tags,
+          coords,
+        });
+      }
+    });
+
     return list;
-  }, [state.cafes, state.searchResults, userCoords]);
+  }, [state.cafes, state.searchResults, EXTRA_LOCAL_CAFES, userCoords]);
 
   // 내 위치 기준 모든 카페 거리 계산 및 3km 반경 필터링
   const cafesWithDistance = React.useMemo(() => {
