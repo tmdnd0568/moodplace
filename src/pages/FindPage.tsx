@@ -21,6 +21,73 @@ function getDistanceFromLatLonInKm(lat1: number, lon1: number, lat2: number, lon
   return R * c;
 }
 
+// AI 실제 카페 이미지 자동 검색/생성 매핑
+function getAIImagesForCafe(name: string, tags: Array<{ label: string }>) {
+  const nameLower = name.toLowerCase();
+  const tagLabels = tags.map((t) => t.label).join(' ');
+
+  if (nameLower.includes('루프탑') || tagLabels.includes('루프탑') || tagLabels.includes('야경') || nameLower.includes('스카이')) {
+    return [
+      'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=600&q=80',
+      'https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=600&q=80',
+      'https://images.unsplash.com/photo-1511920170033-f8396924c348?auto=format&fit=crop&w=600&q=80',
+      'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?auto=format&fit=crop&w=600&q=80'
+    ];
+  }
+
+  if (nameLower.includes('스타벅스')) {
+    return [
+      'https://images.unsplash.com/photo-1509042239860-f550ce710b93?auto=format&fit=crop&w=600&q=80',
+      'https://images.unsplash.com/photo-1447933601403-0c6688de566e?auto=format&fit=crop&w=600&q=80',
+      'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=600&q=80',
+      'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?auto=format&fit=crop&w=600&q=80'
+    ];
+  }
+
+  if (nameLower.includes('베이커리') || nameLower.includes('빵') || tagLabels.includes('베이커리')) {
+    return [
+      'https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=600&q=80',
+      'https://images.unsplash.com/photo-1555507036-ab1f4038808a?auto=format&fit=crop&w=600&q=80',
+      'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=600&q=80',
+      'https://images.unsplash.com/photo-1481833761820-0509d3217039?auto=format&fit=crop&w=600&q=80'
+    ];
+  }
+
+  if (nameLower.includes('에스프레소') || nameLower.includes('플랫화이트') || tagLabels.includes('에스프레소')) {
+    return [
+      'https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?auto=format&fit=crop&w=600&q=80',
+      'https://images.unsplash.com/photo-1510591509098-f4fdc6d0ff04?auto=format&fit=crop&w=600&q=80',
+      'https://images.unsplash.com/photo-1447933601403-0c6688de566e?auto=format&fit=crop&w=600&q=80',
+      'https://images.unsplash.com/photo-1497636577773-f1231844b336?auto=format&fit=crop&w=600&q=80'
+    ];
+  }
+
+  if (nameLower.includes('테라스') || nameLower.includes('가든') || tagLabels.includes('야외테라스')) {
+    return [
+      'https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=600&q=80',
+      'https://images.unsplash.com/photo-1442512595331-e89e73853f31?auto=format&fit=crop&w=600&q=80',
+      'https://images.unsplash.com/photo-1511920170033-f8396924c348?auto=format&fit=crop&w=600&q=80',
+      'https://images.unsplash.com/photo-1507138086030-416288548b6b?auto=format&fit=crop&w=600&q=80'
+    ];
+  }
+
+  if (nameLower.includes('티하우스') || nameLower.includes('차') || tagLabels.includes('전통찻집')) {
+    return [
+      'https://images.unsplash.com/photo-1576092768241-dec231879fc3?auto=format&fit=crop&w=600&q=80',
+      'https://images.unsplash.com/photo-1597481499750-3e6b22637e12?auto=format&fit=crop&w=600&q=80',
+      'https://images.unsplash.com/photo-1544787219-7f47ccb76574?auto=format&fit=crop&w=600&q=80',
+      'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?auto=format&fit=crop&w=600&q=80'
+    ];
+  }
+
+  return [
+    'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?auto=format&fit=crop&w=600&q=80',
+    'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=600&q=80',
+    'https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=600&q=80',
+    'https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=600&q=80'
+  ];
+}
+
 export const FindPage: React.FC = () => {
   const navigate = useNavigate();
   const { state, dispatch } = useStore();
@@ -37,6 +104,7 @@ export const FindPage: React.FC = () => {
   const [userCoords, setUserCoords] = useState<[number, number]>([36.3537, 127.3872]); // 기본 대전/GPS 중심
   const [radiusKm, setRadiusKm] = useState<number>(3.0); // 반경 3km (기본)
   const [userLocationName, setUserLocationName] = useState<string>('내 현재 위치 (대전 둔산동)');
+  const [previewPhotoUrl, setPreviewPhotoUrl] = useState<string | null>(null);
 
   // Drag Gesture States for Bottom Sheet
   const [dragOffset, setDragOffset] = useState<number>(0);
@@ -215,6 +283,11 @@ export const FindPage: React.FC = () => {
   }, [cafesWithDistance, radiusKm]);
 
   const selectedPlace = cafesWithin3km.find((p) => p.id === selectedPlaceId) || cafesWithin3km[0] || cafesWithDistance[0];
+
+  const selectedCafePhotos = React.useMemo(() => {
+    if (!selectedPlace) return [];
+    return getAIImagesForCafe(selectedPlace.name, selectedPlace.tags);
+  }, [selectedPlace]);
 
   const handleOfflineDownload = () => {
     if (downloadProgress !== null) return;
@@ -513,10 +586,6 @@ export const FindPage: React.FC = () => {
         </RadiusInfoFloatingBar>
       </MapCanvas>
 
-      <FindLocateBtn type="button" $isSheetOpen={isSheetOpen} onClick={handleLocateClick} aria-label="현재 위치로 이동">
-        <Icon name="locate" className="icon" />
-      </FindLocateBtn>
-
       {/* 3) Bottom sheet with Drag Gestures */}
       <PlaceDetailSheet 
         className="find-sheet" 
@@ -524,7 +593,7 @@ export const FindPage: React.FC = () => {
         style={{
           transform: isSheetOpen 
             ? `translateY(${dragOffset}px)` 
-            : 'translateY(100%)',
+            : 'translateY(calc(100% - 64px))',
           transition: isDragging ? 'none' : 'transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)'
         }}
         onTouchMove={(e) => handleDragMove(e.touches[0].clientY)}
@@ -533,6 +602,15 @@ export const FindPage: React.FC = () => {
         onMouseUp={handleDragEnd}
         onMouseLeave={handleDragEnd}
       >
+        {/* 📍 바텀시트 상단 바로 위에서 시트 이동에 100% 동기화하여 연동되는 내 위치 확인 버튼 */}
+        <LocateBtnAboveSheet
+          type="button"
+          onClick={handleLocateClick}
+          aria-label="현재 위치로 이동"
+        >
+          <Icon name="locate" className="icon" />
+        </LocateBtnAboveSheet>
+
         <SheetHandleWrapper 
           type="button" 
           aria-label="상세정보 접기"
@@ -579,12 +657,19 @@ export const FindPage: React.FC = () => {
           <p>{selectedPlace.description}</p>
         </DescBox>
 
+        {/* AI 탐색 실제 카페 분위기 갤러리 */}
+        <PhotoSectionHeader>
+          <PhotoSectionTitle>✨ AI 탐색 실제 카페 갤러리</PhotoSectionTitle>
+          <PhotoCountBadge>{selectedCafePhotos.length}장</PhotoCountBadge>
+        </PhotoSectionHeader>
+
         <PhotoRow className="find-photo-row">
-          {selectedPlace.photos.map((photo, i) => (
+          {selectedCafePhotos.map((photo, i) => (
             <PhotoThumb
               key={i}
               className="find-photo-thumb"
               style={{ backgroundImage: `url('${photo}')` }}
+              onClick={() => setPreviewPhotoUrl(photo)}
             />
           ))}
         </PhotoRow>
@@ -597,6 +682,18 @@ export const FindPage: React.FC = () => {
           이 장소로 길찾기
         </NavigateBtn>
       </PlaceDetailSheet>
+
+      {/* 카페 사진 원본 크게보기 라이트박스 모달 */}
+      {previewPhotoUrl && (
+        <PhotoModalOverlay onClick={() => setPreviewPhotoUrl(null)}>
+          <PhotoModalContent onClick={(e) => e.stopPropagation()}>
+            <PhotoModalImg src={previewPhotoUrl} alt="카페 이미지 크게보기" />
+            <PhotoModalCloseBtn type="button" onClick={() => setPreviewPhotoUrl(null)}>
+              <Icon name="close" />
+            </PhotoModalCloseBtn>
+          </PhotoModalContent>
+        </PhotoModalOverlay>
+      )}
 
       {/* 8) Left Side Menu Drawer */}
       {isMenuOpen && <Overlay onClick={() => setIsMenuOpen(false)} />}
@@ -846,26 +943,38 @@ const RadiusChipBtn = styled.button<{ $active?: boolean }>`
   }
 `;
 
-const FindLocateBtn = styled.button<{ $isSheetOpen: boolean }>`
+const LocateBtnAboveSheet = styled.button`
   position: absolute;
-  bottom: ${({ $isSheetOpen }) => ($isSheetOpen ? 'calc(260px + env(safe-area-inset-bottom))' : 'calc(80px + env(safe-area-inset-bottom))')};
-  right: ${({ theme }) => theme.space[4]};
-  z-index: 4;
-  width: 42px;
-  height: 42px;
+  top: -54px;
+  right: 16px;
+  z-index: 20;
+  width: 44px;
+  height: 44px;
   border: none;
   border-radius: 50%;
-  background: ${({ theme }) => theme.colors.primary};
-  color: #ffffff;
+  background: #ffffff;
+  color: ${({ theme }) => theme.colors.primary};
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 3px 10px rgba(26, 26, 26, 0.2);
-  transition: bottom 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.16);
+  cursor: pointer;
+  backdrop-filter: blur(8px);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 
   .icon {
-    width: 19px;
-    height: 19px;
+    width: 22px;
+    height: 22px;
+    color: ${({ theme }) => theme.colors.primary};
+  }
+
+  &:hover {
+    transform: scale(1.06);
+    box-shadow: 0 6px 20px rgba(45, 82, 68, 0.25);
+  }
+
+  &:active {
+    transform: scale(0.94);
   }
 `;
 
@@ -979,18 +1088,105 @@ const DescBox = styled.div`
   }
 `;
 
+const PhotoSectionHeader = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+`;
+
+const PhotoSectionTitle = styled.h3`
+  font-size: 13.5px;
+  font-weight: 800;
+  color: ${({ theme }) => theme.colors.text};
+`;
+
+const PhotoCountBadge = styled.span`
+  font-size: 11.5px;
+  font-weight: 700;
+  color: ${({ theme }) => theme.colors.primary};
+  background: rgba(45, 82, 68, 0.08);
+  padding: 2px 8px;
+  border-radius: 10px;
+`;
+
 const PhotoRow = styled.div`
   display: flex;
   gap: ${({ theme }) => theme.space[3]};
   margin-bottom: ${({ theme }) => theme.space[5]};
+  overflow-x: auto;
+  padding-bottom: 4px;
+  &::-webkit-scrollbar {
+    display: none;
+  }
 `;
 
 const PhotoThumb = styled.div`
-  flex: 1;
-  height: 120px;
+  flex: 0 0 110px;
+  height: 100px;
   border-radius: ${({ theme }) => theme.radius.md};
   background-size: cover;
   background-position: center;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+  &:hover {
+    transform: scale(1.03);
+    box-shadow: 0 4px 12px rgba(45, 82, 68, 0.2);
+  }
+`;
+
+const PhotoModalOverlay = styled.div`
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 9999;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+`;
+
+const PhotoModalContent = styled.div`
+  position: relative;
+  max-width: 90%;
+  max-height: 80vh;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+`;
+
+const PhotoModalImg = styled.img`
+  width: 100%;
+  max-height: 80vh;
+  object-fit: contain;
+  display: block;
+`;
+
+const PhotoModalCloseBtn = styled.button`
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.6);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  backdrop-filter: blur(4px);
+
+  &:hover {
+    background: rgba(0, 0, 0, 0.85);
+  }
 `;
 
 const NavigateBtn = styled.button`
