@@ -2,9 +2,30 @@ import React, { useState } from 'react';
 import styled, { keyframes } from 'styled-components';
 import { useNavigate } from 'react-router-dom';
 import { useStore } from '../store/StoreContext';
-import { MOOD_TAGS, mockAiSearch } from '../data/mockData';
+import { mockAiSearch } from '../data/mockData';
 import { Icon } from './icons/Icons';
 import { searchCafesWithGemini } from '../services/geminiService';
+
+const HISTORY_KEY = 'moodplace_search_history';
+const AUTOSAVE_KEY = 'moodplace_search_autosave';
+
+const getInitialHistory = (): string[] => {
+  try {
+    const saved = localStorage.getItem(HISTORY_KEY);
+    return saved ? JSON.parse(saved) : ['대전 둔산동 분위기 좋은 카페', '성수동 조용한 북카페', '말차 디저트 맛집'];
+  } catch {
+    return ['대전 둔산동 분위기 좋은 카페', '성수동 조용한 북카페', '말차 디저트 맛집'];
+  }
+};
+
+const getInitialAutoSave = (): boolean => {
+  try {
+    const saved = localStorage.getItem(AUTOSAVE_KEY);
+    return saved !== null ? JSON.parse(saved) : true;
+  } catch {
+    return true;
+  }
+};
 
 export const SearchModal: React.FC = () => {
   const { state, dispatch } = useStore();
@@ -14,33 +35,90 @@ export const SearchModal: React.FC = () => {
   const [isExternalRegion, setIsExternalRegion] = useState(false);
   const [targetRegion, setTargetRegion] = useState('');
 
+  // 최근 검색어 및 자동 저장 상태
+  const [searchHistory, setSearchHistory] = useState<string[]>(getInitialHistory);
+  const [isAutoSaveOn, setIsAutoSaveOn] = useState<boolean>(getInitialAutoSave);
+
+  const inputRef = React.useRef<HTMLInputElement>(null);
+
+  React.useEffect(() => {
+    if (state.isSearchModalOpen && state.searchPhase === 'idle') {
+      const timer = setTimeout(() => {
+        inputRef.current?.focus();
+      }, 80);
+      return () => clearTimeout(timer);
+    }
+  }, [state.isSearchModalOpen, state.searchPhase]);
+
   if (!state.isSearchModalOpen) return null;
 
   const handleClose = () => {
     dispatch({ type: 'CLOSE_SEARCH_MODAL' });
   };
 
-  const handleToggleMood = (id: string) => {
-    dispatch({ type: 'TOGGLE_MODAL_MOOD', payload: id });
-  };
+  const executeSearch = async (searchTerm: string) => {
+    const query = searchTerm.trim();
+    if (!query) return;
 
-  const handleSearch = async () => {
+    // 검색 기록 자동 저장
+    if (isAutoSaveOn) {
+      setSearchHistory((prev) => {
+        const filtered = prev.filter((item) => item !== query);
+        const updated = [query, ...filtered].slice(0, 10);
+        try {
+          localStorage.setItem(HISTORY_KEY, JSON.stringify(updated));
+        } catch (e) {
+          console.warn('[LocalStorage Error]', e);
+        }
+        return updated;
+      });
+    }
+
     dispatch({ type: 'START_MOOD_SEARCH' });
     try {
-      const res = await searchCafesWithGemini(
-        state.modalSelectedMoods,
-        description,
-        state.cafes
-      );
+      const res = await searchCafesWithGemini([], query, state.cafes);
       setIsRealAiResult(res.isRealAi);
       setIsExternalRegion(!!res.isExternalRegion);
       setTargetRegion(res.targetRegion || '');
       dispatch({ type: 'RECEIVE_MOOD_SEARCH_RESULT', payload: res.cafes });
     } catch (err) {
       console.error('[Gemini Search Error]', err);
-      const fallback = mockAiSearch(state.modalSelectedMoods, description);
+      const fallback = mockAiSearch([], query);
       dispatch({ type: 'RECEIVE_MOOD_SEARCH_RESULT', payload: fallback });
     }
+  };
+
+  const handleClearAllHistory = () => {
+    setSearchHistory([]);
+    try {
+      localStorage.setItem(HISTORY_KEY, JSON.stringify([]));
+    } catch (e) {
+      console.warn('[LocalStorage Error]', e);
+    }
+  };
+
+  const handleRemoveHistoryItem = (targetItem: string) => {
+    setSearchHistory((prev) => {
+      const updated = prev.filter((item) => item !== targetItem);
+      try {
+        localStorage.setItem(HISTORY_KEY, JSON.stringify(updated));
+      } catch (e) {
+        console.warn('[LocalStorage Error]', e);
+      }
+      return updated;
+    });
+  };
+
+  const handleToggleAutoSave = () => {
+    setIsAutoSaveOn((prev) => {
+      const next = !prev;
+      try {
+        localStorage.setItem(AUTOSAVE_KEY, JSON.stringify(next));
+      } catch (e) {
+        console.warn('[LocalStorage Error]', e);
+      }
+      return next;
+    });
   };
 
   const handleSelectCafe = (id: string) => {
@@ -57,10 +135,6 @@ export const SearchModal: React.FC = () => {
     dispatch({ type: 'OPEN_SEARCH_MODAL' });
     setDescription('');
   };
-
-  const hasMood = state.modalSelectedMoods.length > 0;
-  const hasDescription = description.trim().length > 0;
-  const canSearch = hasMood || hasDescription;
 
   // 1. Loading Phase
   if (state.searchPhase === 'loading') {
@@ -147,51 +221,98 @@ export const SearchModal: React.FC = () => {
     );
   }
 
-  // 3. Form Phase (검색 입력 모달 페이지)
+  // 3. Form Phase (즉시 키보드 검색 및 최근 검색어 관리 페이지)
   return (
     <ModalOverlay onClick={handleClose}>
       <ModalSheet onClick={(e) => e.stopPropagation()}>
         <ModalHandle onClick={handleClose} />
-        <ModalTitle>지금 어떤 느낌을 원하시나요?</ModalTitle>
-        <ModalSubtitle>AI가 당신의 취향에 맞는 완벽한 공간을 찾아드려요.</ModalSubtitle>
+        
+        <SearchFormHeader>
+          <ModalTitle style={{ margin: 0 }}>어떤 공간을 찾으시나요?</ModalTitle>
+        </SearchFormHeader>
 
-        <ModalSection>
-          <ModalLabel>오늘의 무드 선택</ModalLabel>
-          <MoodGrid role="group" aria-label="오늘의 무드 선택">
-            {MOOD_TAGS.map((mood) => {
-              const isActive = state.modalSelectedMoods.includes(mood.id);
-              return (
-                <ModalMoodChip
-                  key={mood.id}
-                  type="button"
-                  className={isActive ? 'is-active' : ''}
-                  onClick={() => handleToggleMood(mood.id)}
-                  aria-pressed={isActive}
-                >
-                  {mood.label}
-                </ModalMoodChip>
-              );
-            })}
-          </MoodGrid>
-        </ModalSection>
-
-        <ModalSection>
-          <ModalLabel>상세한 분위기 설명 (선택)</ModalLabel>
-          <SearchTextarea
-            placeholder="예: '조용히 책 읽기 좋은 성수동 카페', '재즈 음악이 흐르고 채광이 가득한 따뜻한 공간'"
+        <SearchInputContainer>
+          <Icon name="search" className="search-icon" />
+          <SearchInput
+            ref={inputRef}
+            autoFocus
+            type="text"
+            placeholder="예: 대전 둔산동 분위기 좋은 카페, 성수동 조용한 북카페"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                executeSearch(description);
+              }
+            }}
           />
-        </ModalSection>
+          {description && (
+            <ClearInputBtn type="button" onClick={() => setDescription('')} aria-label="입력 초기화">
+              <Icon name="close" />
+            </ClearInputBtn>
+          )}
+        </SearchInputContainer>
 
         <SearchButton
           type="button"
-          disabled={!canSearch}
-          onClick={handleSearch}
+          disabled={!description.trim()}
+          onClick={() => executeSearch(description)}
         >
-          <span>무드 플레이스 탐색하기</span>
+          <span>AI 모드 플레이스 탐색하기</span>
           <Icon name="sparkle" className="icon" />
         </SearchButton>
+
+        {/* 최근 검색어 및 검색 기록 삭제/저장 관리 영역 */}
+        <HistorySection>
+          <HistoryHeaderRow>
+            <HistoryTitle>최근 검색어</HistoryTitle>
+            <HistoryControls>
+              <HistoryControlBtn type="button" onClick={handleToggleAutoSave}>
+                {isAutoSaveOn ? '자동저장 끄기' : '자동저장 켜기'}
+              </HistoryControlBtn>
+              <HistoryDivider />
+              <HistoryControlBtn type="button" onClick={handleClearAllHistory}>
+                전체 삭제
+              </HistoryControlBtn>
+            </HistoryControls>
+          </HistoryHeaderRow>
+
+          {!isAutoSaveOn ? (
+            <AutoSaveDisabledNotice>
+              검색 기록 저장이 꺼져 있습니다.
+            </AutoSaveDisabledNotice>
+          ) : searchHistory.length === 0 ? (
+            <EmptyHistoryText>최근 검색 기록이 없습니다.</EmptyHistoryText>
+          ) : (
+            <HistoryList>
+              {searchHistory.map((term, index) => (
+                <HistoryItemChip key={`${term}-${index}`}>
+                  <HistoryTextBtn
+                    type="button"
+                    onClick={() => {
+                      setDescription(term);
+                      executeSearch(term);
+                    }}
+                  >
+                    <Icon name="search" className="item-icon" />
+                    <span>{term}</span>
+                  </HistoryTextBtn>
+                  <HistoryDeleteBtn
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleRemoveHistoryItem(term);
+                    }}
+                    aria-label={`${term} 검색 기록 삭제`}
+                  >
+                    <Icon name="close" />
+                  </HistoryDeleteBtn>
+                </HistoryItemChip>
+              ))}
+            </HistoryList>
+          )}
+        </HistorySection>
       </ModalSheet>
     </ModalOverlay>
   );
@@ -256,74 +377,71 @@ const ModalTitle = styled.h2`
   margin-bottom: ${({ theme }) => theme.space[1]};
 `;
 
-const ModalSubtitle = styled.p`
-  font-size: 14px;
-  color: ${({ theme }) => theme.colors.textMuted};
-  margin-bottom: ${({ theme }) => theme.space[5]};
-  line-height: 1.5;
+const SearchFormHeader = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: ${({ theme }) => theme.space[4]};
 `;
 
-const ModalSection = styled.div`
-  margin-bottom: ${({ theme }) => theme.space[5]};
-`;
-
-const ModalLabel = styled.p`
-  font-size: 14px;
-  font-weight: 700;
-  color: ${({ theme }) => theme.colors.text};
-  margin-bottom: ${({ theme }) => theme.space[3]};
-`;
-
-const MoodGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: ${({ theme }) => theme.space[2]};
-`;
-
-const ModalMoodChip = styled.button`
-  height: 48px;
-  border-radius: ${({ theme }) => theme.radius.md};
+const SearchInputContainer = styled.div`
+  position: relative;
+  display: flex;
+  align-items: center;
+  background: ${({ theme }) => theme.colors.surface};
   border: 1.5px solid ${({ theme }) => theme.colors.border};
+  border-radius: ${({ theme }) => theme.radius.md};
+  padding: 0 14px;
+  margin-bottom: ${({ theme }) => theme.space[3]};
+  transition: all 0.2s ease;
+
+  &:focus-within {
+    border-color: ${({ theme }) => theme.colors.primary};
+    box-shadow: 0 0 0 3px rgba(45, 82, 68, 0.12);
+  }
+
+  .search-icon {
+    width: 20px;
+    height: 20px;
+    color: ${({ theme }) => theme.colors.textMuted};
+    margin-right: 10px;
+    flex-shrink: 0;
+  }
+`;
+
+const SearchInput = styled.input`
+  width: 100%;
+  height: 48px;
+  border: none;
+  background: transparent;
+  font-size: 15px;
+  color: ${({ theme }) => theme.colors.text};
+  outline: none;
+
+  &::placeholder {
+    color: ${({ theme }) => theme.colors.textMuted};
+    font-size: 13.5px;
+  }
+`;
+
+const ClearInputBtn = styled.button`
+  background: none;
+  border: none;
+  color: ${({ theme }) => theme.colors.textMuted};
+  padding: 6px;
+  cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: ${({ theme }) => theme.space[2]};
-  font-size: 14px;
-  font-weight: 500;
-  color: ${({ theme }) => theme.colors.text};
-  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-  background: transparent;
-  cursor: pointer;
+  flex-shrink: 0;
 
   &:hover {
-    border-color: ${({ theme }) => theme.colors.primaryLight};
+    color: ${({ theme }) => theme.colors.text};
   }
 
-  &.is-active {
-    background: ${({ theme }) => theme.colors.primary};
-    border-color: ${({ theme }) => theme.colors.primary};
-    color: #ffffff;
-  }
-`;
-
-
-const SearchTextarea = styled.textarea`
-  width: 100%;
-  height: 100px;
-  padding: ${({ theme }) => theme.space[3]};
-  border: 1.5px solid ${({ theme }) => theme.colors.border};
-  border-radius: ${({ theme }) => theme.radius.md};
-  background: ${({ theme }) => theme.colors.bg};
-  font-size: 14px;
-  color: ${({ theme }) => theme.colors.text};
-  resize: none;
-  line-height: 1.5;
-  transition: border-color 0.2s;
-  box-sizing: border-box;
-
-  &:focus {
-    border-color: ${({ theme }) => theme.colors.primary};
-    outline: none;
+  svg {
+    width: 16px;
+    height: 16px;
   }
 `;
 
@@ -353,6 +471,130 @@ const SearchButton = styled.button`
     width: 16px;
     height: 16px;
   }
+`;
+
+const HistorySection = styled.div`
+  margin-top: ${({ theme }) => theme.space[5]};
+  padding-top: ${({ theme }) => theme.space[4]};
+  border-top: 1px solid ${({ theme }) => theme.colors.border};
+`;
+
+const HistoryHeaderRow = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: ${({ theme }) => theme.space[3]};
+`;
+
+const HistoryTitle = styled.h4`
+  font-size: 13.5px;
+  font-weight: 700;
+  color: ${({ theme }) => theme.colors.text};
+  margin: 0;
+`;
+
+const HistoryControls = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+`;
+
+const HistoryControlBtn = styled.button`
+  background: none;
+  border: none;
+  font-size: 12px;
+  color: ${({ theme }) => theme.colors.textMuted};
+  cursor: pointer;
+  padding: 2px 4px;
+
+  &:hover {
+    color: ${({ theme }) => theme.colors.primary};
+    text-decoration: underline;
+  }
+`;
+
+const HistoryDivider = styled.span`
+  width: 1px;
+  height: 10px;
+  background: ${({ theme }) => theme.colors.border};
+`;
+
+const HistoryList = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+`;
+
+const HistoryItemChip = styled.div`
+  display: inline-flex;
+  align-items: center;
+  background: ${({ theme }) => theme.colors.surface};
+  border: 1px solid ${({ theme }) => theme.colors.border};
+  border-radius: 20px;
+  padding: 6px 12px;
+  font-size: 13px;
+  color: ${({ theme }) => theme.colors.text};
+  transition: all 0.2s ease;
+
+  &:hover {
+    border-color: ${({ theme }) => theme.colors.primary};
+    background: rgba(45, 82, 68, 0.04);
+  }
+`;
+
+const HistoryTextBtn = styled.button`
+  background: none;
+  border: none;
+  color: inherit;
+  font-size: inherit;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0;
+
+  .item-icon {
+    width: 13px;
+    height: 13px;
+    color: ${({ theme }) => theme.colors.textMuted};
+  }
+`;
+
+const HistoryDeleteBtn = styled.button`
+  background: none;
+  border: none;
+  color: ${({ theme }) => theme.colors.textMuted};
+  cursor: pointer;
+  margin-left: 6px;
+  padding: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+
+  &:hover {
+    color: #e74c3c;
+    background: rgba(0, 0, 0, 0.06);
+  }
+
+  svg {
+    width: 12px;
+    height: 12px;
+  }
+`;
+
+const AutoSaveDisabledNotice = styled.div`
+  font-size: 13px;
+  color: ${({ theme }) => theme.colors.textMuted};
+  padding: 16px 0;
+  text-align: center;
+`;
+
+const EmptyHistoryText = styled.div`
+  font-size: 13px;
+  color: ${({ theme }) => theme.colors.textMuted};
+  padding: 16px 0;
+  text-align: center;
 `;
 
 /* ─── Loading Phase ─── */
