@@ -1161,18 +1161,16 @@ const DescBox = styled.div`
 
 const PhotoRow = styled.div`
   display: flex;
-  gap: ${({ theme }) => theme.space[3]};
+  width: 100%;
+  gap: 12px;
   margin-bottom: ${({ theme }) => theme.space[5]};
-  overflow-x: auto;
-  padding-bottom: 4px;
-  &::-webkit-scrollbar {
-    display: none;
-  }
+  box-sizing: border-box;
 `;
 
 const PhotoThumb = styled.div`
-  flex: 0 0 135px;
-  height: 100px;
+  flex: 1;
+  min-width: 0;
+  height: 115px;
   border-radius: ${({ theme }) => theme.radius.md};
   background-size: cover;
   background-position: center;
@@ -1181,7 +1179,7 @@ const PhotoThumb = styled.div`
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 
   &:hover {
-    transform: scale(1.03);
+    transform: scale(1.02);
     box-shadow: 0 4px 12px rgba(45, 82, 68, 0.2);
   }
 `;
