@@ -244,15 +244,17 @@ export const SearchModal: React.FC = () => {
                 }
               }}
             />
-            {description ? (
+            {description && (
               <ClearInputBtn type="button" onClick={() => setDescription('')} aria-label="입력 초기화">
                 <Icon name="close" />
               </ClearInputBtn>
-            ) : (
-              <SearchSparkleIcon type="button" onClick={() => executeSearch(description)} aria-label="탐색">
-                <Icon name="sparkle" />
-              </SearchSparkleIcon>
             )}
+            <CloseModalBtn type="button" onClick={handleClose} aria-label="검색창 닫기">
+              <Icon name="close" />
+            </CloseModalBtn>
+            <SearchSparkleIcon type="button" onClick={() => executeSearch(description)} aria-label="탐색">
+              <Icon name="sparkle" />
+            </SearchSparkleIcon>
           </SearchInputBox>
         </SearchTopRow>
 
@@ -443,6 +445,31 @@ const ClearInputBtn = styled.button`
 
   &:hover {
     color: ${({ theme }) => theme.colors.text};
+  }
+
+  svg {
+    width: 16px;
+    height: 16px;
+  }
+`;
+
+const CloseModalBtn = styled.button`
+  background: none;
+  border: none;
+  color: ${({ theme }) => theme.colors.textMuted};
+  padding: 4px;
+  margin-right: 2px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border-radius: 50%;
+  transition: all 0.15s ease;
+
+  &:hover {
+    color: ${({ theme }) => theme.colors.text};
+    background: rgba(0, 0, 0, 0.06);
   }
 
   svg {
