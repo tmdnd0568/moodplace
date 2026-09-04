@@ -190,31 +190,38 @@ const KeepSubtitle = styled.p`
 
 const KeepFilterRow = styled.div`
   display: flex;
-  gap: ${({ theme }) => theme.space[2]};
-  padding: ${({ theme }) => theme.space[4]} ${({ theme }) => theme.space[5]};
+  gap: 0;
+  padding: ${({ theme }) => theme.space[2]} ${({ theme }) => theme.space[5]} 0;
   box-sizing: border-box;
+  border-bottom: 1px solid ${({ theme }) => theme.colors.border};
+  margin-bottom: ${({ theme }) => theme.space[4]};
 `;
 
 const KeepFilterChip = styled.button`
   flex: 1;
-  height: 32px;
+  height: 34px;
   display: flex;
   align-items: center;
   justify-content: center;
   background: transparent;
-  border: 1px solid #000000;
-  border-radius: ${({ theme }) => theme.radius.pill};
+  border: none;
+  border-bottom: 2px solid transparent;
+  border-radius: 0;
   font-size: 13px;
   font-weight: 500;
-  color: #000000;
-  transition: all 0.2s;
+  color: ${({ theme }) => theme.colors.textMuted};
+  transition: color 0.2s ease, border-bottom-color 0.2s ease;
   cursor: pointer;
+  padding: 0;
 
   &.is-active {
-    background: ${({ theme }) => theme.colors.primary};
-    border-color: #000000;
-    color: ${({ theme }) => theme.colors.surface};
+    border-bottom: 2px solid ${({ theme }) => theme.colors.text};
+    color: ${({ theme }) => theme.colors.text};
     font-weight: 700;
+  }
+
+  &:hover:not(.is-active) {
+    color: ${({ theme }) => theme.colors.text};
   }
 `;
 

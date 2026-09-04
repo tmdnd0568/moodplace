@@ -405,14 +405,15 @@ export const FindPage: React.FC = () => {
     if (!isDragging) return;
     const deltaY = clientY - startYRef.current;
     if (deltaY > 0) {
-      setDragOffset(deltaY);
+      // 최대 120px까지만 드래그 허용 - 네비바와 시트 사이 빈 공간 방지
+      setDragOffset(Math.min(deltaY, 120));
     }
   };
 
   const handleDragEnd = () => {
     if (!isDragging) return;
     setIsDragging(false);
-    if (dragOffset > 100) {
+    if (dragOffset > 80) {
       setIsSheetOpen(false);
     }
     setDragOffset(0);
@@ -738,7 +739,7 @@ export const FindPage: React.FC = () => {
         $isOpen={isSheetOpen}
         style={{
           transform: isSheetOpen 
-            ? `translateY(${dragOffset}px)` 
+            ? `translateY(${Math.min(dragOffset, 100)}px)` 
             : 'translateY(calc(100% + 80px))',
           transition: isDragging ? 'none' : 'transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)'
         }}
@@ -922,24 +923,22 @@ const FindIconBtn = styled.button`
   height: 40px;
   border: none;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.9);
-  color: ${({ theme }) => theme.colors.text};
+  background: transparent;
+  color: #1a1a1a;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 2px 8px rgba(26, 26, 26, 0.12);
   flex-shrink: 0;
-  transition: background 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+  transition: transform 0.2s ease;
 
   &:hover {
-    background: linear-gradient(135deg, #ffffff 0%, #cfe6c8 100%);
-    box-shadow: 0 4px 12px rgba(45, 82, 68, 0.2);
     transform: scale(1.05);
   }
 
   .icon {
-    width: 19px;
-    height: 19px;
+    width: 22px;
+    height: 22px;
+    filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.9));
   }
 `;
 
@@ -1047,8 +1046,8 @@ const RadiusInfoFloatingBar = styled.div`
   z-index: 10;
   background: rgba(255, 255, 255, 0.92);
   backdrop-filter: blur(10px);
-  border-radius: 50px;
-  padding: 4px 6px;
+  border-radius: 12px;
+  padding: 0 8px;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
   border: 1px solid rgba(45, 82, 68, 0.15);
   display: flex;
@@ -1058,23 +1057,33 @@ const RadiusInfoFloatingBar = styled.div`
 
 const RadiusFilterChips = styled.div`
   display: flex;
-  gap: 6px;
+  gap: 0;
 `;
 
 const RadiusChipBtn = styled.button<{ $active?: boolean }>`
-  background: ${({ $active, theme }) => ($active ? theme.colors.primary : 'transparent')};
-  color: ${({ $active }) => ($active ? '#ffffff' : '#4a5568')};
-  border: 1px solid ${({ $active, theme }) => ($active ? theme.colors.primary : 'transparent')};
-  border-radius: 50px;
-  padding: 6px 14px;
+  flex: 1;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  color: ${({ $active, theme }) => ($active ? theme.colors.text : theme.colors.textMuted)};
+  border: none;
+  border-bottom: 2px solid ${({ $active, theme }) => ($active ? theme.colors.text : 'transparent')};
+  border-radius: 0;
+  padding: 0 16px;
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 500;
   cursor: pointer;
   white-space: nowrap;
-  transition: all 0.2s ease;
+  transition: color 0.2s ease, border-bottom-color 0.2s ease;
+
+  ${({ $active }) => $active && `
+    font-weight: 800;
+  `}
 
   &:hover {
-    background: ${({ $active, theme }) => ($active ? theme.colors.primary : 'rgba(45, 82, 68, 0.08)')};
+    color: ${({ theme }) => theme.colors.text};
   }
 `;
 
@@ -1125,6 +1134,8 @@ const PlaceDetailSheet = styled.div<{ $isOpen: boolean }>`
   box-shadow: 0 -4px 16px rgba(26, 26, 26, 0.08);
   transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
   transform: translateY(${({ $isOpen }) => ($isOpen ? '0' : '100%')});
+  max-height: calc(75vh - 60px - env(safe-area-inset-bottom));
+  overflow-y: auto;
 `;
 
 const SheetHandleWrapper = styled.button`
