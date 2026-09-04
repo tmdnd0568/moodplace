@@ -1467,6 +1467,14 @@ const SearchInput = styled.input`
   padding: 4px 0;
   font-family: inherit;
 
+  &:focus,
+  &:focus-visible,
+  &:active {
+    outline: none !important;
+    border: none !important;
+    box-shadow: none !important;
+  }
+
   &::placeholder {
     color: #999999;
     font-size: 14px;

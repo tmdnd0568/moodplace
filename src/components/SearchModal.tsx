@@ -426,6 +426,14 @@ const TopSearchInput = styled.input`
   color: ${({ theme }) => theme.colors.text};
   outline: none;
 
+  &:focus,
+  &:focus-visible,
+  &:active {
+    outline: none !important;
+    border: none !important;
+    box-shadow: none !important;
+  }
+
   &::placeholder {
     color: #a4a29e;
     font-size: 14px;

@@ -59,11 +59,17 @@ export const GlobalStyle = createGlobalStyle`
   }
 
   button:focus-visible,
-  input:focus-visible,
-  textarea:focus-visible,
   [tabindex]:focus-visible {
     outline: 2px solid ${({ theme }) => theme.colors.primary};
     outline-offset: 2px;
+  }
+
+  input:focus,
+  input:focus-visible,
+  textarea:focus,
+  textarea:focus-visible {
+    outline: none !important;
+    box-shadow: none !important;
   }
 
   .visually-hidden {
