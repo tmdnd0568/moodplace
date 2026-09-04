@@ -145,7 +145,7 @@ export const SearchModal: React.FC = () => {
           <ModalLoading>
             <LoadingSpinner />
             <LoadingText>
-              ✨ Gemini AI가 당신의 무드와 취향을<br />분석 중입니다...
+              Gemini AI가 당신의 무드와 취향을<br />분석 중입니다...
             </LoadingText>
             <LoadingSubtext>전국 단위 맞춤 장소를 탐색하고 있어요</LoadingSubtext>
           </ModalLoading>

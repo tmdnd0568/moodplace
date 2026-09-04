@@ -349,15 +349,17 @@ const SectionLink = styled.button`
 
 const RecommendTabRow = styled.div`
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  justify-content: space-between;
   width: 100%;
+  gap: 4px;
   margin-bottom: ${({ theme }) => theme.space[4]};
   padding-bottom: 2px;
 `;
 
 const RecommendTabChip = styled.button`
   flex: 1;
+  min-width: 0;
   height: 32px;
   display: flex;
   align-items: center;
@@ -368,6 +370,7 @@ const RecommendTabChip = styled.button`
   border-radius: ${({ theme }) => theme.radius.pill};
   font-size: 13px;
   font-weight: 500;
+  white-space: nowrap;
   transition: all 0.2s ease;
   cursor: pointer;
 
