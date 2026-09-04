@@ -724,18 +724,7 @@ export const FindPage: React.FC = () => {
           </SearchWrapper>
         )}
 
-        {/* Search Results Dropdown */}
-        {isSearchActive && searchQuery.trim() !== '' && (
-          <SearchResultsCard>
-            {filteredPlaces.map((place) => (
-              <ResultItem key={place.id} onClick={() => handleSearchResultSelect(place.id)}>
-                <Icon name="pin" className="pin-icon" />
-                <span>{place.name}</span>
-              </ResultItem>
-            ))}
-            {filteredPlaces.length === 0 && <NoResults>검색 결과가 없습니다.</NoResults>}
-          </SearchResultsCard>
-        )}
+        {/* 검색 결과 드롭다운 박스 제거 - 지도 마커 자동 필터링만 사용 */}
       </FindHeader>
 
       {/* 2) Map Canvas */}
@@ -1237,25 +1226,27 @@ const DescBox = styled.div`
 const PhotoRow = styled.div`
   display: flex;
   width: 100%;
-  gap: 12px;
+  gap: 10px;
   margin-bottom: ${({ theme }) => theme.space[5]};
   box-sizing: border-box;
+  padding: 0 2px;
 `;
 
 const PhotoThumb = styled.div`
   flex: 1;
   min-width: 0;
-  height: 115px;
+  height: 140px;
   border-radius: ${({ theme }) => theme.radius.md};
   background-size: cover;
   background-position: center;
   cursor: pointer;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.12);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
+  overflow: hidden;
 
   &:hover {
     transform: scale(1.02);
-    box-shadow: 0 4px 12px rgba(45, 82, 68, 0.2);
+    box-shadow: 0 6px 16px rgba(45, 82, 68, 0.22);
   }
 `;
 
