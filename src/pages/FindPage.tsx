@@ -433,6 +433,8 @@ export const FindPage: React.FC = () => {
   const markersRef = React.useRef<Record<string, any>>({});
   const circleRef = React.useRef<any>(null);
   const tileLayerRef = React.useRef<any>(null);
+  const trafficLayerRef = React.useRef<any>(null);
+  const bikeLayerRef = React.useRef<any>(null);
 
   // 1. GPU 하드웨어 가속 Leaflet Map 엔진 초기화
   React.useEffect(() => {
@@ -440,7 +442,7 @@ export const FindPage: React.FC = () => {
     if (!L) return;
 
     const map = L.map('find-map-api', {
-      preferCanvas: true, // GPU 하드웨어 가속 캔버스 렌더러로 렉 제거
+      preferCanvas: true,
       zoomControl: false,
       attributionControl: false,
       fadeAnimation: true,
@@ -451,9 +453,9 @@ export const FindPage: React.FC = () => {
 
     const standardLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       maxZoom: 19,
-      updateWhenZooming: false, // 줌 줌 시 타일 재렌더링 렉 방지
-      updateWhenIdle: true,     // 드래그 멈췄을 때만 타일 업데이트
-      keepBuffer: 3             // 렉 없는 매끄러운 스크롤을 위한 버퍼 유지
+      updateWhenZooming: false,
+      updateWhenIdle: true,
+      keepBuffer: 3
     }).addTo(map);
     tileLayerRef.current = standardLayer;
 
@@ -466,6 +468,79 @@ export const FindPage: React.FC = () => {
       }
     };
   }, []);
+
+  // 지도 유형 (기본 지도 / 위성 지도 / 지형 지도) 실시간 레이어 스위칭
+  React.useEffect(() => {
+    const L = (window as any).L;
+    const map = mapRef.current;
+    if (!L || !map) return;
+
+    if (tileLayerRef.current) {
+      map.removeLayer(tileLayerRef.current);
+    }
+
+    let tileUrl = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+    let maxZoom = 19;
+
+    if (mapType === 'satellite') {
+      tileUrl = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
+      maxZoom = 18;
+    } else if (mapType === 'terrain') {
+      tileUrl = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}';
+      maxZoom = 18;
+    }
+
+    const newLayer = L.tileLayer(tileUrl, {
+      maxZoom,
+      updateWhenZooming: false,
+      updateWhenIdle: true,
+      keepBuffer: 3
+    }).addTo(map);
+
+    tileLayerRef.current = newLayer;
+  }, [mapType]);
+
+  // 실시간 교통 흐름 레이어 토글
+  React.useEffect(() => {
+    const L = (window as any).L;
+    const map = mapRef.current;
+    if (!L || !map) return;
+
+    if (showTraffic) {
+      if (!trafficLayerRef.current) {
+        trafficLayerRef.current = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager_only_labels/{z}/{x}/{y}{r}.png', {
+          maxZoom: 19,
+          opacity: 0.95
+        });
+      }
+      trafficLayerRef.current.addTo(map);
+    } else {
+      if (trafficLayerRef.current) {
+        map.removeLayer(trafficLayerRef.current);
+      }
+    }
+  }, [showTraffic]);
+
+  // 자전거 도로 레이어 토글
+  React.useEffect(() => {
+    const L = (window as any).L;
+    const map = mapRef.current;
+    if (!L || !map) return;
+
+    if (showBicycle) {
+      if (!bikeLayerRef.current) {
+        bikeLayerRef.current = L.tileLayer('https://tile.waymarkedtrails.org/cycling/{z}/{x}/{y}.png', {
+          maxZoom: 18,
+          opacity: 0.85
+        });
+      }
+      bikeLayerRef.current.addTo(map);
+    } else {
+      if (bikeLayerRef.current) {
+        map.removeLayer(bikeLayerRef.current);
+      }
+    }
+  }, [showBicycle]);
 
   // 2. 3km 반경 원(Circle) 및 마커 생성 (반경 변경 시에만 고성능 재렌더링)
   const userCoordsKey = userCoords.join(',');
