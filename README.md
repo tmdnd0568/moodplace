@@ -85,16 +85,12 @@ moodplace/
 | public 자막/텍스트 요소가 서로 겹쳐 보임 | 레이아웃 겹침 미보정 | 콘텐츠 레이아웃 수정으로 겹침 해결 |
 | 환경변수 접두사 혼동 | 프로젝트 초기 환경변수 네이밍 불일치 | 전역 환경변수 prefix 통일 리팩토링 |
 
-## 🚀 실행 방법
-```bash
-git clone https://github.com/tmdnd0568/moodplace.git
-cd moodplace
-npm install
-npm run dev
-```
 
 ## 🧷 바로가기
 깃허브:https://github.com/tmdnd0568/moodplace
+
 노션:https://app.notion.com/p/Project-1-moodplace-AI-dfc1a4be835a83d49e2a0169a48b08cc
+
 피그마:https://www.figma.com/design/Y4NcodTo6r6uGdRLp7Ew0y/%ED%8F%AC%ED%86%A0%ED%8F%B4%EB%A6%AC%EC%98%A4-moodeplace?node-id=0-1&t=Ms2xl1KE8WzyIwEL-1
+
 배포주소:https://arena-eta-five.vercel.app/
