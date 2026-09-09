@@ -654,10 +654,10 @@ const MapIconBtn = styled.button`
   align-items: center;
   justify-content: center;
   border-radius: 50%;
-  transition: background 0.15s ease;
+  transition: opacity 0.15s ease;
 
   &:hover {
-    background: ${({ theme }) => theme.colors.primaryLight};
+    opacity: 0.7;
   }
 
   .icon {
