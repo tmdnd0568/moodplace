@@ -163,10 +163,10 @@ export const SearchModal: React.FC = () => {
           <ResultHeader>
             <ResultLabel>
               {isExternalRegion && targetRegion
-                ? `📍 "${targetRegion}" 지역 AI 실시간 추천`
+                ? `"${targetRegion}" 지역 맞춤 추천`
                 : isRealAiResult
-                ? '✨ Gemini AI 맞춤 분석 추천'
-                : '✨ AI 무드 추천 결과'}
+                ? '무드 맞춤 분석 추천'
+                : '무드 추천 공간'}
             </ResultLabel>
             <ModalTitle>이런 공간은 어떠세요?</ModalTitle>
           </ResultHeader>
@@ -697,14 +697,14 @@ const ResultCard = styled.div`
   transition: background 0.15s ease, border-color 0.18s ease, transform 0.15s ease;
 
   &:hover {
-    background: ${({ theme }) => theme.colors.primaryLight};
-    border-color: ${({ theme }) => theme.colors.primary};
+    background: rgba(0, 0, 0, 0.02);
+    border-color: ${({ theme }) => theme.colors.text};
     transform: translateY(-1px);
   }
 
   &:active {
     transform: translateY(0);
-    background: rgba(45, 82, 68, 0.12);
+    background: rgba(0, 0, 0, 0.05);
   }
 `;
 
@@ -754,8 +754,8 @@ const ResultDesc = styled.p`
 
 const ResultAiReason = styled.div`
   font-size: 12px;
-  color: ${({ theme }) => theme.colors.primary};
-  background: rgba(45, 82, 68, 0.08);
+  color: #555555;
+  background: #f6f6f5;
   border-radius: 6px;
   padding: 6px 9px;
   margin-top: 6px;
@@ -766,11 +766,11 @@ const ResultAiReason = styled.div`
   font-weight: 500;
 
   .ai-icon {
-    width: 13px;
-    height: 13px;
+    width: 12px;
+    height: 12px;
     margin-top: 2px;
     flex-shrink: 0;
-    color: ${({ theme }) => theme.colors.primary};
+    color: #777777;
   }
 `;
 
@@ -790,7 +790,7 @@ const ResultCardArrow = styled.div`
   ${ResultCard}:hover & {
     opacity: 1;
     transform: translateX(0);
-    color: ${({ theme }) => theme.colors.primary};
+    color: ${({ theme }) => theme.colors.text};
   }
 `;
 
