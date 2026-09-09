@@ -6,7 +6,8 @@ import { MainHeader } from '../components/MainHeader';
 import { CafeCard } from '../components/CafeCard';
 import { BottomNav } from '../components/BottomNav';
 import { SearchModal } from '../components/SearchModal';
-import { THEME_FILTERS, getCuratorMessage } from '../data/mockData';
+import { THEME_FILTERS, getCuratorMessage, MAP_ORIGIN_LABEL, mockAiSearch } from '../data/mockData';
+import { searchCafesWithGemini } from '../services/geminiService';
 import { Icon } from '../components/icons/Icons';
 import { useNavigate } from 'react-router-dom';
 
@@ -27,6 +28,15 @@ export const MainPage: React.FC = () => {
 
 
 
+  const handleResetSearch = () => {
+    setSelectedRecommendTab('all');
+    dispatch({ type: 'RESET_SEARCH' });
+    dispatch({ type: 'SHOW_TOAST', payload: '검색 및 필터가 초기화되었습니다.' });
+    setTimeout(() => {
+      dispatch({ type: 'HIDE_TOAST' });
+    }, 1800);
+  };
+
   const handleOpenSearchModal = () => {
     dispatch({ type: 'OPEN_SEARCH_MODAL' });
   };
@@ -41,8 +51,32 @@ export const MainPage: React.FC = () => {
     dispatch({ type: 'TOGGLE_BOOKMARK', payload: id });
   };
 
-  const handleToggleTheme = (id: string) => {
-    dispatch({ type: 'TOGGLE_THEME', payload: id });
+  const handleThemeClick = async (theme: typeof THEME_FILTERS[0]) => {
+    dispatch({ type: 'TOGGLE_THEME', payload: theme.id });
+
+    const locationText = MAP_ORIGIN_LABEL || '현재 위치(서울시 종로구)';
+    const query = `${locationText} 근처 ${theme.label} 분위기의 추천 공간`;
+
+    dispatch({ type: 'START_MOOD_SEARCH' });
+    try {
+      const res = await searchCafesWithGemini([], query, state.cafes);
+      dispatch({ type: 'RECEIVE_MOOD_SEARCH_RESULT', payload: res.cafes });
+      setSelectedRecommendTab('all');
+      dispatch({
+        type: 'SHOW_TOAST',
+        payload: `✨ '${theme.label}' 테마 AI 위치 탐색 완료!`,
+      });
+      setTimeout(() => dispatch({ type: 'HIDE_TOAST' }), 2000);
+
+      const recommendElem = document.getElementById('recommend-section');
+      if (recommendElem) {
+        recommendElem.scrollIntoView({ behavior: 'smooth' });
+      }
+    } catch (err) {
+      console.error('[Theme AI Search Error]', err);
+      const fallback = mockAiSearch([], query);
+      dispatch({ type: 'RECEIVE_MOOD_SEARCH_RESULT', payload: fallback });
+    }
   };
 
   const handleBottomTabChange = (tabId: string) => {
@@ -106,10 +140,23 @@ export const MainPage: React.FC = () => {
           <Icon name="sparkle" className="icon-sparkle" />
         </SearchBarButton>
 
-        <RecommendSection>
+        <RecommendSection id="recommend-section">
           <SectionHeader>
-            <SectionTitle>오늘의 추천</SectionTitle>
+            <SectionTitle>
+              오늘의 추천
+              {state.searchPhase === 'result' && <AiResultTag>AI 검색 결과</AiResultTag>}
+            </SectionTitle>
+            <ResetButton type="button" onClick={handleResetSearch} title="Reset AI search and filters" aria-label="초기화">
+              <Icon name="reset" />
+            </ResetButton>
           </SectionHeader>
+
+          {state.searchPhase === 'loading' && (
+            <AiSearchingBanner>
+              <AiLoadingDot />
+              <span>{MAP_ORIGIN_LABEL} 기반 AI 위치 탐색 중...</span>
+            </AiSearchingBanner>
+          )}
 
           {/* 추가된 추천 필터 탭창 */}
           <RecommendTabRow role="tablist" aria-label="추천 카테고리 필터">
@@ -180,7 +227,7 @@ export const MainPage: React.FC = () => {
                   key={theme.id}
                   type="button"
                   className={isSelected ? 'is-selected' : ''}
-                  onClick={() => handleToggleTheme(theme.id)}
+                  onClick={() => handleThemeClick(theme)}
                   aria-pressed={isSelected}
                 >
                   <ThemeIconWrapper>
@@ -304,9 +351,9 @@ const RecommendSection = styled.section`
 
 const SectionHeader = styled.div`
   display: flex;
-  align-items: flex-end; /* 제목과 링크의 베이스라인을 정확히 일치시킵니다 */
+  align-items: center;
   justify-content: space-between;
-  margin-bottom: ${({ theme }) => theme.space[4]}; /* 가독성을 위한 숨통(16px) 트임 */
+  margin-bottom: ${({ theme }) => theme.space[4]};
 `;
 
 const SectionTitle = styled.h2`
@@ -314,6 +361,41 @@ const SectionTitle = styled.h2`
   font-weight: 800;
   color: ${({ theme }) => theme.colors.text};
   line-height: 1.1;
+`;
+
+const ResetButton = styled.button`
+  background: transparent;
+  border: none;
+  padding: 4px;
+  margin-right: 20px; /* 하단 5번째 탭(Dreamy) 텍스트와 우측 위치 수직 정렬 일치 */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: ${({ theme }) => theme.colors.textMuted || '#8e8c89'};
+  cursor: pointer;
+  border-radius: 50%;
+  transition: all 0.25s ease;
+
+  svg {
+    width: 18px;
+    height: 18px;
+    stroke: ${({ theme }) => theme.colors.textMuted || '#8e8c89'};
+    transition: transform 0.35s ease, stroke 0.2s ease;
+  }
+
+  &:hover {
+    color: #2d5244;
+    background: rgba(45, 82, 68, 0.08);
+
+    svg {
+      stroke: #2d5244;
+      transform: rotate(-180deg);
+    }
+  }
+
+  &:active {
+    transform: scale(0.9);
+  }
 `;
 
 const SectionLink = styled.button`
@@ -632,5 +714,43 @@ const EmptyState = styled.p`
   color: ${({ theme }) => theme.colors.textMuted};
   text-align: center;
   padding: 40px 0;
+`;
+
+const AiResultTag = styled.span`
+  font-size: 11px;
+  font-weight: 600;
+  color: #2d5244;
+  background: #e8f0ec;
+  border: 1px solid #b8d4c8;
+  padding: 2px 8px;
+  border-radius: 12px;
+  margin-left: 8px;
+  vertical-align: middle;
+`;
+
+const AiSearchingBanner = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #f4efea;
+  border: 1px solid #e0dad3;
+  padding: 10px 14px;
+  border-radius: 12px;
+  font-size: 13px;
+  color: #4a5568;
+  margin-bottom: 16px;
+`;
+
+const AiLoadingDot = styled.div`
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #2d5244;
+  animation: pulse 1s infinite alternate;
+
+  @keyframes pulse {
+    0% { transform: scale(0.8); opacity: 0.5; }
+    100% { transform: scale(1.2); opacity: 1; }
+  }
 `;
 

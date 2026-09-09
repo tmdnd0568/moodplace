@@ -50,6 +50,20 @@ export const LoginPage: React.FC = () => {
   const [socialModalType, setSocialModalType] = useState<'google' | 'kakao' | 'apple' | null>(null);
   const [socialLoading, setSocialLoading] = useState(false);
 
+  // 게스트 로그인 처리
+  const handleGuestLogin = () => {
+    setError('');
+    setIsLoading(true);
+    setTimeout(() => {
+      sessionStorage.setItem('moodplace_auth', 'true');
+      sessionStorage.setItem('moodplace_user_email', 'guest@moodplace.com');
+      sessionStorage.setItem('moodplace_user_name', '게스트');
+      sessionStorage.setItem('moodplace_onboarded', 'true');
+      setIsLoading(false);
+      navigate('/main');
+    }, 600);
+  };
+
   // 실제 Firebase 소셜 로그인 처리
   const handleFirebaseSocialLogin = async (providerType: 'google' | 'apple') => {
     setError('');
@@ -390,26 +404,30 @@ export const LoginPage: React.FC = () => {
                 </svg>
               </SocialBtn>
 
-              <SocialBtn id="login-kakao" type="button" $bgColor="#FEE500" onClick={() => setSocialModalType('kakao')} aria-label="카카오로 로그인">
-                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                  <path
-                    d="M12 3C6.477 3 2 6.477 2 10.8c0 2.79 1.643 5.24 4.126 6.727L5.1 21l4.5-2.3c.78.15 1.576.23 2.4.23 5.523 0 10-3.477 10-7.8C22 6.477 17.523 3 12 3z"
-                    fill="#3C1E1E"
-                  />
-                  <path
-                    d="M8.5 13.5L9.8 9.8l2.2 3.1 2.2-3.1 1.3 3.7"
-                    fill="none"
-                    stroke="#FEE500"
-                    strokeWidth="1.6"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              </SocialBtn>
-
               <SocialBtn id="login-apple" type="button" $bgColor="#000" onClick={() => handleFirebaseSocialLogin('apple')} disabled={isLoading} aria-label="애플로 로그인">
                 <svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
                   <path fill="#fff" d="M34.5 25.8c0-4.9 4-7.2 4.2-7.4-2.3-3.3-5.8-3.8-7.1-3.8-3-.3-5.9 1.8-7.4 1.8-1.5 0-3.8-1.7-6.3-1.7-3.2 0-6.2 1.9-7.8 4.8-3.4 5.8-.9 14.4 2.4 19.1 1.6 2.3 3.5 4.9 6 4.8 2.4-.1 3.3-1.5 6.2-1.5s3.7 1.5 6.3 1.5 4.2-2.3 5.8-4.6 2.2-4.7 2.2-4.8c-.1 0-4.5-1.8-4.5-7.2zm-4.2-13.3c1.3-1.6 2.2-3.8 2-6-1.9.1-4.2 1.3-5.6 2.9-1.2 1.4-2.3 3.7-2 5.9 2.1.1 4.3-1.1 5.6-2.8z"/>
+                </svg>
+              </SocialBtn>
+
+              <SocialBtn
+                id="login-guest"
+                type="button"
+                $bgColor="#2D5244"
+                onClick={handleGuestLogin}
+                disabled={isLoading}
+                aria-label="게스트로 로그인"
+                title="게스트 로그인"
+              >
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" width="22" height="22">
+                  <path
+                    d="M12 12C14.2091 12 16 10.2091 16 8C16 5.79086 14.2091 4 12 4C9.79086 4 8 5.79086 8 8C8 10.2091 9.79086 12 12 12Z"
+                    fill="#FFFFFF"
+                  />
+                  <path
+                    d="M12 14C7.58172 14 4 17.5817 4 22H20C20 17.5817 16.4183 14 12 14Z"
+                    fill="#FFFFFF"
+                  />
                 </svg>
               </SocialBtn>
             </SocialRow>

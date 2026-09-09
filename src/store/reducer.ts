@@ -169,7 +169,8 @@ export function rootReducer(state: AppState, action: AppAction): AppState {
         searchPhase: 'idle',
         searchResults: [],
         selectedMoods: [],
-        modalSelectedMoods: []
+        modalSelectedMoods: [],
+        selectedThemes: []
       };
 
     default:
