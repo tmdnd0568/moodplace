@@ -1,4 +1,4 @@
-﻿import React from 'react';
+import React from 'react';
 
 interface IconProps extends React.SVGProps<SVGSVGElement> {
   name: string;
@@ -224,6 +224,37 @@ export const Icon: React.FC<IconProps> = ({ name, ...props }) => {
           <path d="M11 11h6" />
           <path d="M11 11l1.5 8" />
           <path d="M8 21a5 5 0 0 0 4.8-6.3" />
+        </svg>
+      );
+    case 'leaf':
+      return (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" {...props}>
+          <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.4 19 2c1 2 2 4.1 1.4 8.2A7 7 0 0 1 11 20z" />
+          <path d="M11 20v-8" />
+        </svg>
+      );
+    case 'quiet':
+      return (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" {...props}>
+          <path d="M12 3a9 9 0 0 0-9 9c0 4.97 4.03 9 9 9 1.77 0 3.42-.51 4.82-1.4.38-.24.87-.2 1.22.1l2.4 2.1c.36.31.9-.06.75-.52l-.9-2.7c-.12-.37 0-.78.29-1.03A8.96 8.96 0 0 0 21 12a9 9 0 0 0-9-9z" />
+          <path d="M8 12h.01M12 12h.01M16 12h.01" />
+        </svg>
+      );
+    case 'camera':
+      return (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" {...props}>
+          <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+          <circle cx="12" cy="13" r="4" />
+        </svg>
+      );
+    case 'tea':
+      return (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" {...props}>
+          <path d="M17 8h1a4 4 0 1 1 0 8h-1" />
+          <path d="M3 8h14v7a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4V8z" />
+          <line x1="6" y1="2" x2="6" y2="4" />
+          <line x1="10" y1="2" x2="10" y2="4" />
+          <line x1="14" y1="2" x2="14" y2="4" />
         </svg>
       );
     case 'menu':

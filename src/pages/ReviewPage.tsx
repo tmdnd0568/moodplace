@@ -67,7 +67,7 @@ export const ReviewPage: React.FC = () => {
     const currentUrl = window.location.href;
     navigator.clipboard.writeText(currentUrl)
       .then(() => {
-        alert('링크가 클립보드에 복사되었습니다!');
+        dispatch({ type: 'SHOW_TOAST', payload: '링크가 클립보드에 복사되었습니다!' });
       })
       .catch(() => {
         const textArea = document.createElement('textarea');
@@ -76,9 +76,9 @@ export const ReviewPage: React.FC = () => {
         textArea.select();
         try {
           document.execCommand('copy');
-          alert('링크가 클립보드에 복사되었습니다!');
+          dispatch({ type: 'SHOW_TOAST', payload: '링크가 클립보드에 복사되었습니다!' });
         } catch (e) {
-          alert('링크 복사에 실패했습니다.');
+          dispatch({ type: 'SHOW_TOAST', payload: '링크 복사에 실패했습니다.' });
         }
         document.body.removeChild(textArea);
       });

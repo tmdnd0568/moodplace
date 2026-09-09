@@ -354,7 +354,7 @@ export const MyPage: React.FC = () => {
                   <DangerDesc>탈퇴 시 모든 예약 기록 및 저장 목록이 영구 삭제됩니다.</DangerDesc>
                   <DangerBtn onClick={() => {
                     if(confirm('정말로 탈퇴하시겠습니까? 모든 정보가 사라집니다.')) {
-                      alert('그동안 이용해주셔서 감사합니다.');
+                      dispatch({ type: 'SHOW_TOAST', payload: '그동안 이용해주셔서 감사합니다.' });
                       setActiveModal(null);
                       navigate('/');
                     }
@@ -426,7 +426,7 @@ export const MyPage: React.FC = () => {
                 sessionStorage.removeItem('moodplace_auth');
                 sessionStorage.removeItem('moodplace_user_email');
                 sessionStorage.removeItem('moodplace_user_name');
-                alert('로그아웃 되었습니다.');
+                dispatch({ type: 'SHOW_TOAST', payload: '로그아웃 되었습니다.' });
                 setActiveModal(null);
                 navigate('/');
               }}>로그아웃</ConfirmBtn>

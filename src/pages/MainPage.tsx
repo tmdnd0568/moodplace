@@ -108,16 +108,7 @@ export const MainPage: React.FC = () => {
 
         <RecommendSection>
           <SectionHeader>
-            {state.searchPhase === 'result' ? (
-              <>
-                <SectionTitle>AI 탐색 결과 ({baseCafes.length})</SectionTitle>
-                <SectionLink type="button" onClick={() => dispatch({ type: 'RESET_SEARCH' })}>
-                  초기화
-                </SectionLink>
-              </>
-            ) : (
-              <SectionTitle>오늘의 추천</SectionTitle>
-            )}
+            <SectionTitle>오늘의 추천</SectionTitle>
           </SectionHeader>
 
           {/* 추가된 추천 필터 탭창 */}

@@ -14,6 +14,18 @@ const CAFE_COORDS: Record<string, [number, number]> = {
   'brick-atelier': [37.54145, 127.06208],
 };
 
+function getDistanceFromLatLonInKm(lat1: number, lon1: number, lat2: number, lon2: number) {
+  const R = 6371;
+  const dLat = (lat2 - lat1) * (Math.PI / 180);
+  const dLon = (lon2 - lon1) * (Math.PI / 180);
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(lat1 * (Math.PI / 180)) * Math.cos(lat2 * (Math.PI / 180)) *
+    Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
+}
+
 export const MapPage: React.FC = () => {
   const cafeId = useParams<{ cafeId: string }>().cafeId || 'forest-lounge';
   const navigate = useNavigate();
@@ -77,10 +89,10 @@ export const MapPage: React.FC = () => {
 
   const [userGpsCoords, setUserGpsCoords] = React.useState<[number, number] | null>(null);
   
-  const isDaejeonTarget = cafe?.location?.includes('대전') || cafe?.location?.includes('둔산') || cafe?.location?.includes('유성') || cafe?.name?.includes('대전') || cafe?.detail?.description?.includes('대전');
+  const isDaejeonTarget = cafe?.location?.includes('대전') || cafe?.location?.includes('둔산') || cafe?.location?.includes('유성') || cafe?.name?.includes('대전') || cafe?.detail?.description?.includes('대전') || true;
   
   const [userLocationLabel, setUserLocationLabel] = React.useState<string>(
-    isDaejeonTarget ? '내 현재 위치 (대전광역시 둔산동)' : '내 현재 위치 (GPS 수신 중...)'
+    '출발: 둔산동 오라클 빌딩 (대전 서구 대덕대로 226)'
   );
 
   const mapRef = React.useRef<any>(null);
@@ -166,8 +178,8 @@ export const MapPage: React.FC = () => {
       return [37.5446, 127.0560];
     };
 
-    // 목적지가 대전이거나 대전 타겟인 경우 대전 둔산동 좌표[36.3537, 127.3872] 우선 적용
-    const defaultOriginCoords: [number, number] = isDaejeonTarget ? [36.3537, 127.3872] : [37.5408, 127.0514];
+    // 출발지: 둔산동 오라클 빌딩 좌표 [36.3524, 127.3789] 적용
+    const defaultOriginCoords: [number, number] = [36.3524, 127.3789];
     const origin: [number, number] = userGpsCoords || defaultOriginCoords;
     const destination: [number, number] = getCoords(cafeId, cafe?.location);
 
@@ -178,7 +190,6 @@ export const MapPage: React.FC = () => {
       if (!container) return;
       
       map = L.map('route-map-api', {
-        preferCanvas: true, // GPU 하드웨어 가속 렌더러 적용
         zoomControl: false,
         attributionControl: false,
         fadeAnimation: true,
@@ -253,7 +264,11 @@ export const MapPage: React.FC = () => {
   React.useEffect(() => {
     return () => {
       if (mapRef.current) {
-        mapRef.current.remove();
+        try {
+          mapRef.current.remove();
+        } catch (e) {
+          // ignore leaflet teardown race
+        }
         mapRef.current = null;
       }
     };
@@ -284,13 +299,9 @@ export const MapPage: React.FC = () => {
     const map = mapRef.current;
     const L = (window as any).L;
 
-    const showLocation = (lat: number, lng: number, labelText?: string) => {
+    const showLocation = (lat: number, lng: number, labelText: string) => {
       setUserGpsCoords([lat, lng]);
-      if (labelText) {
-        setUserLocationLabel(labelText);
-      } else {
-        setUserLocationLabel('내 현재 위치 (실시간 GPS)');
-      }
+      setUserLocationLabel(labelText);
 
       if (map && L) {
         if (userMarkerRef.current) {
@@ -314,21 +325,16 @@ export const MapPage: React.FC = () => {
         (position) => {
           const lat = position.coords.latitude;
           const lng = position.coords.longitude;
-          showLocation(lat, lng, '내 현재 위치 (실시간 GPS)');
+          showLocation(lat, lng, '내 현재 위치 (실시간 GPS 감지)');
         },
         (error) => {
           console.warn('GPS location request error or denied:', error);
-          const fallbackLat = userGpsCoords ? userGpsCoords[0] : (isDaejeonTarget ? 36.3537 : 37.5408);
-          const fallbackLng = userGpsCoords ? userGpsCoords[1] : (isDaejeonTarget ? 127.3872 : 127.0514);
-          const fallbackLabel = isDaejeonTarget ? '내 현재 위치 (대전광역시 둔산동)' : '내 현재 위치 (서울 성수동)';
-          showLocation(fallbackLat, fallbackLng, fallbackLabel);
+          showLocation(36.3524, 127.3789, '내 현재 위치 (대전 둔산동 오라클 빌딩)');
         },
         { enableHighAccuracy: true, timeout: 6000, maximumAge: 0 }
       );
     } else {
-      const fallbackLat = userGpsCoords ? userGpsCoords[0] : 37.5408;
-      const fallbackLng = userGpsCoords ? userGpsCoords[1] : 127.0514;
-      showLocation(fallbackLat, fallbackLng, '내 현재 위치 (서울 성수동)');
+      showLocation(36.3524, 127.3789, '내 현재 위치 (대전 둔산동 오라클 빌딩)');
     }
   };
 
@@ -425,30 +431,20 @@ export const MapPage: React.FC = () => {
         <LocationQuickChipsRow>
           <LocationChipBtn
             type="button"
-            className={userLocationLabel.includes('대전') ? 'is-active' : ''}
+            className={userLocationLabel.includes('오라클') ? 'is-active' : ''}
             onClick={() => {
-              setUserGpsCoords([36.3537, 127.3872]);
-              setUserLocationLabel('내 현재 위치 (대전광역시 둔산동)');
+              setUserGpsCoords([36.3524, 127.3789]);
+              setUserLocationLabel('내 현재 위치 (대전 둔산동 오라클 빌딩)');
             }}
           >
-            대전 둔산동
+            📍 둔산동 오라클 빌딩
           </LocationChipBtn>
           <LocationChipBtn
             type="button"
-            className={userLocationLabel.includes('성수') ? 'is-active' : ''}
-            onClick={() => {
-              setUserGpsCoords([37.5408, 127.0514]);
-              setUserLocationLabel('내 현재 위치 (서울 성수동)');
-            }}
-          >
-            서울 성수동
-          </LocationChipBtn>
-          <LocationChipBtn
-            type="button"
-            className={userLocationLabel.includes('실시간 GPS') ? 'is-active' : ''}
+            className={userLocationLabel.includes('GPS') ? 'is-active' : ''}
             onClick={handleLocateClick}
           >
-            GPS 탐색
+            📡 내 실시간 GPS 위치 찾기
           </LocationChipBtn>
         </LocationQuickChipsRow>
 
@@ -623,19 +619,19 @@ export const MapPage: React.FC = () => {
               <OptionSection>
                 <OptionLabel>경로 조건 설정</OptionLabel>
                 <OptionGrid>
-                  <OptionBtn className={routeOption === 'optimum' ? 'is-active' : ''} onClick={() => { setRouteOption('optimum'); alert('최적 경로 검색 조건이 반영되었습니다.'); setIsMoreOpen(false); }}>
+                  <OptionBtn className={routeOption === 'optimum' ? 'is-active' : ''} onClick={() => { setRouteOption('optimum'); dispatch({ type: 'SHOW_TOAST', payload: '최적 경로 조건이 반영되었습니다.' }); setIsMoreOpen(false); }}>
                     <strong>최적 경로</strong>
                     <span>시간/거리 최적화</span>
                   </OptionBtn>
-                  <OptionBtn className={routeOption === 'shortest' ? 'is-active' : ''} onClick={() => { setRouteOption('shortest'); alert('최단 거리 조건이 반영되었습니다.'); setIsMoreOpen(false); }}>
+                  <OptionBtn className={routeOption === 'shortest' ? 'is-active' : ''} onClick={() => { setRouteOption('shortest'); dispatch({ type: 'SHOW_TOAST', payload: '최단 거리 조건이 반영되었습니다.' }); setIsMoreOpen(false); }}>
                     <strong>최단 거리</strong>
                     <span>가장 짧은 코스 우선</span>
                   </OptionBtn>
-                  <OptionBtn className={routeOption === 'free' ? 'is-active' : ''} onClick={() => { setRouteOption('free'); alert('무료 도로 조건이 반영되었습니다.'); setIsMoreOpen(false); }}>
+                  <OptionBtn className={routeOption === 'free' ? 'is-active' : ''} onClick={() => { setRouteOption('free'); dispatch({ type: 'SHOW_TOAST', payload: '무료 도로 조건이 반영되었습니다.' }); setIsMoreOpen(false); }}>
                     <strong>무료 우선</strong>
                     <span>통행료 없는 경로</span>
                   </OptionBtn>
-                  <OptionBtn className={routeOption === 'main' ? 'is-active' : ''} onClick={() => { setRouteOption('main'); alert('큰길 우선 조건이 반영되었습니다.'); setIsMoreOpen(false); }}>
+                  <OptionBtn className={routeOption === 'main' ? 'is-active' : ''} onClick={() => { setRouteOption('main'); dispatch({ type: 'SHOW_TOAST', payload: '큰길 우선 조건이 반영되었습니다.' }); setIsMoreOpen(false); }}>
                     <strong>큰길 우선</strong>
                     <span>안전한 대로변 위주</span>
                   </OptionBtn>
@@ -645,14 +641,14 @@ export const MapPage: React.FC = () => {
               <MoreDivider />
 
               <ActionList>
-                <ActionItem type="button" onClick={() => { setIsSavedRoute(!isSavedRoute); alert(isSavedRoute ? '경로 저장이 해제되었습니다.' : '경로가 보관함에 저장되었습니다.'); }}>
+                <ActionItem type="button" onClick={() => { setIsSavedRoute(!isSavedRoute); dispatch({ type: 'SHOW_TOAST', payload: isSavedRoute ? '경로 저장이 해제되었습니다.' : '경로가 보관함에 저장되었습니다.' }); }}>
                   <Icon name={isSavedRoute ? 'bookmarkFilled' : 'bookmark'} className="icon" />
                   <span>{isSavedRoute ? '이 경로 저장 해제' : '이 경로 보관함에 저장'}</span>
                 </ActionItem>
 
                 <ActionItem type="button" onClick={() => {
                   navigator.clipboard.writeText(window.location.href);
-                  alert('경로 공유 링크가 클립보드에 복사되었습니다!');
+                  dispatch({ type: 'SHOW_TOAST', payload: '링크가 클립보드에 복사되었습니다!' });
                   setIsMoreOpen(false);
                 }}>
                   <Icon name="share" className="icon" />
@@ -686,10 +682,10 @@ export const MapPage: React.FC = () => {
               <FeedbackCancelBtn onClick={() => setIsFeedbackOpen(false)}>취소</FeedbackCancelBtn>
               <FeedbackSubmitBtn onClick={() => {
                 if (!feedbackText.trim()) {
-                  alert('내용을 입력해주세요.');
+                  dispatch({ type: 'SHOW_TOAST', payload: '내용을 입력해주세요.' });
                   return;
                 }
-                alert('소중한 피드백 감사드립니다! 개발팀에 정상 전달되었습니다.');
+                dispatch({ type: 'SHOW_TOAST', payload: '피드백이 전달되었습니다. 감사합니다!' });
                 setFeedbackText('');
                 setIsFeedbackOpen(false);
               }}>

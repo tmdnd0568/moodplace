@@ -28,7 +28,7 @@ const HeaderContainer = styled.header`
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: ${({ theme }) => theme.space[4]} ${({ theme }) => theme.space[5]};
+  padding: 16px 16px;
   background: ${({ theme }) => theme.colors.bg};
   position: sticky;
   top: 0;
@@ -46,7 +46,7 @@ const LogoImg = styled.img`
   max-height: 52px;
   width: auto;
   object-fit: contain;
-  margin-left: -13px;
+  margin-left: 0;
 `;
 
 const IconButton = styled.button`

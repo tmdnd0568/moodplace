@@ -118,6 +118,7 @@ export interface AppState {
   selectedNearbyPlaceId: string | null;
   savedFilterCategory: string;
   darkMode: boolean;
+  toastMessage: string | null;
 }
 
 export type AppAction =
@@ -140,4 +141,6 @@ export type AppAction =
   | { type: 'TOGGLE_DARK_MODE' }
   | { type: 'ADD_REVIEW'; payload: { cafeId: string; review: Review } }
   | { type: 'TOGGLE_REVIEW_LIKE'; payload: { cafeId: string; reviewId: string } }
+  | { type: 'SHOW_TOAST'; payload: string }
+  | { type: 'HIDE_TOAST' }
   | { type: 'RESET_SEARCH' };

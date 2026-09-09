@@ -157,6 +157,12 @@ export function rootReducer(state: AppState, action: AppAction): AppState {
         })
       };
     }
+    case 'SHOW_TOAST':
+      return { ...state, toastMessage: action.payload };
+
+    case 'HIDE_TOAST':
+      return { ...state, toastMessage: null };
+
     case 'RESET_SEARCH':
       return {
         ...state,

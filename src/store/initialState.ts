@@ -19,4 +19,5 @@ export const initialState: AppState = {
   selectedNearbyPlaceId: null,
   savedFilterCategory: 'all',
   darkMode: false,
+  toastMessage: null,
 };
