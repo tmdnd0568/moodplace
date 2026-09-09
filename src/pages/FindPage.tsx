@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
 import { useStore } from '../store/StoreContext';
-import { NEARBY_PLACES, NEARBY_TAG_ICON_META, REGIONAL_MOCK_CAFES, EXTRA_LOCAL_CAFES } from '../data/mockData';
+import { NEARBY_PLACES, REGIONAL_MOCK_CAFES, EXTRA_LOCAL_CAFES } from '../data/mockData';
 import { BottomNav } from '../components/BottomNav';
 import { Icon } from '../components/icons/Icons';
 
@@ -360,16 +360,7 @@ export const FindPage: React.FC = () => {
     setDragOffset(0);
   };
 
-  const filteredPlaces = cafesWithin3km.filter((place) =>
-    place.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    place.address.toLowerCase().includes(searchQuery.toLowerCase())
-  );
 
-  const handleSearchResultSelect = (id: string) => {
-    handlePlaceSelect(id);
-    setIsSearchActive(false);
-    setSearchQuery('');
-  };
 
   const mapRef = React.useRef<any>(null);
   const markersRef = React.useRef<Record<string, any>>({});
@@ -1529,55 +1520,7 @@ const SearchInput = styled.input`
   }
 `;
 
-const SearchResultsCard = styled.div`
-  position: absolute;
-  top: 60px;
-  left: ${({ theme }) => theme.space[4]};
-  right: ${({ theme }) => theme.space[4]};
-  background: ${({ theme }) => theme.colors.surface};
-  border-radius: ${({ theme }) => theme.radius.md};
-  box-shadow: ${({ theme }) => theme.shadow.float};
-  border: 1px solid ${({ theme }) => theme.colors.border};
-  max-height: 200px;
-  overflow-y: auto;
-  z-index: 10;
-  display: flex;
-  flex-direction: column;
-  padding: 6px 0;
-`;
 
-const ResultItem = styled.button`
-  width: 100%;
-  display: flex;
-  align-items: center;
-  gap: ${({ theme }) => theme.space[3]};
-  padding: 10px 16px;
-  background: none;
-  border: none;
-  text-align: left;
-  font-size: 13.5px;
-  color: ${({ theme }) => theme.colors.text};
-  font-weight: 500;
-  cursor: pointer;
-  transition: background 0.15s;
-
-  &:hover {
-    background: rgba(0, 0, 0, 0.03);
-  }
-
-  .pin-icon {
-    width: 16px;
-    height: 16px;
-    color: ${({ theme }) => theme.colors.primary};
-  }
-`;
-
-const NoResults = styled.p`
-  font-size: 13px;
-  color: ${({ theme }) => theme.colors.textMuted};
-  text-align: center;
-  padding: 16px 0;
-`;
 
 
 

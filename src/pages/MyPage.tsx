@@ -1426,15 +1426,4 @@ const ReviewTagRow = styled.div`
   }
 `;
 
-const VisitBadge = styled.span`
-  display: inline-block;
-  font-size: 10.5px;
-  font-weight: 600;
-  color: #2563eb;
-  background: #eff6ff;
-  padding: 2px 6px;
-  border-radius: 4px;
-  align-self: flex-start;
-  margin-top: 2px;
-`;
 

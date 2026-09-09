@@ -398,28 +398,6 @@ const ResetButton = styled.button`
   }
 `;
 
-const SectionLink = styled.button`
-  font-size: 18px; /* 세련된 삼점식(···) 비주얼을 위해 폰트 크기 업 */
-  font-weight: 800;
-  letter-spacing: 1px;
-  color: ${({ theme }) => theme.colors.textMuted};
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  line-height: 1;
-  padding: 4px 8px; /* 호버 감지 편의를 위한 패딩 확보 */
-  margin-right: 2px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s ease;
-  
-  &:hover {
-    color: ${({ theme }) => theme.colors.primary};
-    transform: scale(1.1);
-  }
-`;
-
 const RecommendTabRow = styled.div`
   display: flex;
   align-items: center;

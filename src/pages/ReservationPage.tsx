@@ -44,6 +44,7 @@ export const ReservationPage: React.FC = () => {
   const [isCopied, setIsCopied] = useState(false);
 
   const mapRef = React.useRef<any>(null);
+  const userMarkerRef = React.useRef<any>(null);
 
   React.useEffect(() => {
     if (!cafe) return;
@@ -108,9 +109,6 @@ export const ReservationPage: React.FC = () => {
   const handleGoToMap = () => {
     navigate(`/map/${cafe.id}`);
   };
-
-  const userMarkerRef = React.useRef<any>(null);
-
   const handleLocateClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     const map = mapRef.current;
