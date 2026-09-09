@@ -36,6 +36,53 @@ export const MyPage: React.FC = () => {
     { id: '3', text: '📅 \'포레스트 인 더 시티\' 예약이 하루 남았습니다.', time: '2일 전' }
   ]);
 
+  // 1) 실제 사용자가 작성한 리뷰 수집
+  const currentUserName = sessionStorage.getItem('moodplace_user_name') || '김무드';
+
+  const getUserReviews = () => {
+    let localWrittenReviews: Array<{ cafeId: string; rating: number; date: string; text: string; tags: string[] }> = [];
+    try {
+      const saved = localStorage.getItem('moodplace_user_written_reviews');
+      if (saved) localWrittenReviews = JSON.parse(saved);
+    } catch (e) {}
+
+    const collected: Array<{ id: string; cafeName: string; rating: number; date: string; comment: string; tags: string[] }> = [];
+
+    localWrittenReviews.forEach((lr, idx) => {
+      const cafeName = state.cafes.find(c => c.id === lr.cafeId)?.name || '추천 장소';
+      collected.push({
+        id: `local-rev-${idx}-${lr.date}`,
+        cafeName,
+        rating: lr.rating,
+        date: lr.date,
+        comment: lr.text,
+        tags: lr.tags
+      });
+    });
+
+    state.cafes.forEach((cafe) => {
+      cafe.detail.reviews.forEach((rev) => {
+        if (rev.author === currentUserName && !collected.some(c => c.comment === rev.text)) {
+          collected.push({
+            id: rev.id,
+            cafeName: cafe.name,
+            rating: rev.rating,
+            date: rev.date,
+            comment: rev.text,
+            tags: rev.tags
+          });
+        }
+      });
+    });
+
+    return collected;
+  };
+
+  const userReviews = getUserReviews();
+
+  // 2) 실제 사용자가 방문/조회한 장소 수집
+  const visitedCafes = state.cafes.filter((cafe) => state.visitedCafeIds.includes(cafe.id));
+
   const handleBack = () => {
     navigate(-1);
   };
@@ -102,18 +149,18 @@ export const MyPage: React.FC = () => {
         <ProfileNameText className="my-name">{profileName}</ProfileNameText>
       </ProfileSection>
 
-      {/* 3) Stats row */}
+      {/* 3) Stats row (실제 사용자 수집 데이터) */}
       <StatsRow className="my-stats-row">
         <StatCard className="my-stat-card" onClick={() => setActiveModal('saved')} role="button" tabIndex={0}>
           <StatValue className="my-stat-value">{state.bookmarkedIds.length}</StatValue>
           <StatLabel className="my-stat-label">저장</StatLabel>
         </StatCard>
         <StatCard className="my-stat-card" onClick={() => setActiveModal('reviews')} role="button" tabIndex={0}>
-          <StatValue className="my-stat-value">{MY_PROFILE.stats.reviews}</StatValue>
+          <StatValue className="my-stat-value">{userReviews.length}</StatValue>
           <StatLabel className="my-stat-label">리뷰</StatLabel>
         </StatCard>
         <StatCard className="my-stat-card" onClick={() => setActiveModal('visits')} role="button" tabIndex={0}>
-          <StatValue className="my-stat-value">{MY_PROFILE.stats.visits}</StatValue>
+          <StatValue className="my-stat-value">{visitedCafes.length}</StatValue>
           <StatLabel className="my-stat-label">방문</StatLabel>
         </StatCard>
       </StatsRow>
@@ -493,131 +540,87 @@ export const MyPage: React.FC = () => {
         </ModalOverlay>
       )}
 
-      {/* 8. Reviews Modal (작성한 리뷰) */}
+      {/* 8. Reviews Modal (실제 작성한 리뷰) */}
       {activeModal === 'reviews' && (
         <ModalOverlay onClick={() => setActiveModal(null)}>
           <ModalCard onClick={(e) => e.stopPropagation()}>
             <ModalHeaderRow>
-              <ModalTitle>내 리뷰 ({MY_PROFILE.stats.reviews})</ModalTitle>
+              <ModalTitle>내 리뷰 ({userReviews.length})</ModalTitle>
               <CloseBtn onClick={() => setActiveModal(null)} aria-label="닫기">
                 <Icon name="close" />
               </CloseBtn>
             </ModalHeaderRow>
             <ModalScrollContent>
-              <StatItemList>
-                {[
-                  {
-                    id: 'rev-1',
-                    cafeName: '어니언 성수',
-                    rating: 5,
-                    date: '2026.08.28',
-                    comment: '아침 일찍 다녀왔는데 빵도 따뜻하고 루프탑 테라스 분위기가 인상적이었어요. 시그니처 팡도르는 필수입니다!',
-                    tags: ['#팡도르맛집', '#성수동카페']
-                  },
-                  {
-                    id: 'rev-2',
-                    cafeName: '센터커피 서울숲점',
-                    rating: 4.5,
-                    date: '2026.08.15',
-                    comment: '통창 너머로 보이는 서울숲 푸른 뷰가 마음을 평온하게 해줍니다. 핸드드립 산미도 깔끔했어요.',
-                    tags: ['#서울숲뷰', '#스페셜티커피']
-                  },
-                  {
-                    id: 'rev-3',
-                    cafeName: '맛차차',
-                    rating: 5,
-                    date: '2026.08.02',
-                    comment: '차분하게 다도 코스를 경험할 수 있어 힐링되었습니다. 말차 라떼의 깊은 다향이 최고예요.',
-                    tags: ['#티하우스', '#말차라떼']
-                  },
-                  {
-                    id: 'rev-4',
-                    cafeName: '카페 할아버지공장',
-                    rating: 4.8,
-                    date: '2026.07.20',
-                    comment: '오두막 정원이 동화 같은 매력이 있어요. 대형 창고형 카페라 넓어서 답답하지 않았습니다.',
-                    tags: ['#자연친화적', '#포토스팟']
-                  }
-                ].map((item) => (
-                  <ReviewModalCard key={item.id}>
-                    <ReviewHeaderRow>
-                      <ReviewCafeName>{item.cafeName}</ReviewCafeName>
-                      <ReviewRating>★ {item.rating}</ReviewRating>
-                    </ReviewHeaderRow>
-                    <ReviewDate>{item.date}</ReviewDate>
-                    <ReviewComment>{item.comment}</ReviewComment>
-                    <ReviewTagRow>
-                      {item.tags.map((t) => (
-                        <span key={t} className="tag">{t}</span>
-                      ))}
-                    </ReviewTagRow>
-                  </ReviewModalCard>
-                ))}
-              </StatItemList>
+              {userReviews.length > 0 ? (
+                <StatItemList>
+                  {userReviews.map((item) => (
+                    <ReviewModalCard key={item.id}>
+                      <ReviewHeaderRow>
+                        <ReviewCafeName>{item.cafeName}</ReviewCafeName>
+                        <ReviewRating>★ {item.rating}</ReviewRating>
+                      </ReviewHeaderRow>
+                      <ReviewDate>{item.date}</ReviewDate>
+                      <ReviewComment>{item.comment}</ReviewComment>
+                      <ReviewTagRow>
+                        {item.tags.map((t) => (
+                          <span key={t} className="tag">{t}</span>
+                        ))}
+                      </ReviewTagRow>
+                    </ReviewModalCard>
+                  ))}
+                </StatItemList>
+              ) : (
+                <EmptyState>
+                  아직 작성하신 리뷰가 없습니다.<br />
+                  방문하신 장소의 후기를 남겨보세요!
+                </EmptyState>
+              )}
             </ModalScrollContent>
           </ModalCard>
         </ModalOverlay>
       )}
 
-      {/* 9. Visits Modal (방문한 페이지 / 역사) */}
+      {/* 9. Visits Modal (실제 방문/조회한 장소) */}
       {activeModal === 'visits' && (
         <ModalOverlay onClick={() => setActiveModal(null)}>
           <ModalCard onClick={(e) => e.stopPropagation()}>
             <ModalHeaderRow>
-              <ModalTitle>방문한 장소 ({MY_PROFILE.stats.visits})</ModalTitle>
+              <ModalTitle>방문한 장소 ({visitedCafes.length})</ModalTitle>
               <CloseBtn onClick={() => setActiveModal(null)} aria-label="닫기">
                 <Icon name="close" />
               </CloseBtn>
             </ModalHeaderRow>
             <ModalScrollContent>
-              <StatItemList>
-                {[
-                  {
-                    id: 'visit-1',
-                    name: '어니언 성수',
-                    visitDate: '2026.08.28 방문',
-                    address: '서울 성동구 아차산로9길 8',
-                    image: '/assets/onion_cafe.jpg'
-                  },
-                  {
-                    id: 'visit-2',
-                    name: '센터커피 서울숲점',
-                    visitDate: '2026.08.15 방문',
-                    address: '서울 성동구 서울숲2길 28-11',
-                    image: '/assets/center_coffee.jpg'
-                  },
-                  {
-                    id: 'visit-3',
-                    name: '맛차차',
-                    visitDate: '2026.08.02 방문',
-                    address: '서울 성동구 서울숲2길 18-11',
-                    image: '/assets/matchacha.jpg'
-                  },
-                  {
-                    id: 'visit-4',
-                    name: '카페 할아버지공장',
-                    visitDate: '2026.07.20 방문',
-                    address: '서울 성동구 성수이로74길 9',
-                    image: '/assets/grandpa_factory.jpg'
-                  },
-                  {
-                    id: 'visit-5',
-                    name: '대림창고 갤러리',
-                    visitDate: '2026.07.11 방문',
-                    address: '서울 성동구 성수이로 78',
-                    image: '/assets/daelim_changgo.jpg'
-                  }
-                ].map((visit) => (
-                  <StatItemCard key={visit.id}>
-                    <StatItemImage $image={visit.image} />
-                    <StatItemMeta>
-                      <StatItemName>{visit.name}</StatItemName>
-                      <StatItemSub>{visit.address}</StatItemSub>
-                      <VisitBadge>{visit.visitDate}</VisitBadge>
-                    </StatItemMeta>
-                  </StatItemCard>
-                ))}
-              </StatItemList>
+              {visitedCafes.length > 0 ? (
+                <StatItemList>
+                  {visitedCafes.map((cafe) => (
+                    <StatItemCard
+                      key={cafe.id}
+                      onClick={() => {
+                        setActiveModal(null);
+                        dispatch({ type: 'SELECT_CAFE', payload: cafe.id });
+                        navigate(`/review/${cafe.id}`);
+                      }}
+                    >
+                      <StatItemImage $image={cafe.photo.image || '/assets/caffe_001.jpg'} />
+                      <StatItemMeta>
+                        <StatItemName>{cafe.name}</StatItemName>
+                        <StatItemSub>{cafe.location}</StatItemSub>
+                        <StatItemTagGroup>
+                          {cafe.tags.map((t) => (
+                            <span key={t} className="tag">#{t}</span>
+                          ))}
+                        </StatItemTagGroup>
+                      </StatItemMeta>
+                    </StatItemCard>
+                  ))}
+                </StatItemList>
+              ) : (
+                <EmptyState>
+                  아직 방문(조회)한 장소가 없습니다.<br />
+                  마음에 드는 공간을 탐색해 보세요!
+                </EmptyState>
+              )}
             </ModalScrollContent>
           </ModalCard>
         </ModalOverlay>

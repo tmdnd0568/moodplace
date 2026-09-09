@@ -111,6 +111,7 @@ export interface AppState {
   cafes: Cafe[];
   searchResults: Cafe[];
   bookmarkedIds: string[];
+  visitedCafeIds: string[];
   activeTab: string;
   selectedThemes: string[];
   travelMode: 'walk' | 'transit' | 'taxi';
@@ -124,6 +125,7 @@ export interface AppState {
 export type AppAction =
   | { type: 'GO_TO_SCREEN'; payload: 'splash' | 'main' | 'review' | 'reservation' | 'map' | 'find' | 'my' | 'keep' }
   | { type: 'SELECT_CAFE'; payload: string }
+  | { type: 'RECORD_VISIT'; payload: string }
   | { type: 'SET_TRAVEL_MODE'; payload: 'walk' | 'transit' | 'taxi' }
   | { type: 'SELECT_ROUTE'; payload: string }
   | { type: 'SELECT_NEARBY_PLACE'; payload: string }

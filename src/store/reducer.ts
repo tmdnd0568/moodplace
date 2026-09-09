@@ -5,8 +5,31 @@ export function rootReducer(state: AppState, action: AppAction): AppState {
     case 'GO_TO_SCREEN':
       return { ...state, screen: action.payload };
 
-    case 'SELECT_CAFE':
-      return { ...state, selectedCafeId: action.payload, screen: 'review' };
+    case 'SELECT_CAFE': {
+      const cafeId = action.payload;
+      const updatedVisited = Array.from(new Set([...(state.visitedCafeIds || []), cafeId]));
+      try {
+        localStorage.setItem('moodplace_visited_cafe_ids', JSON.stringify(updatedVisited));
+      } catch (e) {}
+      return {
+        ...state,
+        selectedCafeId: cafeId,
+        screen: 'review',
+        visitedCafeIds: updatedVisited,
+      };
+    }
+
+    case 'RECORD_VISIT': {
+      const cafeId = action.payload;
+      const updatedVisited = Array.from(new Set([...(state.visitedCafeIds || []), cafeId]));
+      try {
+        localStorage.setItem('moodplace_visited_cafe_ids', JSON.stringify(updatedVisited));
+      } catch (e) {}
+      return {
+        ...state,
+        visitedCafeIds: updatedVisited,
+      };
+    }
 
     case 'SET_TRAVEL_MODE':
       return { ...state, travelMode: action.payload, selectedRouteId: null };

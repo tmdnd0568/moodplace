@@ -37,6 +37,12 @@ export const ReviewPage: React.FC = () => {
   const [isLiked, setIsLiked] = useState(false);
   const [isAllReviewsOpen, setIsAllReviewsOpen] = useState(false);
 
+  React.useEffect(() => {
+    if (cafeId) {
+      dispatch({ type: 'RECORD_VISIT', payload: cafeId });
+    }
+  }, [cafeId, dispatch]);
+
   // 리뷰 작성 모달 상태
   const [isWriteModalOpen, setIsWriteModalOpen] = useState(false);
   const [newRating, setNewRating] = useState(5);
