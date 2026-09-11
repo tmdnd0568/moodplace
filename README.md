@@ -12,10 +12,13 @@
   <img src="https://img.shields.io/badge/status-in%20progress-yellow" />
 </p>
 
-## 🖼️ 데모
+## 🖼️ 실행페이지
 | 무드 선택 화면 | 지도 기반 탐색 | 소셜 로그인 |
 |---|---|---|
-| (스크린샷 삽입) | (스크린샷 삽입) | (스크린샷 삽입) |
+| <img width="399" height="922" alt="image" src="https://github.com/user-attachments/assets/cb6a2972-a94d-4d84-b6b8-728d0eb8fef6" />
+ | <img width="407" height="921" alt="image" src="https://github.com/user-attachments/assets/64facb1a-2c62-40f5-b7df-caa7a8967c20" />
+ | <img width="397" height="918" alt="image" src="https://github.com/user-attachments/assets/e1e5b80d-de5e-4ec3-a6e0-f4ddfd6b8990" />
+ |
 
 배포 링크: https://moodplace001.vercel.app/ · 소개 페이지: https://tmdnd0568.github.io/site/ ([소개 페이지 저장소](https://github.com/tmdnd0568/site))
 
