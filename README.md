@@ -89,7 +89,7 @@ moodplace/
 ## 🧷 바로가기
 - 깃허브:https://github.com/tmdnd0568/moodplace
 
-- 노션:https://app.notion.com/p/Project-1-moodplace-AI-dfc1a4be835a83d49e2a0169a48b08cc
+- 노션:https://app.notion.com/p/Project-1-moodplace-AI-dfc1a4be835a83d49e2a0169a48b08cc?source=copy_link
 
 - 피그마: https://www.figma.com/design/Y4NcodTo6r6uGdRLp7Ew0y/%ED%8F%AC%ED%86%A0%ED%8F%B4%EB%A6%AC%EC%98%A4-moodeplace?node-id=0-1&t=Ms2xl1KE8WzyIwEL-1
 
