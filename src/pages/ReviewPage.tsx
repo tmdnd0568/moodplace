@@ -7,13 +7,13 @@ import { Icon } from '../components/icons/Icons';
 
 // 카페 상세정보를 위한 주소 및 연락처 맵핑 헬퍼
 const getAddress = (cafeId: string, defaultLocation: string) => {
-  if (cafeId === 'forest-lounge') return '서울 성동구 아차산로9길 8';
-  if (cafeId === 'urban-nest') return '서울 성동구 서울숲2길 28-11';
-  if (cafeId === 'vivid-garden') return '서울 성동구 성수이로 78';
-  if (cafeId === 'quiet-tea-room') return '서울 성동구 서울숲2길 18-11';
-  if (cafeId === 'calm-forest') return '서울 성동구 성수이로74길 9';
-  if (cafeId === 'brick-atelier') return '서울 성동구 연무장15길 11';
-  return defaultLocation || '서울 성동구 성수동 일대';
+  if (cafeId === 'forest-lounge') return '대전 서구 둔산동 1414';
+  if (cafeId === 'urban-nest') return '대전 서구 둔산남로 86';
+  if (cafeId === 'vivid-garden') return '대전 서구 둔산중로 40';
+  if (cafeId === 'quiet-tea-room') return '대전 유성구 온천로 55';
+  if (cafeId === 'calm-forest') return '대전 서구 갈마역로 18';
+  if (cafeId === 'brick-atelier') return '대전 서구 대덕대로 211';
+  return defaultLocation || '대전광역시 서구 둔산동 일대';
 };
 
 const getPhone = (cafeId: string) => {

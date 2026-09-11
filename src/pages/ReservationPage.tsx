@@ -7,12 +7,12 @@ import { SubHeader } from '../components/SubHeader';
 import { Icon } from '../components/icons/Icons';
 
 const CAFE_COORDS: Record<string, [number, number]> = {
-  'forest-lounge': [37.54457, 127.05761],
-  'urban-nest': [37.54316, 127.04179],
-  'calm-forest': [37.54117, 127.05594],
-  'vivid-garden': [37.54181, 127.05645],
-  'quiet-tea-room': [37.54341, 127.04167],
-  'brick-atelier': [37.54145, 127.06208],
+  'forest-lounge': [36.3537, 127.3872],
+  'urban-nest': [36.3524, 127.3789],
+  'calm-forest': [36.3512, 127.3795],
+  'vivid-garden': [36.3541, 127.3820],
+  'quiet-tea-room': [36.3558, 127.3411],
+  'brick-atelier': [36.3508, 127.3762],
 };
 
 function getCoordsForCafe(id: string, location: string = ''): [number, number] {
@@ -26,7 +26,7 @@ function getCoordsForCafe(id: string, location: string = ''): [number, number] {
   if (loc.includes('대구')) return [35.8714, 128.6014];
   if (loc.includes('광주')) return [35.1595, 126.8526];
   if (loc.includes('수원')) return [37.2636, 127.0286];
-  return [37.5446, 127.0560];
+  return [36.3537, 127.3872];
 }
 
 export const ReservationPage: React.FC = () => {

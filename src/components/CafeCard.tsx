@@ -222,12 +222,27 @@ const CafeName = styled.h3`
   font-weight: 700;
   color: ${({ theme }) => theme.colors.text};
   margin-bottom: 4px;
+  line-height: 1.35;
+  white-space: normal;
+  overflow-wrap: break-word;
+  word-break: keep-all;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 `;
 
 const CafeMeta = styled.p`
   font-size: 13px;
   color: ${({ theme }) => theme.colors.textMuted};
   line-height: 1.45;
+  white-space: normal;
+  overflow-wrap: break-word;
+  word-break: keep-all;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 `;
 
 const ListCard = styled.article`

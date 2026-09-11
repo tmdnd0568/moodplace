@@ -95,5 +95,5 @@ function generateLocalAiReason(
       : `'${requestedMoodStr}' 감성을 고스란히 담고 있어 편안한 시간을 보내기 좋습니다.`;
   }
 
-  return `${cafe.name}은(는) 성수동 고유의 인상적인 분위기와 아늑함을 지닌 매력적인 장소입니다.`;
+  return `${cafe.name}은(는) 대전 둔산동 고유의 인상적인 분위기와 아늑함을 지닌 매력적인 장소입니다.`;
 }

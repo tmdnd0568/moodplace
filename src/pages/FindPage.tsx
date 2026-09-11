@@ -247,8 +247,17 @@ export const FindPage: React.FC = () => {
       }
     });
 
-    // 4. 전국 주요 도시 대표 카페 (REGIONAL_MOCK_CAFES) 통합 (서울, 대전, 부산, 제주 등)
+    // 4. 전국 주요 도시 대표 카페 (REGIONAL_MOCK_CAFES) 통합 (외부 지역 검색 시에만 타지역 허용)
+    const isExplicitExternalSearch = ['서울', '성수', '부산', '제주', '강남', '홍대', '해운대', '대구', '광주'].some(
+      (k) => searchQuery.toLowerCase().includes(k)
+    );
+
     Object.entries(REGIONAL_MOCK_CAFES).forEach(([regionName, cafeList]) => {
+      // 대전 탐색일 때는 대전 카페만 추가
+      if (!isExplicitExternalSearch && regionName !== '대전') {
+        return;
+      }
+
       cafeList.forEach((c, idx) => {
         if (!seen.has(c.id)) {
           seen.add(c.id);
@@ -278,7 +287,7 @@ export const FindPage: React.FC = () => {
     });
 
     return list;
-  }, [state.cafes, state.searchResults, EXTRA_LOCAL_CAFES, userCoords]);
+  }, [state.cafes, state.searchResults, EXTRA_LOCAL_CAFES, userCoords, searchQuery]);
 
   // 내 위치 기준 모든 카페 거리 계산
   const cafesWithDistance = React.useMemo(() => {
@@ -706,9 +715,6 @@ export const FindPage: React.FC = () => {
         <PlaceRow className="find-place-row">
           <PlaceName className="find-place-name">
             {selectedPlace.name}
-            <span style={{ fontSize: '12.5px', fontWeight: '700', color: '#2d5244', marginLeft: '8px' }}>
-              📍 내 위치에서 {selectedPlace.distText}
-            </span>
           </PlaceName>
           <BookmarkBtn
             type="button"
@@ -720,6 +726,16 @@ export const FindPage: React.FC = () => {
             <Icon name={isBookmarked ? 'bookmarkFilled' : 'bookmark'} className="icon" />
           </BookmarkBtn>
         </PlaceRow>
+
+        {selectedPlace.distText ? (
+          <PlaceDistance className="find-distance">
+            내 위치에서 {selectedPlace.distText}
+          </PlaceDistance>
+        ) : (
+          <PlaceDistance className="find-distance">
+            거리 정보 없음
+          </PlaceDistance>
+        )}
 
         <PlaceAddress className="find-address">{selectedPlace.address}</PlaceAddress>
 
@@ -1106,6 +1122,23 @@ const PlaceName = styled.h1`
   font-weight: 800;
   color: ${({ theme }) => theme.colors.text};
   letter-spacing: -0.3px;
+  line-height: 1.35;
+  white-space: normal;
+  overflow-wrap: break-word;
+  word-break: keep-all;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  flex: 1;
+`;
+
+const PlaceDistance = styled.p`
+  font-size: 13px;
+  font-weight: 700;
+  color: ${({ theme }) => theme.colors.primary};
+  margin-top: 2px;
+  margin-bottom: 6px;
 `;
 
 const BookmarkBtn = styled.button`
@@ -1137,6 +1170,14 @@ const PlaceAddress = styled.p`
   font-size: 13.5px;
   color: ${({ theme }) => theme.colors.textMuted};
   margin-bottom: ${({ theme }) => theme.space[4]};
+  line-height: 1.4;
+  white-space: normal;
+  overflow-wrap: break-word;
+  word-break: keep-all;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 `;
 
 const TagRow = styled.div`

@@ -12,9 +12,9 @@ const AUTOSAVE_KEY = 'moodplace_search_autosave';
 const getInitialHistory = (): string[] => {
   try {
     const saved = localStorage.getItem(HISTORY_KEY);
-    return saved ? JSON.parse(saved) : ['대전 둔산동 분위기 좋은 카페', '성수동 조용한 북카페', '말차 디저트 맛집'];
+    return saved ? JSON.parse(saved) : ['대전 둔산동 분위기 좋은 카페', '대전 유성구 감성 카페', '말차 디저트 맛집'];
   } catch {
-    return ['대전 둔산동 분위기 좋은 카페', '성수동 조용한 북카페', '말차 디저트 맛집'];
+    return ['대전 둔산동 분위기 좋은 카페', '대전 유성구 감성 카페', '말차 디저트 맛집'];
   }
 };
 

@@ -34,7 +34,7 @@ export const TRAVEL_MODES = [
   { id: 'taxi', label: '택시', icon: 'taxi' },
 ];
 
-export const MAP_ORIGIN_LABEL = '현 위치 (서울시 종로구)';
+export const MAP_ORIGIN_LABEL = '현 위치 (대전 서구 둔산동)';
 
 export const NEARBY_TAG_ICON_META: Record<string, string> = {
   warm: '☀',
@@ -49,55 +49,55 @@ export const NEARBY_TAG_ICON_META: Record<string, string> = {
 export const NEARBY_PLACES: NearbyPlace[] = [
   {
     id: 'calm-forest',
-    name: '카페 할아버지공장',
-    address: '서울 성동구 성수이로74길 9',
+    name: '하치카페',
+    address: '대전 서구 둔산남로9번길 83',
     tags: [
-      { icon: 'warm', label: '포근한' },
-      { icon: 'leaf', label: '자연친화적' },
+      { icon: 'warm', label: '아늑한' },
+      { icon: 'leaf', label: '감성원목' },
       { icon: 'quiet', label: '조용한' },
     ],
-    description: '오두막 정원과 나무 감성의 성수동 랜드마크 카페',
-    photos: ['/assets/grandpa_factory.jpg', '/assets/menu_grandpa_einspanner.jpg'],
+    description: '일본 감성의 아늑하고 따뜻한 원목 분위기를 자랑하는 둔산동 대표 감성 카페',
+    photos: ['/assets/cafe_calm_forest.jpg', '/assets/menu_onion_pandoro.jpg'],
     position: { top: '55%', left: '40%' },
     isDefault: true,
   },
   {
     id: 'vivid-garden',
-    name: '대림창고 갤러리',
-    address: '서울 성동구 성수이로 78',
+    name: '크러쉬온바이트',
+    address: '대전 서구 둔산동 1414',
     tags: [
-      { icon: 'sun', label: '화사한' },
-      { icon: 'leaf', label: '플랜테리어' },
+      { icon: 'sun', label: '모던' },
+      { icon: 'leaf', label: '케이크' },
       { icon: 'camera', label: '포토스팟' },
     ],
-    description: '성수동을 대표하는 대형 창고형 갤러리 카페',
-    photos: ['/assets/daelim_changgo.jpg', '/assets/menu_daelim_cream.jpg'],
+    description: '화려한 비주얼의 수제 케이크와 세련된 모던 인테리어가 돋보이는 둔산동 디저트 핫플',
+    photos: ['/assets/caffe_001.jpg', '/assets/menu_daelim_tart.jpg'],
     position: { top: '22%', left: '62%' },
   },
   {
     id: 'quiet-tea-room',
-    name: '맛차차',
-    address: '서울 성동구 서울숲2길 18-11',
+    name: '유성 온천 테라스 가든',
+    address: '대전 유성구 온천로 55',
     tags: [
       { icon: 'quiet', label: '조용한' },
-      { icon: 'tea', label: '티하우스' },
-      { icon: 'warm', label: '아늑한' },
+      { icon: 'tea', label: '테라스' },
+      { icon: 'warm', label: '힐링' },
     ],
-    description: '서울숲을 마주 보며 즐기는 프리미엄 말차 티하우스',
-    photos: ['/assets/matchacha.jpg', '/assets/menu_matcha_latte.jpg'],
+    description: '온천 공원 앞 야외 야자수 테라스와 프라이빗 가든 뷰',
+    photos: ['/assets/cafe_vivid_garden.jpg', '/assets/menu_grapefruit_ade.jpg'],
     position: { top: '70%', left: '68%' },
   },
   {
     id: 'brick-atelier',
-    name: '피치스 도원',
-    address: '서울 성동구 연무장15길 11',
+    name: '갈마동 아뜰리에 & 베이커리',
+    address: '대전 서구 갈마역로 18',
     tags: [
-      { icon: 'sun', label: '채광좋은' },
-      { icon: 'group', label: '단체석' },
+      { icon: 'sun', label: '갓구운' },
+      { icon: 'group', label: '베이커리' },
       { icon: 'camera', label: '포토스팟' },
     ],
-    description: '스트리트 카 컬처 기반의 힙한 복합 문화 공간',
-    photos: ['/assets/peaches_dowone.jpg', '/assets/menu_knotted_donut.jpg'],
+    description: '매일 아침 직접 구워내는 따끈따끈한 수제 소금빵 & 크루아상',
+    photos: ['/assets/cafe_brick_atelier.jpg', '/assets/menu_onion_saltbread.jpg'],
     position: { top: '38%', left: '20%' },
   },
 ];
@@ -596,59 +596,59 @@ export const SAVED_PLACES: SavedPlace[] = [
   {
     id: 'forest-lounge',
     category: 'cafe',
-    name: '어니언 성수',
-    address: '서울 성동구 아차산로9길 8',
-    image: '/assets/onion_seongsu.jpg',
+    name: '프랭크커피바 대전둔산점',
+    address: '대전 서구 대덕대로217번길 19',
+    image: '/assets/caffa_002.jpg',
     tags: ['Vintage', 'Cozy'],
   },
   {
     id: 'urban-nest',
     category: 'cafe',
-    name: '센터커피 서울숲점',
-    address: '서울 성동구 서울숲2길 28-11',
-    image: '/assets/center_coffee.jpg',
+    name: '스타벅스 대전둔산점',
+    address: '대전 서구 둔산남로 86',
+    image: '/assets/caffa_004.jpg',
     tags: ['Minimal', 'Calm'],
   },
   {
     id: 'calm-forest',
     category: 'cafe',
-    name: '카페 할아버지공장',
-    address: '서울 성동구 성수이로74길 9',
-    image: '/assets/grandpa_factory.jpg',
+    name: '하치카페',
+    address: '대전 서구 둔산남로9번길 83',
+    image: '/assets/cafe_calm_forest.jpg',
     tags: ['Cozy', 'Warm'],
   },
   {
     id: 'vivid-garden',
     category: 'restaurant',
-    name: '대림창고 갤러리',
-    address: '서울 성동구 성수이로 78',
-    image: '/assets/daelim_changgo.jpg',
-    tags: ['Vintage', 'Gallery'],
+    name: '크러쉬온바이트',
+    address: '대전 서구 둔산동 1414',
+    image: '/assets/caffe_001.jpg',
+    tags: ['Vintage', 'Modern'],
   },
   {
     id: 'quiet-tea-room',
     category: 'bar',
-    name: '맛차차',
-    address: '서울 성동구 서울숲2길 18-11',
-    image: '/assets/matchacha.jpg',
-    tags: ['Calm', 'Traditional'],
+    name: '유성 온천 테라스 가든',
+    address: '대전 유성구 온천로 55',
+    image: '/assets/cafe_vivid_garden.jpg',
+    tags: ['Calm', 'Terrace'],
   },
   {
     id: 'brick-atelier',
     category: 'cafe',
-    name: '피치스 도원',
-    address: '서울 성동구 연무장15길 11',
-    image: '/assets/peaches_dowone.jpg',
-    tags: ['Energetic', 'Hip'],
+    name: '갈마동 아뜰리에 & 베이커리',
+    address: '대전 서구 갈마역로 18',
+    image: '/assets/cafe_brick_atelier.jpg',
+    tags: ['Energetic', 'Bakery'],
   },
 ];
 
 export const CURATOR_MESSAGES: Record<string, string> = {
-  default: "오늘은 조금 정적인 시간이 필요해보이네요. 복잡한 생각은 잠시 접어두고, 성수동의 '어니언 성수'에서 재즈 선율과 함께 따뜻한 차 한 잔 어떠신가요?",
-  cozy: "몸과 마음을 사르르 녹여줄 Cozy한 하루가 어떠신가요? 식물들과 따뜻한 우드가 있는 '카페 할아버지공장'이나 '어니언 성수'를 방문해 편안한 쉼을 누려보세요.",
-  calm: "조용한 몰입의 즐거움, Calm 무드를 경험해 보세요. 미니멀한 감각의 공간인 '센터커피 서울숲점'에서 생각을 정돈하며 책 한 권을 즐기시는 것을 추천합니다.",
-  energetic: "에너지가 솟아오르는 화사한 하루를 꿈꾸신다면 Energetic 탭을 확인해 보세요. 넓은 복합 문화 공간 '대림창고 갤러리'에서 달콤한 디저트와 커피 한 잔이 기분을 들뜨게 할 거예요.",
-  dreamy: "조용히 사색하며 낭만에 젖는 Dreamy 감성이 필요하시군요. 서울숲을 바라보는 고즈넉한 '맛차차'에서 제주 말차티를 한 모금 음미하며 평온을 만끽해 보시기 바랍니다.",
+  default: "오늘은 조금 정적인 시간이 필요해보이네요. 복잡한 생각은 잠시 접어두고, 대전 둔산동의 '프랭크커피바'에서 잔잔한 음악과 함께 따뜻한 차 한 잔 어떠신가요?",
+  cozy: "몸과 마음을 사르르 녹여줄 Cozy한 하루가 어떠신가요? 대전 둔산동 원목 감성의 '하치카페'를 방문해 편안한 쉼을 누려보세요.",
+  calm: "조용한 몰입의 즐거움, Calm 무드를 경험해 보세요. 미니멀한 공간인 '스타벅스 대전둔산점'에서 생각을 정돈하며 책 한 권을 즐기시는 것을 추천합니다.",
+  energetic: "에너지가 솟아오르는 화사한 하루를 꿈꾸신다면 Energetic 탭을 확인해 보세요. 둔산동 디저트 핫플 '크러쉬온바이트'에서 달콤한 케이크와 커피 한 잔이 기분을 들뜨게 할 거예요.",
+  dreamy: "조용히 사색하며 낭만에 젖는 Dreamy 감성이 필요하시군요. 유성 온천 공원 옆 '유성 온천 테라스 가든'에서 따뜻한 차 한 잔을 음미하며 평온을 만끽해 보시기 바랍니다.",
 };
 
 export const MY_PROFILE = {
@@ -1033,9 +1033,21 @@ export const REGIONAL_MOCK_CAFES: Record<string, Cafe[]> = {
   ]
 };
 
+function isDaejeonLocation(locString: string = ''): boolean {
+  const loc = locString.toLowerCase();
+  if (loc.includes('서울') || loc.includes('성수') || loc.includes('부산') || loc.includes('제주') || loc.includes('해운대')) {
+    return false;
+  }
+  return true;
+}
+
 export function mockAiSearch(moodIds: string[], description: string): Cafe[] {
   const query = description.trim().toLowerCase();
   const words = query ? query.split(/\s+/).filter(Boolean) : [];
+
+  // 사용자가 명시적으로 타 지역(서울, 성수, 부산, 제주 등)을 검색했는지 확인
+  const externalKeywords = ['서울', '성수', '부산', '제주', '강남', '홍대', '해운대', '대구', '광주'];
+  const isExplicitExternalQuery = externalKeywords.some((k) => query.includes(k));
 
   // 모든 카페 후보 수집 (기본 MOCK + 지역 MOCK + EXTRA LOCAL)
   const candidateMap = new Map<string, Cafe>();
@@ -1055,7 +1067,12 @@ export function mockAiSearch(moodIds: string[], description: string): Cafe[] {
     }
   });
 
-  const allCandidates = Array.from(candidateMap.values());
+  let allCandidates = Array.from(candidateMap.values());
+
+  // 명시적 외부 지역 검색이 아닌 경우, 대전 탐색 결과로 제한하여 서울/타지역 카페 제외
+  if (!isExplicitExternalQuery) {
+    allCandidates = allCandidates.filter((cafe) => isDaejeonLocation(cafe.location));
+  }
 
   const scored = allCandidates.map((cafe) => {
     let score = 0;
@@ -1102,13 +1119,13 @@ export function mockAiSearch(moodIds: string[], description: string): Cafe[] {
     return matched.slice(0, 10).map((cafe, idx) => ({
       ...cafe,
       match: Math.max(82, 98 - idx * 2),
-      isExternalRegion: cafe.isExternalRegion ?? (query.length > 0 && !cafe.location.includes('성수')),
-      targetRegion: cafe.targetRegion || (query.length > 0 ? query : '맞춤 장소'),
+      isExternalRegion: !isDaejeonLocation(cafe.location),
+      targetRegion: cafe.targetRegion || (query.length > 0 ? query : '대전 둔산동'),
     }));
   }
 
   // 매칭된 결과가 없을 경우 (새로운 외부 지역 검색 시) 동적 추천 카페 생성
-  const regionLabel = query || '원하시는 공간';
+  const regionLabel = query || '대전 둔산동';
   return [
     createDynamicCafe(
       `dyn-1-${Date.now()}`,
