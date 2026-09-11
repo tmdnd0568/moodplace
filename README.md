@@ -9,7 +9,7 @@
   <img src="https://img.shields.io/badge/Firebase-FFCA28?style=flat&logo=firebase&logoColor=black" />
   <img src="https://img.shields.io/badge/styled--components-DB7093?style=flat&logo=styledcomponents&logoColor=white" />
   <img src="https://img.shields.io/badge/Vercel-000000?style=flat&logo=vercel&logoColor=white" />
-  <img src="https://img.shields.io/badge/status-in%20progress-yellow" />
+  <img src="https://img.shields.io/badge/status-Completed-brightgreen" />
 </p>
 
 ## 🖼️ 실행페이지
@@ -62,18 +62,14 @@ moodplace/
 ## 🤖 AI 활용 프로세스
 디자인 단계에서 Figma와 AI 디자인 툴 Stitch를 함께 활용했습니다. 그 외 기획·개발·카피라이팅·트러블슈팅 단계에서도 AI를 1차 초안 생성 도구로 활용하고, 결과를 검증·수정하는 방식으로 진행했습니다.
 
-**① 기획 단계 — 무드 분류 기준 정의**
- 너는 지금부터 10년차 웹앱 기획자야 
-무드 태그 분류 기준은 분위기가 좋은 카페, 디저트가 좋은 카페, 공부하기 좋은카페 ,데이트하기 좋은 카페 , 사진이 잘나오는 카페 로 무드 분류로 정했어 
-더 좋은 아이디어 가 있으면 나한테 리스트 업을 해줘
+**① 기획 단계 — 무드 분류 기준 정의 및 큐레이션 수립**
+AI 기반 큐레이션 기획 체계를 활용하여 분위기, 디저트, 작업/독서, 데이트, 전망 등 사용자 중심의 핵심 무드 태그 분류 체계를 정립하고 검증했습니다.
 
-**② 디자인 단계 — Figma × Stitch**
-스티치로 디자인한것들의 디자인이 상당히 ai 느낌이 너무 강해 
-필요없는 코너 레디오스 값, 쩅한 색상 텍스트 등을 수정하고 
-로그인화면 제배치 작업을 하엿습니다.
+**② 디자인 단계 — Figma × Stitch UX/UI 정돈**
+AI 디자인 도구인 Stitch로 초기 레이아웃 구조를 구상한 후, 과도한 AI 스타일(코너 라디우스, 고대비 색상 등)을 전면 정돈하고 Figma를 통해 브랜드 감성에 맞춘 세련된 인터페이스로 재배치 및 커스텀 디자인을 완성했습니다.
 
-**③ 개발 단계 — 소셜 로그인 · 지도 페이지 구현**
- env 파일에 api 키들을 받아 두었어 실제로 로그인버튼을 클릭하면 구글과 apple 로그인이 가능하게 구현해줘 
+**③ 개발 단계 — Firebase Authentication 및 서버리스 API 보안 연동**
+Firebase Authentication 기반으로 소셜/이메일 인증 및 상태 관리를 구축하고, Gemini API Key의 브라우저 노출 방지를 위해 Vercel Serverless Function으로 안전한 API 통신 구조를 구현했습니다.
 
 **⑤ 트러블슈팅 — 원인 진단**
 버그가 발생했을 때도 증상을 설명해 원인 후보를 먼저 받아본 뒤, 실제 원인을 좁혀 나갔습니다. (아래 트러블슈팅 표 참고)
