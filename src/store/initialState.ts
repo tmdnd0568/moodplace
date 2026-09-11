@@ -19,6 +19,15 @@ const getSavedBookmarkedIds = (): string[] => {
   }
 };
 
+const getSavedCafeEntities = (): Record<string, any> => {
+  try {
+    const saved = localStorage.getItem('moodplace_saved_cafe_entities');
+    return saved ? JSON.parse(saved) : {};
+  } catch {
+    return {};
+  }
+};
+
 export const initialState: AppState = {
   screen: 'splash',
   isSearchModalOpen: false,
@@ -30,6 +39,7 @@ export const initialState: AppState = {
   cafes: MOCK_CAFES,
   searchResults: [],
   bookmarkedIds: getSavedBookmarkedIds(),
+  savedCafeEntities: getSavedCafeEntities(),
   visitedCafeIds: getSavedVisitedCafeIds(),
   activeTab: 'home',
   selectedThemes: [],

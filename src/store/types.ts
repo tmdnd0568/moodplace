@@ -118,6 +118,7 @@ export interface AppState {
   cafes: Cafe[];
   searchResults: Cafe[];
   bookmarkedIds: string[];
+  savedCafeEntities: Record<string, Cafe>;
   visitedCafeIds: string[];
   activeTab: string;
   selectedThemes: string[];
@@ -143,7 +144,7 @@ export type AppAction =
   | { type: 'SET_MOOD_DESCRIPTION'; payload: string }
   | { type: 'START_MOOD_SEARCH' }
   | { type: 'RECEIVE_MOOD_SEARCH_RESULT'; payload: Cafe[] }
-  | { type: 'TOGGLE_BOOKMARK'; payload: string }
+  | { type: 'TOGGLE_BOOKMARK'; payload: string; cafe?: Cafe }
   | { type: 'SET_ACTIVE_TAB'; payload: string }
   | { type: 'TOGGLE_THEME'; payload: string }
   | { type: 'SET_SAVED_FILTER'; payload: string }

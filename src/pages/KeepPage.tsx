@@ -43,8 +43,8 @@ export const KeepPage: React.FC = () => {
   const savedPlaces = React.useMemo(() => {
     const uniqueIds = Array.from(new Set(state.bookmarkedIds));
     return uniqueIds
-      .map((id) => getCafeById(id))
-      .filter(Boolean)
+      .map((id) => getCafeById(id, state))
+      .filter((cafe): cafe is NonNullable<typeof cafe> => cafe !== null && cafe !== undefined)
       .map((cafe) => ({
         id: cafe.id,
         name: cafe.name,
@@ -53,7 +53,7 @@ export const KeepPage: React.FC = () => {
         tags: cafe.tags || [],
         category: 'cafe',
       }));
-  }, [state.bookmarkedIds, state.cafes]);
+  }, [state.bookmarkedIds, state.cafes, state.searchResults, state.savedCafeEntities]);
 
   const visiblePlaces =
     state.savedFilterCategory === 'all'

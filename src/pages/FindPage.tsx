@@ -108,6 +108,45 @@ function getAIImagesForCafe(name: string, _tags: Array<{ label: string }>, id?: 
   return [atmoUrl, menuUrl];
 }
 
+const CAFE_FIXED_COORDS: Record<string, [number, number]> = {
+  'forest-lounge': [36.3537, 127.3872],
+  'urban-nest': [36.3524, 127.3789],
+  'calm-forest': [36.3512, 127.3795],
+  'vivid-garden': [36.3541, 127.3820],
+  'quiet-tea-room': [36.3558, 127.3411],
+  'brick-atelier': [36.3508, 127.3762],
+  'onion-seongsu': [37.5445, 127.0560],
+  'daelim-changgo': [37.5428, 127.0552],
+  'matchacha': [37.5435, 127.0425],
+  'grandpa-factory': [37.5412, 127.0588],
+  'peaches-dowone': [37.5440, 127.0570],
+  'center-coffee': [37.5438, 127.0418],
+};
+
+function getRealCafeCoords(id: string, name: string = '', address: string = ''): [number, number] {
+  if (CAFE_FIXED_COORDS[id]) return CAFE_FIXED_COORDS[id];
+
+  const fullText = `${id} ${name} ${address}`.toLowerCase();
+
+  if (fullText.includes('성수')) return [37.5445, 127.0560];
+  if (fullText.includes('서울숲')) return [37.5438, 127.0418];
+  if (fullText.includes('강남')) return [37.4979, 127.0276];
+  if (fullText.includes('홍대') || fullText.includes('마포')) return [37.5563, 126.9226];
+  if (fullText.includes('서울')) return [37.5665, 126.9780];
+
+  if (fullText.includes('부산') || fullText.includes('해운대')) return [35.1587, 129.1604];
+  if (fullText.includes('제주')) return [33.4996, 126.5312];
+  if (fullText.includes('대구')) return [35.8714, 128.6014];
+  if (fullText.includes('광주')) return [35.1595, 126.8526];
+
+  if (fullText.includes('유성') || fullText.includes('궁동') || fullText.includes('봉명동')) return [36.3558, 127.3411];
+  if (fullText.includes('갈마') || fullText.includes('갈마동')) return [36.3505, 127.3715];
+  if (fullText.includes('탄방') || fullText.includes('탄방동')) return [36.3475, 127.3885];
+  if (fullText.includes('은행') || fullText.includes('대흥동')) return [36.3278, 127.4272];
+
+  return [36.3537, 127.3872];
+}
+
 export const FindPage: React.FC = () => {
   const navigate = useNavigate();
   const { state, dispatch } = useStore();
@@ -212,20 +251,13 @@ export const FindPage: React.FC = () => {
     );
 
     // 1. 기본 장소 (NEARBY_PLACES)
-    NEARBY_PLACES.forEach((p, idx) => {
+    NEARBY_PLACES.forEach((p) => {
       if (!isExplicitExternalSearch && !isDaejeonCafe(p)) {
         return;
       }
       if (isDuplicate(p.id, p.name)) return;
 
-      const angle = (idx * 55 + 20) * (Math.PI / 180);
-      const radiusOffset = 0.002 + (idx % 4) * 0.0035; // ~200m ~ 1.6km
-      const latOffset = Math.sin(angle) * radiusOffset;
-      const lngOffset = Math.cos(angle) * radiusOffset;
-      const coords: [number, number] = [
-        userCoords[0] + latOffset,
-        userCoords[1] + lngOffset
-      ];
+      const coords = getRealCafeCoords(p.id, p.name, p.address);
 
       list.push({
         id: p.id,
@@ -240,25 +272,19 @@ export const FindPage: React.FC = () => {
 
     // 2. 전체 카페 및 AI 추천 카페 리스트 (state.cafes, state.searchResults)
     const storeCafes = [...state.cafes, ...state.searchResults];
-    storeCafes.forEach((c, idx) => {
+    storeCafes.forEach((c) => {
       if (!isExplicitExternalSearch && !isDaejeonCafe(c)) {
         return;
       }
       if (isDuplicate(c.id, c.name)) return;
 
-      const angle = ((idx + 3) * 75) * (Math.PI / 180);
-      const radiusOffset = 0.0018 + (idx % 5) * 0.0038; // ~180m ~ 2.1km
-      const latOffset = Math.sin(angle) * radiusOffset;
-      const lngOffset = Math.cos(angle) * radiusOffset;
-      const coords: [number, number] = [
-        userCoords[0] + latOffset,
-        userCoords[1] + lngOffset
-      ];
+      const address = c.location || c.detail?.description || '대전 추천 카페';
+      const coords = getRealCafeCoords(c.id, c.name, address);
 
       list.push({
         id: c.id,
         name: c.name,
-        address: c.location || c.detail?.description || '대전 추천 카페',
+        address,
         description: c.detail?.description || `${c.name} - 감성 무드 맞춤 추천 카페`,
         photos: (c.photo?.type === 'image' && c.photo?.image) ? [c.photo.image] : ['/assets/caffe_001.jpg'],
         tags: c.mood ? c.mood.map((m) => ({ icon: 'warm', label: m })) : [],
@@ -266,23 +292,14 @@ export const FindPage: React.FC = () => {
       });
     });
 
-    // 3. 둔산동/유성/대전 브랜드 & 주변 인기 카페 (EXTRA_LOCAL_CAFES) 18종 촘촘히 배치
-    EXTRA_LOCAL_CAFES.forEach((c, idx) => {
+    // 3. 둔산동/유성/대전 브랜드 & 주변 인기 카페 (EXTRA_LOCAL_CAFES)
+    EXTRA_LOCAL_CAFES.forEach((c) => {
       if (!isExplicitExternalSearch && !isDaejeonCafe(c)) {
         return;
       }
       if (isDuplicate(c.id, c.name)) return;
 
-      const phi = (1 + Math.sqrt(5)) / 2;
-      const angle = (2 * Math.PI * idx) / phi;
-      const radiusOffset = 0.0015 + (idx / EXTRA_LOCAL_CAFES.length) * 0.021; // 150m ~ 2.7km
-
-      const latOffset = Math.sin(angle) * radiusOffset;
-      const lngOffset = Math.cos(angle) * radiusOffset;
-      const coords: [number, number] = [
-        userCoords[0] + latOffset,
-        userCoords[1] + lngOffset
-      ];
+      const coords = getRealCafeCoords(c.id, c.name, c.address);
 
       list.push({
         id: c.id,
@@ -295,38 +312,25 @@ export const FindPage: React.FC = () => {
       });
     });
 
-    // 4. 전국 주요 도시 대표 카페 (REGIONAL_MOCK_CAFES) 통합 (외부 지역 검색 시 해당 지역 추가, 기본 탐색 시 대전만)
+    // 4. 전국 주요 도시 대표 카페 (REGIONAL_MOCK_CAFES) 통합
     Object.entries(REGIONAL_MOCK_CAFES).forEach(([regionName, cafeList]) => {
       if (!isExplicitExternalSearch && regionName !== '대전') {
         return;
       }
 
-      cafeList.forEach((c, idx) => {
+      cafeList.forEach((c) => {
         if (!isExplicitExternalSearch && !isDaejeonCafe(c)) {
           return;
         }
         if (isDuplicate(c.id, c.name)) return;
 
-        let coords: [number, number];
-        if (regionName === '대전' || isDaejeonCafe(c)) {
-          coords = [36.3537 + (idx * 0.004), 127.3872 + (idx * 0.003)];
-        } else if (regionName === '부산') {
-          coords = [35.1587 + (idx * 0.005), 129.1604 + (idx * 0.004)];
-        } else if (regionName === '제주') {
-          coords = [33.4996 + (idx * 0.006), 126.5312 + (idx * 0.005)];
-        } else {
-          coords = [37.5665 + (idx * 0.004), 126.9780 + (idx * 0.003)];
-        }
-
-        // 좌표-지역 교차 검증: 대전 기본 탐색 중이면 대전 외부 좌표(서울 37.5xx 등) 부여 금지
-        if (!isExplicitExternalSearch && (coords[0] > 37.0 || coords[1] < 127.0)) {
-          coords = [36.3537 + (idx * 0.002), 127.3872 + (idx * 0.002)];
-        }
+        const address = c.location || `${regionName} 추천 카페`;
+        const coords = getRealCafeCoords(c.id, c.name, address);
 
         list.push({
           id: c.id,
           name: c.name,
-          address: c.location || `${regionName} 추천 카페`,
+          address,
           description: c.description || c.detail?.description || `${c.name} - ${regionName} 감성 핫플`,
           photos: (c.photo?.type === 'image' && c.photo?.image) ? [c.photo.image] : ['/assets/caffe_001.jpg'],
           tags: c.tags ? c.tags.map((t) => ({ icon: 'warm', label: t.replace('#', '') })) : [{ icon: 'warm', label: regionName }],

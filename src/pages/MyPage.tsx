@@ -503,8 +503,8 @@ export const MyPage: React.FC = () => {
               {state.bookmarkedIds.length > 0 ? (
                 <StatItemList>
                   {Array.from(new Set(state.bookmarkedIds))
-                    .map((id) => getCafeById(id))
-                    .filter(Boolean)
+                    .map((id) => getCafeById(id, state))
+                    .filter((c): c is NonNullable<typeof c> => c !== null && c !== undefined)
                     .map((cafe) => (
                       <StatItemCard
                         key={cafe.id}

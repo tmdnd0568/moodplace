@@ -171,13 +171,13 @@ export const MOCK_CAFES: Cafe[] = [
         destinationLabel: '어니언 성수',
         routesByMode: {
           walk: [
-            { id: 'forest-lounge-walk-1', badge: '최단시간', durationMin: 12, distanceLabel: '840m', metaLabel: '소모 칼로리 45kcal', progress: 65, description: '숲길 우선 경로: 성수동 카페거리를 경유합니다.' }
+            { id: 'forest-lounge-walk-1', badge: '최단시간', durationMin: 12, distanceLabel: '840m', metaLabel: '소모 칼로리 45kcal', progress: 65, description: '주요 도보 경로를 이용합니다.' }
           ],
           transit: [
-            { id: 'forest-lounge-transit-1', badge: '최적환승', durationMin: 9, distanceLabel: '1.8km', metaLabel: '버스 1회 환승', progress: 70, description: '뚝섬역에서 지선버스 2213번으로 환승합니다.' }
+            { id: 'forest-lounge-transit-1', badge: '최적환승', durationMin: 9, distanceLabel: '1.8km', metaLabel: '버스 1회 환승', progress: 70, description: '인근 정류장에서 시내버스로 환승합니다.' }
           ],
           taxi: [
-            { id: 'forest-lounge-taxi-1', badge: '가장 빠름', durationMin: 6, distanceLabel: '2.5km', metaLabel: '예상 요금 6,500원', progress: 80, description: '강변북로 성수대교 방면을 경유하는 최단 거리 차량 경로입니다.' }
+            { id: 'forest-lounge-taxi-1', badge: '가장 빠름', durationMin: 6, distanceLabel: '2.5km', metaLabel: '예상 요금 6,500원', progress: 80, description: '주요 대로를 경유하는 최단 거리 차량 경로입니다.' }
           ]
         }
       }
@@ -835,18 +835,42 @@ export function createDynamicCafe(
   };
 }
 
-export function getCafeById(id: string): Cafe {
-  // 1. MOCK_CAFES
+export function getCafeById(id: string, state?: any): Cafe | null {
+  if (!id) return null;
+
+  // 1. Persisted saved cafe entity (state or localStorage)
+  if (state?.savedCafeEntities?.[id]) {
+    return state.savedCafeEntities[id];
+  }
+  try {
+    const rawSaved = localStorage.getItem('moodplace_saved_cafe_entities');
+    if (rawSaved) {
+      const parsed = JSON.parse(rawSaved);
+      if (parsed?.[id]) return parsed[id];
+    }
+  } catch (e) {}
+
+  // 2. State searchResults / cafes
+  if (state?.searchResults) {
+    const foundSr = state.searchResults.find((c: Cafe) => c.id === id);
+    if (foundSr) return foundSr;
+  }
+  if (state?.cafes) {
+    const foundStateCafe = state.cafes.find((c: Cafe) => c.id === id);
+    if (foundStateCafe) return foundStateCafe;
+  }
+
+  // 3. MOCK_CAFES
   const foundMock = MOCK_CAFES.find((cafe) => cafe.id === id);
   if (foundMock) return foundMock;
 
-  // 2. REGIONAL_MOCK_CAFES
+  // 4. REGIONAL_MOCK_CAFES
   for (const cafeList of Object.values(REGIONAL_MOCK_CAFES)) {
     const foundReg = cafeList.find((cafe) => cafe.id === id);
     if (foundReg) return foundReg;
   }
 
-  // 3. EXTRA_LOCAL_CAFES
+  // 5. EXTRA_LOCAL_CAFES
   const foundExtra = EXTRA_LOCAL_CAFES.find((c) => c.id === id);
   if (foundExtra) {
     return createDynamicCafe(
@@ -859,7 +883,7 @@ export function getCafeById(id: string): Cafe {
     );
   }
 
-  // 4. NEARBY_PLACES
+  // 6. NEARBY_PLACES
   const foundNearby = NEARBY_PLACES.find((p) => p.id === id);
   if (foundNearby) {
     return createDynamicCafe(
@@ -872,16 +896,8 @@ export function getCafeById(id: string): Cafe {
     );
   }
 
-  // 5. Fallback Cafe generator for ANY string ID
-  const readableName = id.replace(/-/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase());
-  return createDynamicCafe(
-    id,
-    readableName.includes('Cafe') ? readableName : `${readableName} 카페`,
-    '대전 서구 둔산동 1414 (오라클 빌딩 주변)',
-    `대전 둔산동 오라클 빌딩 근처 인기 추천 카페입니다.`,
-    ['/assets/caffe_001.jpg', '/assets/menu_croffle.jpg'],
-    ['둔산동', '오라클빌딩근처']
-  );
+  // 7. If not found in any dataset, return null (never fabricate an unrelated cafe)
+  return null;
 }
 
 export function getNearbyPlaceById(id: string): NearbyPlace | null {

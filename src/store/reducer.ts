@@ -1,4 +1,5 @@
-import type { AppState, AppAction } from './types';
+import type { AppState, AppAction, Cafe } from './types';
+import { MOCK_CAFES } from '../data/mockData';
 
 export function rootReducer(state: AppState, action: AppAction): AppState {
   switch (action.type) {
@@ -102,12 +103,32 @@ export function rootReducer(state: AppState, action: AppAction): AppState {
       const nextBookmarks = exists
         ? state.bookmarkedIds.filter((b) => b !== id)
         : [...state.bookmarkedIds, id];
+
+      const nextEntities = { ...state.savedCafeEntities };
+
+      if (exists) {
+        delete nextEntities[id];
+      } else {
+        const targetCafe =
+          action.cafe ||
+          state.searchResults.find((c: Cafe) => c.id === id) ||
+          state.cafes.find((c: Cafe) => c.id === id) ||
+          MOCK_CAFES.find((c: Cafe) => c.id === id);
+
+        if (targetCafe) {
+          nextEntities[id] = targetCafe;
+        }
+      }
+
       try {
         localStorage.setItem('moodplace_bookmarked_ids', JSON.stringify(nextBookmarks));
+        localStorage.setItem('moodplace_saved_cafe_entities', JSON.stringify(nextEntities));
       } catch (e) {}
+
       return {
         ...state,
         bookmarkedIds: nextBookmarks,
+        savedCafeEntities: nextEntities,
       };
     }
 
