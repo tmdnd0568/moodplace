@@ -22,6 +22,8 @@ interface GroundedCafeItem {
   hoursLabel: string | null;
 }
 
+const GEMINI_MODELS = ['gemini-3.8-flash', 'gemini-3.7-flash'];
+
 const MOOD_LABELS: Record<string, string> = {
   cozy: '조용한',
   sensual: '감성적인',
@@ -251,7 +253,7 @@ INSTRUCTIONS:
 - Do NOT generate cafes not in the database.
 `;
 
-  const models = ['gemini-1.5-flash', 'gemini-1.5-pro'];
+  const models = GEMINI_MODELS;
   let lastError = '';
 
   for (const model of models) {
@@ -368,7 +370,7 @@ ${groundedText}
 ]
 `;
 
-  const models = ['gemini-1.5-flash', 'gemini-1.5-pro'];
+  const models = GEMINI_MODELS;
   let lastError = '';
 
   for (const model of models) {

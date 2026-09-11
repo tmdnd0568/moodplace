@@ -1,4 +1,4 @@
-﻿import React from 'react';
+import React from 'react';
 import styled from 'styled-components';
 import { Icon } from './icons/Icons';
 
@@ -65,7 +65,11 @@ const Title = styled.h2`
   position: absolute;
   left: 50%;
   transform: translateX(-50%);
+  max-width: calc(100% - 180px);
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: center;
 `;
 
 const ActionsGroup = styled.div`
