@@ -24,23 +24,22 @@ MoodPlace는 SNS의 세부 분위기·스타일 필터링 한계를 해결하기
 
 ## ✨ 주요 기능 & 인터랙션
 
-### 1. Google · Apple 소셜 로그인
-회원가입 절차 없이 Google, Apple 계정으로 바로 로그인할 수 있도록 실제 연동을 완료했습니다. Firebase Authentication 기반으로 구현되어 있습니다.
+### 1. Firebase Authentication 기반 인증 및 소셜 로그인
+Firebase Authentication을 이용하여 이메일 회원가입/로그인, 비밀번호 재설정 메일 발송, Google 소셜 로그인, 세션 유지 및 안전한 로그아웃 기능을 구현했습니다. 브라우저 저장소(localStorage)에는 비밀번호를 보관하지 않습니다. (Apple 로그인은 준비 중 상태로 캡슐화 처리)
 
-### 2. 지도 기반 카페 탐색
-지도 페이지에서 카테고리 탭으로 원하는 무드의 카페를 필터링하며 탐색할 수 있습니다. 최근 커밋에서 탭 정렬과 지도 페이지 UI를 개선했습니다.
-
+### 2. 지도 기반 카페 탐색 및 경로 미리보기
+지도 페이지에서 카테고리 탭으로 원하는 무드의 카페를 필터링하며 위치를 한눈에 확인할 수 있습니다. 출발지와 목적지(카페) 간 도보/대중교통/택시 경로 및 소요 시간을 미리 볼 수 있도록 구성했습니다.
 
 ### 3. 모바일 최적화 UX
 모바일 브라우저에서 입력 시 뷰포트가 자동으로 확대(zoom)되는 문제를 방지하는 등, 모바일 환경에 맞춘 UX 디테일을 다듬었습니다.
 
-### 4. (네 번째 핵심 기능 — 무드 기반 추천 로직 등)
-무드선택 후 ai 탐색 카페추천을 받아내고 카페의 위치 정보와 가는 방법 까지 가능하게 구현 하였습니다.
+### 4. Gemini API 기반 무드 추천 & Fallback
+사용자가 선택한 무드 태그 및 텍스트 설명을 기반으로 Vercel Serverless Functions (`api/gemini.ts`)를 거쳐 Gemini API 추천 결과를 받아옵니다. API 키는 서버 환경변수(`GEMINI_API_KEY`)로 보호되며, 네트워크 또는 API 호출 실패 시 fallback 추천 로직을 통해 지속 가능한 UX를 보장합니다.
 
 ## 🧭 사용자 플로우
 ```mermaid
 flowchart LR
-    A["앱 실행"] --> B["Google/Apple 로그인"]
+    A["앱 실행"] --> B["Firebase / Google 로그인"]
     B --> C["무드 선택 화면"]
     C --> D["지도 기반 카페 탐색"]
     D --> E["카페 상세 화면"]
@@ -49,12 +48,13 @@ flowchart LR
 ## 🗂️ 폴더 구조
 ```
 moodplace/
+├── api/                          # Vercel Serverless Functions (Gemini API 보안 처리)
 ├── public/                       # 정적 에셋 (자막/텍스트 리소스 포함)
 ├── src/                          # 컴포넌트 · 지도 페이지 · Firebase 초기화
 ├── backup_original_publishing/   # 초기 퍼블리싱 백업
 ├── .oxlintrc.json
 ├── vite.config.ts                # 환경변수 prefix 설정
-├── vercel.json                   # SPA 라우팅을 위한 Vercel 설정
+├── vercel.json                   # SPA 라우팅 및 Serverless 함수 설정
 ├── tsconfig.json / tsconfig.app.json / tsconfig.node.json
 └── 작업계획.md
 ```
@@ -85,15 +85,18 @@ moodplace/
 | 새로고침 시 라우트 404 발생 (SPA) | Vercel 기본 라우팅이 SPA 구조와 불일치 | `vercel.json`에 SPA 라우팅(rewrite) 설정 추가 |
 | public 자막/텍스트 요소가 서로 겹쳐 보임 | 레이아웃 겹침 미보정 | 콘텐츠 레이아웃 수정으로 겹침 해결 |
 | 환경변수 접두사 혼동 | 프로젝트 초기 환경변수 네이밍 불일치 | 전역 환경변수 prefix 통일 리팩토링 |
+| 클라이언트 Gemini API Key 노출 위험 | 프론트엔드 코드에서 API 키 직접 참조 | Vercel Serverless Function (`api/gemini.ts`)으로 호출 이동 |
+| localStorage 비밀번호 저장 보안 위험 | 브라우저 저장소에 사용자 비밀번호 노출 | Firebase Authentication 중심으로 통합 및 비밀번호 localStorage 저장 완제거 |
+| 외부 AI (Gemini) API 호출 실패 시 서비스 중단 | 네트워크/키 오류 시 추천 결과 공백 발생 | API 실패 시 fallback 추천 데이터로 자동 전환하여 앱 안정성 확보 |
 
 
 ## 🧷 바로가기
-- 깃허브:https://github.com/tmdnd0568/moodplace
+- 깃허브: https://github.com/tmdnd0568/moodplace
 
-- 노션:https://app.notion.com/p/Project-1-moodplace-AI-dfc1a4be835a83d49e2a0169a48b08cc?source=copy_link
+- 노션: https://app.notion.com/p/Project-1-moodplace-AI-dfc1a4be835a83d49e2a0169a48b08cc?source=copy_link
 
 - 피그마: https://www.figma.com/design/Y4NcodTo6r6uGdRLp7Ew0y/%ED%8F%AC%ED%86%A0%ED%8F%B4%EB%A6%AC%EC%98%A4-moodeplace?node-id=0-1&t=Ms2xl1KE8WzyIwEL-1
 
-- 배포주소:[https://arena-eta-five.vercel.app/](https://moodplace001.vercel.app/)
+- 배포주소: https://moodplace001.vercel.app/
 
-- 노트폴리오:https://notefolio.net/aivibe001/466150
+- 노트폴리오: https://notefolio.net/aivibe001/466150

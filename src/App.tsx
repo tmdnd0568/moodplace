@@ -1,6 +1,8 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { ThemeProvider } from 'styled-components';
+import { onAuthStateChanged } from 'firebase/auth';
+import { auth } from './firebase';
 import { lightTheme, darkTheme } from './styles/theme';
 import { GlobalStyle } from './styles/GlobalStyle';
 import { StoreProvider, useStore } from './store/StoreContext';
@@ -84,6 +86,21 @@ const RequireOnboarding: React.FC<{ children: React.ReactNode }> = ({ children }
 const AppContent: React.FC = () => {
   const { state } = useStore();
   const currentTheme = state.darkMode ? darkTheme : lightTheme;
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+      if (firebaseUser) {
+        sessionStorage.setItem('moodplace_auth', 'true');
+        if (firebaseUser.email) {
+          sessionStorage.setItem('moodplace_user_email', firebaseUser.email);
+        }
+        if (firebaseUser.displayName) {
+          sessionStorage.setItem('moodplace_user_name', firebaseUser.displayName);
+        }
+      }
+    });
+    return () => unsubscribe();
+  }, []);
 
   return (
     <ThemeProvider theme={currentTheme}>

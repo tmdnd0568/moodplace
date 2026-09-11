@@ -77,33 +77,27 @@ export const MapPage: React.FC = () => {
 
   const [userGpsCoords, setUserGpsCoords] = React.useState<[number, number] | null>(null);
   
-  const isDaejeonTarget = cafe?.location?.includes('대전') || cafe?.location?.includes('둔산') || cafe?.location?.includes('유성') || cafe?.name?.includes('대전') || cafe?.detail?.description?.includes('대전') || true;
+  // 실제 목적지에 대전 관련 위치/설명이 포함되어 있는 경우에만 true (|| true 버그 제거)
+  const isDaejeonTarget = Boolean(
+    cafe?.location?.includes('대전') ||
+    cafe?.location?.includes('둔산') ||
+    cafe?.location?.includes('유성') ||
+    cafe?.name?.includes('대전') ||
+    cafe?.detail?.description?.includes('대전')
+  );
   
   const [userLocationLabel, setUserLocationLabel] = React.useState<string>(
-    '출발: 둔산동 오라클 빌딩 (대전 서구 대덕대로 226)'
+    '기본 출발지 · 대전 둔산동'
   );
 
   const mapRef = React.useRef<any>(null);
   const userMarkerRef = React.useRef<any>(null);
 
-  // 1. Real-time HTML5 Geolocation Tracking + IP Auto Detection
+  // 1. Real-time HTML5 Geolocation Tracking
   React.useEffect(() => {
-    // IP 기반 위치 판별 보조
-    fetch('https://ipapi.co/json/')
-      .then((res) => res.json())
-      .then((data) => {
-        if (data && (data.city === 'Daejeon' || data.region === 'Daejeon' || (data.org && data.org.includes('Daejeon')))) {
-          setUserGpsCoords([36.3537, 127.3872]);
-          setUserLocationLabel('내 현재 위치 (대전광역시 둔산동)');
-        }
-      })
-      .catch(() => {});
-
     if (!navigator.geolocation) {
-      if (isDaejeonTarget) {
-        setUserGpsCoords([36.3537, 127.3872]);
-        setUserLocationLabel('내 현재 위치 (대전광역시 둔산동)');
-      }
+      setUserGpsCoords([36.3524, 127.3789]);
+      setUserLocationLabel('기본 출발지 · 대전 둔산동');
       return;
     }
 
@@ -119,16 +113,14 @@ export const MapPage: React.FC = () => {
       } else if (lat >= 33.2 && lat <= 33.6 && lng >= 126.1 && lng <= 126.9) {
         setUserLocationLabel('내 현재 위치 (제주특별자치도)');
       } else {
-        setUserLocationLabel('내 현재 위치 (실시간 GPS)');
+        setUserLocationLabel('내 현재 위치 (GPS 위치)');
       }
     };
 
     const handleGpsError = (err: any) => {
       console.warn('GPS location request error or denied:', err);
-      if (isDaejeonTarget || !userGpsCoords) {
-        setUserGpsCoords([36.3537, 127.3872]);
-        setUserLocationLabel('내 현재 위치 (대전광역시 둔산동)');
-      }
+      setUserGpsCoords([36.3524, 127.3789]);
+      setUserLocationLabel('위치 권한 없음 · 기본 위치 사용');
     };
 
     navigator.geolocation.getCurrentPosition(handleGpsSuccess, handleGpsError, {
@@ -195,15 +187,11 @@ export const MapPage: React.FC = () => {
       mapRef.current = map;
     }
 
-    // 경로 계산
-    let path: [number, number][] = [];
-    if (routeOption === 'shortest') {
-      path = [origin, destination];
-    } else if (routeOption === 'free') {
-      path = [origin, [(origin[0] + destination[0]) / 2, origin[1]], destination];
-    } else {
-      path = [origin, [origin[0], (origin[1] + destination[1]) / 2], [destination[0], (origin[1] + destination[1]) / 2], destination];
-    }
+    const startPoint = isSwapped ? destination : origin;
+    const endPoint = isSwapped ? origin : destination;
+
+    // 경로 미리보기 직선 Polyline (가짜 우회 중간점 제거)
+    const path: [number, number][] = [startPoint, endPoint];
 
     const dotIcon = L.divIcon({
       className: 'leaflet-custom-marker-dot',
@@ -222,9 +210,6 @@ export const MapPage: React.FC = () => {
       iconSize: [32, 32],
       iconAnchor: [16, 32]
     });
-
-    const startPoint = isSwapped ? destination : origin;
-    const endPoint = isSwapped ? origin : destination;
 
     // 기존 레이어 정리
     map.eachLayer((layer: any) => {
@@ -313,16 +298,16 @@ export const MapPage: React.FC = () => {
         (position) => {
           const lat = position.coords.latitude;
           const lng = position.coords.longitude;
-          showLocation(lat, lng, '내 현재 위치 (실시간 GPS 감지)');
+          showLocation(lat, lng, '내 현재 위치 (GPS 위치)');
         },
         (error) => {
           console.warn('GPS location request error or denied:', error);
-          showLocation(36.3524, 127.3789, '내 현재 위치 (대전 둔산동 오라클 빌딩)');
+          showLocation(36.3524, 127.3789, '위치 권한 없음 · 기본 위치 사용');
         },
         { enableHighAccuracy: true, timeout: 6000, maximumAge: 0 }
       );
     } else {
-      showLocation(36.3524, 127.3789, '내 현재 위치 (대전 둔산동 오라클 빌딩)');
+      showLocation(36.3524, 127.3789, '위치 권한 없음 · 기본 위치 사용');
     }
   };
 
@@ -368,16 +353,16 @@ export const MapPage: React.FC = () => {
       <MapArea className="map-canvas">
         <div id="route-map-api" style={{ width: '100%', height: '100%', position: 'relative', zIndex: 1 }} />
 
-        {/* 실시간 길안내 HUD (지도 상단 플로팅 오버레이) */}
+        {/* 경로 미리보기 HUD (지도 상단 플로팅 오버레이) */}
         {isNavigating && (
           <AINavigationHUD>
-            <AINavIconBadge>150m</AINavIconBadge>
+            <AINavIconBadge>미리보기</AINavIconBadge>
             <AINavTextWrap>
-              <AINavTitle>300m 앞 사거리 우회전</AINavTitle>
-              <AINavSubText>150m 직진 후 오른쪽에 도착지 입구가 있습니다.</AINavSubText>
+              <AINavTitle>경로 미리보기</AINavTitle>
+              <AINavSubText>{isSwapped ? destinationLabel : currentOriginLabel} → {isSwapped ? currentOriginLabel : destinationLabel}</AINavSubText>
             </AINavTextWrap>
             <AINavEndBtn type="button" onClick={() => setIsNavigating(false)}>
-              안내 종료
+              미리보기 종료
             </AINavEndBtn>
           </AINavigationHUD>
         )}
@@ -419,20 +404,20 @@ export const MapPage: React.FC = () => {
         <LocationQuickChipsRow>
           <LocationChipBtn
             type="button"
-            className={userLocationLabel.includes('오라클') ? 'is-active' : ''}
+            className={userLocationLabel.includes('기본') || userLocationLabel.includes('둔산동') ? 'is-active' : ''}
             onClick={() => {
               setUserGpsCoords([36.3524, 127.3789]);
-              setUserLocationLabel('내 현재 위치 (대전 둔산동 오라클 빌딩)');
+              setUserLocationLabel('기본 출발지 · 대전 둔산동');
             }}
           >
-            📍 둔산동 오라클 빌딩
+            📍 대전 둔산동 (기본 출발지)
           </LocationChipBtn>
           <LocationChipBtn
             type="button"
             className={userLocationLabel.includes('GPS') ? 'is-active' : ''}
             onClick={handleLocateClick}
           >
-            📡 내 실시간 GPS 위치 찾기
+            📡 내 현재 위치 (GPS)
           </LocationChipBtn>
         </LocationQuickChipsRow>
 
@@ -494,7 +479,7 @@ export const MapPage: React.FC = () => {
                 <SectionTitle className="map-section-title">추천 경로</SectionTitle>
                 <SectionHint className="map-section-hint">
                   <Icon name="info" className="icon" />
-                  <span>실시간 경사도/교통 반영</span>
+                  <span>소요 시간 및 거리 정보</span>
                 </SectionHint>
               </SectionHeader>
 
@@ -525,22 +510,22 @@ export const MapPage: React.FC = () => {
                   </RouteDesc>
                 )}
 
-                {/* 턴바이턴 길안내 구간 목록 */}
+                {/* 경로 미리보기 구간 목록 */}
                 <AITurnList>
                   <AITurnRow>
                     <span className="turn-text"><strong>{isSwapped ? destinationLabel : currentOriginLabel}</strong> 출발</span>
                   </AITurnRow>
                   <AITurnRow>
-                    <span className="turn-text">150m 직진 후 우회전</span>
+                    <span className="turn-text">직선 경로 미리보기</span>
                   </AITurnRow>
                   <AITurnRow>
-                    <span className="turn-text"><strong>{isSwapped ? currentOriginLabel : destinationLabel}</strong> 입구 도착</span>
+                    <span className="turn-text"><strong>{isSwapped ? currentOriginLabel : destinationLabel}</strong> 도착</span>
                   </AITurnRow>
                 </AITurnList>
 
-                {/* 길안내 시작 버튼 */}
+                {/* 경로 자세히 보기 버튼 */}
                 <MapCtaBtn type="button" className="map-cta-btn" onClick={() => setIsNavigating(true)}>
-                  길안내 시작
+                  경로 자세히 보기
                 </MapCtaBtn>
               </RouteFeatured>
             </>
@@ -550,13 +535,13 @@ export const MapPage: React.FC = () => {
         </RoutesSection>
       </MapSheet>
 
-      {/* 실시간 길안내 모달 페이지 */}
+      {/* 경로 미리보기 모달 페이지 */}
       {isNavigating && (
         <NavModalOverlay onClick={() => setIsNavigating(false)}>
           <NavModalCard onClick={(e) => e.stopPropagation()}>
             <NavHeaderRow>
-              <NavBadge>안내 중</NavBadge>
-              <NavTitle>실시간 길안내 서비스</NavTitle>
+              <NavBadge>경로 안내</NavBadge>
+              <NavTitle>경로 미리보기</NavTitle>
             </NavHeaderRow>
 
             <NavInstructionCard>
@@ -564,28 +549,28 @@ export const MapPage: React.FC = () => {
                 <Icon name="chevronLeft" style={{ transform: 'rotate(90deg)' }} />
               </NavSignIcon>
               <NavSignText>
-                <div className="meters">300m 앞</div>
-                <div className="action">성수이로 사거리에서 좌회전 후 150m 직진</div>
+                <div className="meters">경로 안내</div>
+                <div className="action">{isSwapped ? destinationLabel : currentOriginLabel}에서 {isSwapped ? currentOriginLabel : destinationLabel}까지의 경로입니다.</div>
               </NavSignText>
             </NavInstructionCard>
 
             <NavStatsRow>
               <NavStatItem>
-                <div className="label">남은 시간</div>
+                <div className="label">예상 소요 시간</div>
                 <div className="value" style={{ color: '#2D5244' }}>{featuredRoute?.durationMin || 12}분</div>
               </NavStatItem>
               <NavStatItem>
-                <div className="label">남은 거리</div>
+                <div className="label">예상 거리</div>
                 <div className="value">{featuredRoute?.distanceLabel || '850m'}</div>
               </NavStatItem>
               <NavStatItem>
-                <div className="label">도착 예정</div>
-                <div className="value">오전 10:28</div>
+                <div className="label">이동 수단</div>
+                <div className="value">{travelMode === 'walk' ? '도보' : travelMode === 'transit' ? '대중교통' : '택시'}</div>
               </NavStatItem>
             </NavStatsRow>
 
             <NavEndBtn type="button" onClick={() => setIsNavigating(false)}>
-              안내 종료
+              미리보기 종료
             </NavEndBtn>
           </NavModalCard>
         </NavModalOverlay>
@@ -605,23 +590,15 @@ export const MapPage: React.FC = () => {
 
             <MoreContent>
               <OptionSection>
-                <OptionLabel>경로 조건 설정</OptionLabel>
+                <OptionLabel>경로 표시 설정</OptionLabel>
                 <OptionGrid>
-                  <OptionBtn className={routeOption === 'optimum' ? 'is-active' : ''} onClick={() => { setRouteOption('optimum'); dispatch({ type: 'SHOW_TOAST', payload: '최적 경로 조건이 반영되었습니다.' }); setIsMoreOpen(false); }}>
-                    <strong>최적 경로</strong>
-                    <span>시간/거리 최적화</span>
+                  <OptionBtn className={routeOption === 'optimum' ? 'is-active' : ''} onClick={() => { setRouteOption('optimum'); dispatch({ type: 'SHOW_TOAST', payload: '추천 경로 조건이 반영되었습니다.' }); setIsMoreOpen(false); }}>
+                    <strong>추천 경로</strong>
+                    <span>기본 경로 미리보기</span>
                   </OptionBtn>
-                  <OptionBtn className={routeOption === 'shortest' ? 'is-active' : ''} onClick={() => { setRouteOption('shortest'); dispatch({ type: 'SHOW_TOAST', payload: '최단 거리 조건이 반영되었습니다.' }); setIsMoreOpen(false); }}>
-                    <strong>최단 거리</strong>
-                    <span>가장 짧은 코스 우선</span>
-                  </OptionBtn>
-                  <OptionBtn className={routeOption === 'free' ? 'is-active' : ''} onClick={() => { setRouteOption('free'); dispatch({ type: 'SHOW_TOAST', payload: '무료 도로 조건이 반영되었습니다.' }); setIsMoreOpen(false); }}>
-                    <strong>무료 우선</strong>
-                    <span>통행료 없는 경로</span>
-                  </OptionBtn>
-                  <OptionBtn className={routeOption === 'main' ? 'is-active' : ''} onClick={() => { setRouteOption('main'); dispatch({ type: 'SHOW_TOAST', payload: '큰길 우선 조건이 반영되었습니다.' }); setIsMoreOpen(false); }}>
-                    <strong>큰길 우선</strong>
-                    <span>안전한 대로변 위주</span>
+                  <OptionBtn className={routeOption === 'shortest' ? 'is-active' : ''} onClick={() => { setRouteOption('shortest'); dispatch({ type: 'SHOW_TOAST', payload: '직선 경로 조건이 반영되었습니다.' }); setIsMoreOpen(false); }}>
+                    <strong>직선 경로</strong>
+                    <span>직선 코스 연결</span>
                   </OptionBtn>
                 </OptionGrid>
               </OptionSection>

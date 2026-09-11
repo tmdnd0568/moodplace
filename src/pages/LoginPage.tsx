@@ -1,19 +1,48 @@
 import React, { useState } from 'react';
 import styled, { keyframes } from 'styled-components';
 import { useNavigate } from 'react-router-dom';
-import { signInWithPopup } from 'firebase/auth';
+import {
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  signInWithPopup,
+  sendPasswordResetEmail,
+  updateProfile
+} from 'firebase/auth';
 import { auth, googleProvider, appleProvider } from '../firebase';
 
-// 가상 사용자 데이터 모델 인터페이스
-interface User {
+// 사용자 프로필 데이터 모델 (비밀번호 제외)
+interface UserProfile {
   email: string;
-  password: string;
   name: string;
+  avatar?: string;
+  tags?: string[];
 }
 
-const DEFAULT_USERS: User[] = [
-  { email: 'admin@moodplace.com', password: 'password123', name: '관리자' }
-];
+const getKoreanAuthErrorMessage = (errorCode: string): string => {
+  switch (errorCode) {
+    case 'auth/invalid-credential':
+    case 'auth/user-not-found':
+    case 'auth/wrong-password':
+      return '이메일 또는 비밀번호를 확인해주세요.';
+    case 'auth/email-already-in-use':
+      return '이미 가입된 이메일입니다.';
+    case 'auth/weak-password':
+      return '비밀번호는 6자 이상 입력해주세요.';
+    case 'auth/invalid-email':
+      return '이메일 형식을 확인해주세요.';
+    case 'auth/popup-closed-by-user':
+      return '로그인 창이 닫혔습니다.';
+    case 'auth/operation-not-allowed':
+    case 'auth/invalid-provider-id':
+    case 'auth/configuration-not-found':
+    case 'auth/unauthorized-domain':
+      return '해당 로그인 방식은 현재 준비 중입니다.';
+    case 'auth/too-many-requests':
+      return '로그인 시도가 너무 많습니다. 잠시 후 다시 시도해주세요.';
+    default:
+      return '인증 처리 중 오류가 발생했습니다. 다시 시도해주세요.';
+  }
+};
 
 export const LoginPage: React.FC = () => {
   const navigate = useNavigate();
@@ -37,13 +66,9 @@ export const LoginPage: React.FC = () => {
   const [signUpError, setSignUpError] = useState('');
   const [isSignUpSuccess, setIsSignUpSuccess] = useState(false);
 
-  // 3) 비밀번호 찾기 및 재설정 폼 상태
+  // 3) 비밀번호 찾기 폼 상태
   const [findEmail, setFindEmail] = useState('');
   const [findError, setFindError] = useState('');
-  const [targetUserEmail, setTargetUserEmail] = useState('');
-  const [resetPassword, setResetPassword] = useState('');
-  const [resetPasswordConfirm, setResetPasswordConfirm] = useState('');
-  const [resetError, setResetError] = useState('');
   const [isResetSuccess, setIsResetSuccess] = useState(false);
 
   // 4) 소셜 로그인용 모달 상태
@@ -64,7 +89,7 @@ export const LoginPage: React.FC = () => {
     }, 600);
   };
 
-  // 실제 Firebase 소셜 로그인 처리
+  // 실제 Firebase 소셜 로그인 처리 (Google, Apple)
   const handleFirebaseSocialLogin = async (providerType: 'google' | 'apple') => {
     setError('');
     setIsLoading(true);
@@ -73,17 +98,17 @@ export const LoginPage: React.FC = () => {
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
       
-      const email = user.email || `${providerType}_user_${user.uid}@moodplace.com`;
-      const name = user.displayName || `${providerType.toUpperCase()} 사용자`;
+      const userEmail = user.email || `${providerType}_user_${user.uid}@moodplace.com`;
+      const userName = user.displayName || `${providerType.toUpperCase()} 사용자`;
       
       const users = getUsers();
-      const existingUser = users.find(u => u.email.toLowerCase() === email.toLowerCase());
+      const existingUser = users.find(u => u.email.toLowerCase() === userEmail.toLowerCase());
       
       sessionStorage.setItem('moodplace_auth', 'true');
-      sessionStorage.setItem('moodplace_user_email', email);
-      sessionStorage.setItem('moodplace_user_name', name);
+      sessionStorage.setItem('moodplace_user_email', userEmail);
+      sessionStorage.setItem('moodplace_user_name', userName);
       
-      const hasOnboarded = existingUser && (existingUser as any).tags && (existingUser as any).tags.length > 0;
+      const hasOnboarded = existingUser && existingUser.tags && existingUser.tags.length > 0;
       
       setIsLoading(false);
       if (hasOnboarded) {
@@ -91,10 +116,9 @@ export const LoginPage: React.FC = () => {
         navigate('/main');
       } else {
         if (!existingUser) {
-          const newUser: User = {
-            email: email,
-            password: 'social-auth-placeholder-pass',
-            name: name
+          const newUser: UserProfile = {
+            email: userEmail,
+            name: userName
           };
           localStorage.setItem('moodplace_users', JSON.stringify([...users, newUser]));
         }
@@ -104,30 +128,33 @@ export const LoginPage: React.FC = () => {
       console.error(`${providerType} Login Error:`, err);
       setIsLoading(false);
       
-      // Firebase 도메인 미승인, 키 미설정 등으로 로그인 실패 시 데모용 모달(Mock)로 자동 전환하여 로그인 흐름을 보장합니다.
-      if (err.code !== 'auth/popup-closed-by-user') {
-        console.warn(`Firebase login failed. Falling back to mock demo modal for ${providerType}.`);
-        setSocialModalType(providerType);
+      if (providerType === 'apple' && (err.code === 'auth/operation-not-allowed' || err.code === 'auth/invalid-provider-id' || err.code === 'auth/configuration-not-found' || err.code === 'auth/unauthorized-domain')) {
+        setError('Apple 로그인 기능은 현재 준비 중입니다.');
+      } else {
+        setError(getKoreanAuthErrorMessage(err?.code || ''));
       }
     }
   };
 
-  // LocalStorage 사용자 DB 초기화 및 헬퍼 함수
-  const getUsers = (): User[] => {
+  // LocalStorage 사용자 프로필 DB (비밀번호 미포함)
+  const getUsers = (): UserProfile[] => {
     const data = localStorage.getItem('moodplace_users');
-    if (!data) {
-      localStorage.setItem('moodplace_users', JSON.stringify(DEFAULT_USERS));
-      return DEFAULT_USERS;
-    }
+    if (!data) return [];
     try {
-      return JSON.parse(data);
+      const list = JSON.parse(data);
+      return list.map((u: any) => ({
+        email: u.email,
+        name: u.name,
+        avatar: u.avatar,
+        tags: u.tags
+      }));
     } catch {
-      return DEFAULT_USERS;
+      return [];
     }
   };
 
-  // 일반 로그인 핸들러
-  const handleLogin = () => {
+  // 일반 이메일 로그인 핸들러 (Firebase Authentication)
+  const handleLogin = async () => {
     setError('');
     if (!email.trim() || !password.trim()) {
       setError('이메일과 비밀번호를 입력해주세요.');
@@ -135,27 +162,20 @@ export const LoginPage: React.FC = () => {
     }
     setIsLoading(true);
 
-    setTimeout(() => {
-      const users = getUsers();
-      const user = users.find(u => u.email.toLowerCase() === email.trim().toLowerCase());
-      
-      if (!user) {
-        setError('가입되지 않은 이메일 주소입니다.');
-        setIsLoading(false);
-        return;
-      }
-      
-      if (user.password !== password) {
-        setError('비밀번호가 올바르지 않습니다.');
-        setIsLoading(false);
-        return;
-      }
+    try {
+      const userCredential = await signInWithEmailAndPassword(auth, email.trim(), password);
+      const user = userCredential.user;
+      const userEmail = user.email || email.trim();
+      const userName = user.displayName || email.trim().split('@')[0];
 
-      const hasOnboarded = (user as any).tags && (user as any).tags.length > 0;
       sessionStorage.setItem('moodplace_auth', 'true');
-      sessionStorage.setItem('moodplace_user_email', user.email);
-      sessionStorage.setItem('moodplace_user_name', user.name);
-      
+      sessionStorage.setItem('moodplace_user_email', userEmail);
+      sessionStorage.setItem('moodplace_user_name', userName);
+
+      const users = getUsers();
+      const existingUser = users.find(u => u.email.toLowerCase() === userEmail.toLowerCase());
+      const hasOnboarded = existingUser && existingUser.tags && existingUser.tags.length > 0;
+
       setIsLoading(false);
       if (hasOnboarded) {
         sessionStorage.setItem('moodplace_onboarded', 'true');
@@ -163,11 +183,15 @@ export const LoginPage: React.FC = () => {
       } else {
         navigate('/onboarding');
       }
-    }, 900);
+    } catch (err: any) {
+      console.error('Email Login Error:', err);
+      setIsLoading(false);
+      setError(getKoreanAuthErrorMessage(err?.code || ''));
+    }
   };
 
-  // 회원가입 핸들러
-  const handleSignUp = () => {
+  // 이메일 회원가입 핸들러 (Firebase Authentication)
+  const handleSignUp = async () => {
     setSignUpError('');
     if (!signUpEmail.trim() || !signUpPassword || !signUpPasswordConfirm || !signUpName.trim()) {
       setSignUpError('모든 정보를 정확하게 입력해주세요.');
@@ -192,111 +216,68 @@ export const LoginPage: React.FC = () => {
 
     setIsLoading(true);
 
-    setTimeout(() => {
-      const users = getUsers();
-      const exists = users.some(u => u.email.toLowerCase() === signUpEmail.trim().toLowerCase());
-      
-      if (exists) {
-        setSignUpError('이미 사용 중인 이메일 주소입니다.');
-        setIsLoading(false);
-        return;
+    try {
+      const userCredential = await createUserWithEmailAndPassword(auth, signUpEmail.trim(), signUpPassword);
+      const user = userCredential.user;
+
+      if (signUpName.trim()) {
+        await updateProfile(user, { displayName: signUpName.trim() });
       }
 
-      const newUser: User = {
+      const newProfile: UserProfile = {
         email: signUpEmail.trim(),
-        password: signUpPassword,
         name: signUpName.trim()
       };
 
-      const updatedUsers = [...users, newUser];
+      const users = getUsers();
+      const updatedUsers = [...users.filter(u => u.email.toLowerCase() !== signUpEmail.trim().toLowerCase()), newProfile];
       localStorage.setItem('moodplace_users', JSON.stringify(updatedUsers));
-      
+
       setIsLoading(false);
       setIsSignUpSuccess(true);
 
-      // 1.5초 후 자동 로그인 및 온보딩 페이지 이동
       setTimeout(() => {
         sessionStorage.setItem('moodplace_auth', 'true');
-        sessionStorage.setItem('moodplace_user_email', newUser.email);
-        sessionStorage.setItem('moodplace_user_name', newUser.name);
+        sessionStorage.setItem('moodplace_user_email', newProfile.email);
+        sessionStorage.setItem('moodplace_user_name', newProfile.name);
         setIsSignUpSuccess(false);
         navigate('/onboarding');
       }, 1500);
-    }, 1000);
+    } catch (err: any) {
+      console.error('Email SignUp Error:', err);
+      setIsLoading(false);
+      setSignUpError(getKoreanAuthErrorMessage(err?.code || ''));
+    }
   };
 
-  // 비밀번호 찾기(이메일 확인) 핸들러
-  const handleFindPassword = () => {
+  // 비밀번호 찾기 (Firebase sendPasswordResetEmail)
+  const handleFindPassword = async () => {
     setFindError('');
     if (!findEmail.trim()) {
       setFindError('이메일 주소를 입력해주세요.');
       return;
     }
 
-    setIsLoading(true);
-
-    setTimeout(() => {
-      const users = getUsers();
-      const user = users.find(u => u.email.toLowerCase() === findEmail.trim().toLowerCase());
-      
-      if (!user) {
-        setFindError('등록되지 않은 이메일 주소입니다.');
-        setIsLoading(false);
-        return;
-      }
-
-      setIsLoading(false);
-      setTargetUserEmail(user.email);
-      setCurrentView('find-password-reset');
-    }, 1000);
-  };
-
-  // 비밀번호 재설정 핸들러
-  const handleResetPassword = () => {
-    setResetError('');
-    if (!resetPassword || !resetPasswordConfirm) {
-      setResetError('비밀번호를 입력해주세요.');
-      return;
-    }
-
-    if (resetPassword.length < 6) {
-      setResetError('비밀번호는 최소 6자 이상이어야 합니다.');
-      return;
-    }
-
-    if (resetPassword !== resetPasswordConfirm) {
-      setResetError('비밀번호가 서로 일치하지 않습니다.');
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(findEmail.trim())) {
+      setFindError('유효한 이메일 형식이 아닙니다.');
       return;
     }
 
     setIsLoading(true);
 
-    setTimeout(() => {
-      const users = getUsers();
-      const updatedUsers = users.map(u => {
-        if (u.email.toLowerCase() === targetUserEmail.toLowerCase()) {
-          return { ...u, password: resetPassword };
-        }
-        return u;
-      });
-
-      localStorage.setItem('moodplace_users', JSON.stringify(updatedUsers));
+    try {
+      await sendPasswordResetEmail(auth, findEmail.trim());
       setIsLoading(false);
       setIsResetSuccess(true);
-
-      // 1.5초 후 재설정 완료 처리 및 로그인 화면으로 리다이렉트
-      setTimeout(() => {
-        setIsResetSuccess(false);
-        setCurrentView('login');
-        // 필드 초기화
-        setResetPassword('');
-        setResetPasswordConfirm('');
-        setFindEmail('');
-      }, 1500);
-    }, 1000);
+    } catch (err: any) {
+      console.error('Password Reset Email Error:', err);
+      setIsLoading(false);
+      setFindError(getKoreanAuthErrorMessage(err?.code || ''));
+    }
   };
 
-  // 소셜 로그인 처리 (모사)
+  // 소셜 로그인 처리 (모사/데모용)
   const handleSocialSelect = (socialName: string, selectedEmail: string, selectedName: string) => {
     console.log(`Logging in with ${socialName}`);
     setSocialLoading(true);
@@ -308,7 +289,7 @@ export const LoginPage: React.FC = () => {
       sessionStorage.setItem('moodplace_user_email', selectedEmail);
       sessionStorage.setItem('moodplace_user_name', selectedName);
       
-      const hasOnboarded = user && (user as any).tags && (user as any).tags.length > 0;
+      const hasOnboarded = user && user.tags && user.tags.length > 0;
       
       setSocialLoading(false);
       setSocialModalType(null);
@@ -317,9 +298,8 @@ export const LoginPage: React.FC = () => {
         navigate('/main');
       } else {
         if (!user) {
-          const newUser: User = {
+          const newUser: UserProfile = {
             email: selectedEmail,
-            password: 'social-auth-placeholder-pass',
             name: selectedName
           };
           localStorage.setItem('moodplace_users', JSON.stringify([...users, newUser]));
@@ -518,85 +498,50 @@ export const LoginPage: React.FC = () => {
         {currentView === 'find-password' && (
           <FormCard>
             <CardTitle>비밀번호 찾기</CardTitle>
-            <FieldGroup>
-              <Label htmlFor="find-email">가입한 이메일 주소</Label>
-              <Input
-                id="find-email"
-                type="email"
-                placeholder="registered@email.com"
-                value={findEmail}
-                onChange={(e) => setFindEmail(e.target.value)}
-                onKeyDown={(e) => handleKeyDown(e, handleFindPassword)}
-              />
-            </FieldGroup>
-
-            {findError && <ErrorMsg role="alert">{findError}</ErrorMsg>}
-
-            <LoginBtn
-              type="button"
-              onClick={handleFindPassword}
-              disabled={isLoading}
-            >
-              {isLoading ? <Spinner /> : '이메일 확인'}
-            </LoginBtn>
-
-            <CardLinkRow>
-              <CardLink type="button" onClick={() => { setCurrentView('login'); setFindError(''); }}>
-                로그인 화면으로 돌아가기
-              </CardLink>
-            </CardLinkRow>
-          </FormCard>
-        )}
-
-        {/* ─── 4) 비밀번호 재설정 뷰 ─── */}
-        {currentView === 'find-password-reset' && (
-          <FormCard>
-            <CardTitle>비밀번호 재설정</CardTitle>
-            <div style={{ fontSize: '13px', color: '#666', textAlign: 'center', marginBottom: '20px' }}>
-              <strong>{targetUserEmail}</strong> 계정의<br />새로운 비밀번호를 입력해주세요.
-            </div>
-
             {isResetSuccess ? (
               <SuccessWrap>
                 <SuccessCircle>✓</SuccessCircle>
-                <SuccessTitle>재설정 완료!</SuccessTitle>
-                <SuccessDesc>새로운 비밀번호가 안전하게 반영되었습니다.<br />잠시 후 로그인 화면으로 이동합니다.</SuccessDesc>
+                <SuccessTitle>이메일 발송 완료!</SuccessTitle>
+                <SuccessDesc>
+                  <strong>{findEmail}</strong> 주소로<br />비밀번호 재설정 이메일을 보냈습니다.<br />이메일을 확인해주세요.
+                </SuccessDesc>
+                <LoginBtn
+                  type="button"
+                  onClick={() => { setCurrentView('login'); setIsResetSuccess(false); setFindEmail(''); }}
+                  style={{ marginTop: '16px' }}
+                >
+                  로그인 화면으로 돌아가기
+                </LoginBtn>
               </SuccessWrap>
             ) : (
               <>
                 <FieldGroup>
-                  <Label htmlFor="reset-password">새 비밀번호</Label>
+                  <Label htmlFor="find-email">가입한 이메일 주소</Label>
                   <Input
-                    id="reset-password"
-                    type="password"
-                    placeholder="최소 6자 이상"
-                    value={resetPassword}
-                    onChange={(e) => setResetPassword(e.target.value)}
-                    onKeyDown={(e) => handleKeyDown(e, handleResetPassword)}
+                    id="find-email"
+                    type="email"
+                    placeholder="registered@email.com"
+                    value={findEmail}
+                    onChange={(e) => setFindEmail(e.target.value)}
+                    onKeyDown={(e) => handleKeyDown(e, handleFindPassword)}
                   />
                 </FieldGroup>
 
-                <FieldGroup>
-                  <Label htmlFor="reset-password-confirm">새 비밀번호 확인</Label>
-                  <Input
-                    id="reset-password-confirm"
-                    type="password"
-                    placeholder="비밀번호 재입력"
-                    value={resetPasswordConfirm}
-                    onChange={(e) => setResetPasswordConfirm(e.target.value)}
-                    onKeyDown={(e) => handleKeyDown(e, handleResetPassword)}
-                  />
-                </FieldGroup>
-
-                {resetError && <ErrorMsg role="alert">{resetError}</ErrorMsg>}
+                {findError && <ErrorMsg role="alert">{findError}</ErrorMsg>}
 
                 <LoginBtn
                   type="button"
-                  onClick={handleResetPassword}
+                  onClick={handleFindPassword}
                   disabled={isLoading}
                 >
-                  {isLoading ? <Spinner /> : '비밀번호 변경'}
+                  {isLoading ? <Spinner /> : '재설정 이메일 발송'}
                 </LoginBtn>
+
+                <CardLinkRow>
+                  <CardLink type="button" onClick={() => { setCurrentView('login'); setFindError(''); }}>
+                    로그인 화면으로 돌아가기
+                  </CardLink>
+                </CardLinkRow>
               </>
             )}
           </FormCard>

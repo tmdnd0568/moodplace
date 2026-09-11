@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
+import { signOut } from 'firebase/auth';
+import { auth } from '../firebase';
 import { useStore } from '../store/StoreContext';
 import { MY_PROFILE, ACCOUNT_MENU_ITEMS } from '../data/mockData';
 import { BottomNav } from '../components/BottomNav';
@@ -469,13 +471,18 @@ export const MyPage: React.FC = () => {
             </ModalScrollContent>
             <ModalFooterRow>
               <CancelBtn onClick={() => setActiveModal(null)}>취소</CancelBtn>
-              <ConfirmBtn onClick={() => {
+              <ConfirmBtn onClick={async () => {
+                try {
+                  await signOut(auth);
+                } catch (e) {
+                  console.error('Firebase signOut error:', e);
+                }
                 sessionStorage.removeItem('moodplace_auth');
                 sessionStorage.removeItem('moodplace_user_email');
                 sessionStorage.removeItem('moodplace_user_name');
                 dispatch({ type: 'SHOW_TOAST', payload: '로그아웃 되었습니다.' });
                 setActiveModal(null);
-                navigate('/');
+                navigate('/login');
               }}>로그아웃</ConfirmBtn>
             </ModalFooterRow>
           </ModalCard>

@@ -822,24 +822,24 @@ const ModalCta = styled.button<{ $outline?: boolean }>`
   }
 `;
 
-const MoodChipSection = styled.div`
+export const MoodChipSection = styled.div`
   margin: 10px 0 14px 0;
 `;
 
-const MoodChipLabel = styled.p`
+export const MoodChipLabel = styled.p`
   font-size: 12.5px;
   font-weight: 700;
   color: ${({ theme }) => theme.colors.textMuted};
   margin-bottom: 8px;
 `;
 
-const MoodChipContainer = styled.div`
+export const MoodChipContainer = styled.div`
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
 `;
 
-const MoodChip = styled.button`
+export const MoodChip = styled.button`
   background: #f3f2ee;
   border: 1px solid #e2e0d8;
   border-radius: 20px;
