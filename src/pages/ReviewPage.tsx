@@ -198,13 +198,32 @@ export const ReviewPage: React.FC = () => {
 
       <ContentScroll>
         <PhotoSlider>
-          {cafe.photo.type === 'image' && cafe.photo.image ? (
-            <PhotoSlideImg src={cafe.photo.image} alt={cafe.name} />
-          ) : (
-            <PhotoGradient $from={cafe.photo.from} $to={cafe.photo.to}>
-              <EmojiWrapper>{cafe.photo.emoji}</EmojiWrapper>
-            </PhotoGradient>
-          )}
+          {(() => {
+            const allSpacePhotos = [
+              cafe.photo.image,
+              ...(cafe.interiorImages || []),
+              ...(cafe.exteriorImages || []),
+            ].filter((img): img is string => Boolean(img && img.trim() !== ''));
+
+            if (allSpacePhotos.length > 0) {
+              return allSpacePhotos.map((imgSrc, pIdx) => (
+                <PhotoSlideImg
+                  key={`space-photo-${pIdx}`}
+                  src={imgSrc}
+                  alt={`${cafe.name} 공간 사진 ${pIdx + 1}`}
+                  onError={(e) => {
+                    (e.currentTarget as HTMLImageElement).src = '/assets/cafe_calm_forest.jpg';
+                  }}
+                />
+              ));
+            }
+
+            return (
+              <PhotoGradient $from={cafe.photo.from} $to={cafe.photo.to}>
+                <EmojiWrapper>{cafe.photo.emoji}</EmojiWrapper>
+              </PhotoGradient>
+            );
+          })()}
         </PhotoSlider>
 
         <IntroCard>
@@ -224,16 +243,23 @@ export const ReviewPage: React.FC = () => {
             <CafeName>{cafe.name}</CafeName>
             <RatingBadge>
               <Icon name="star" className="star-icon" />
-              <span>{cafe.detail.rating}</span>
+              <span>{cafe.detail.rating != null ? cafe.detail.rating : '평점 정보 없음'}</span>
             </RatingBadge>
           </CafeTitleRow>
 
           <CafeDescription>{cafe.detail.description}</CafeDescription>
 
-          <HoursRow>
-            <Icon name="clock" className="clock-icon" />
-            <span>영업 중 • {cafe.detail.hoursLabel}</span>
-          </HoursRow>
+          {cafe.detail.hoursLabel != null ? (
+            <HoursRow>
+              <Icon name="clock" className="clock-icon" />
+              <span>영업 중 • {cafe.detail.hoursLabel}</span>
+            </HoursRow>
+          ) : (
+            <HoursRow>
+              <Icon name="clock" className="clock-icon" />
+              <span>영업시간 정보 없음</span>
+            </HoursRow>
+          )}
 
           <InfoRow>
             <Icon name="pin" className="info-icon" />
@@ -261,11 +287,17 @@ export const ReviewPage: React.FC = () => {
             <MenuList>
               {cafe.detail.menu.map((menuItem) => (
                 <MenuItemCard key={menuItem.id}>
-                  <MenuThumb src={menuItem.image} alt={menuItem.name} />
+                  <MenuThumb
+                    src={menuItem.image || '/assets/cafe_calm_forest.jpg'}
+                    alt={menuItem.name}
+                    onError={(e) => {
+                      (e.currentTarget as HTMLImageElement).src = '/assets/cafe_calm_forest.jpg';
+                    }}
+                  />
                   <MenuInfo>
                     <MenuNameRow>
                       <MenuName>{menuItem.name}</MenuName>
-                      <MenuPrice>{menuItem.price}</MenuPrice>
+                      <MenuPrice>{menuItem.price ? menuItem.price : '가격 정보 없음'}</MenuPrice>
                     </MenuNameRow>
                     <MenuDesc>{menuItem.desc}</MenuDesc>
                   </MenuInfo>
@@ -277,7 +309,7 @@ export const ReviewPage: React.FC = () => {
 
         <Section>
           <ReviewHeaderRow>
-            <SectionTitle style={{ marginBottom: 0 }}>방문자 리뷰 ({cafe.detail.reviewCount})</SectionTitle>
+            <SectionTitle style={{ marginBottom: 0 }}>방문자 리뷰 ({cafe.detail.reviewCount != null ? cafe.detail.reviewCount : '?'})</SectionTitle>
             <WriteReviewBtn type="button" onClick={() => setIsWriteModalOpen(true)}>
               <Icon name="edit" className="edit-icon" />
               <span>리뷰 쓰기</span>
@@ -484,12 +516,20 @@ const PhotoSlider = styled.div`
   height: 240px;
   background: #000;
   position: relative;
+  display: flex;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  &::-webkit-scrollbar {
+    display: none;
+  }
 `;
 
 const PhotoSlideImg = styled.img`
+  flex: 0 0 100%;
   width: 100%;
   height: 100%;
   object-fit: cover;
+  scroll-snap-align: start;
 `;
 
 const PhotoGradient = styled.div<{ $from: string; $to: string }>`

@@ -9,9 +9,10 @@ export interface Photo {
 export interface MenuItem {
   id: string;
   name: string;
-  price: string;
+  price: string | null;
   desc: string;
   image: string;
+  imageSourceUrl?: string;
 }
 
 export interface Review {
@@ -48,13 +49,13 @@ export interface CafeRoute {
 export interface CafeDetail {
   detailTags: string[];
   description: string;
-  rating: number;
-  hoursLabel: string;
-  reviewCount: number;
+  rating: number | null;      // 실제 확인된 경우만, 미확인 시 null
+  hoursLabel: string | null;  // 실제 확인된 경우만, 미확인 시 null
+  reviewCount: number | null; // 실제 확인된 경우만, 미확인 시 null
   menu: MenuItem[];
   reviews: Review[];
   reservation?: {
-    rating: number;
+    rating: number | null;
     reviewCountLabel: string;
     description: string;
     facilities: string[];
@@ -78,6 +79,12 @@ export interface Cafe {
   aiReason?: string;
   isExternalRegion?: boolean;
   targetRegion?: string;
+  mapsUrl?: string;           // Google Maps 실제 장소 URL (Grounding 결과)
+  imageSourceUrl?: string;    // 이미지 원본 출처 페이지 URL (Google 정책 준수)
+  interiorImages?: string[];   // 실제 카페 내부/인테리어 공간 이미지 (최대 2장)
+  interiorSourceUrls?: string[]; // interior 이미지 웹 출처 URL
+  exteriorImages?: string[];   // 실제 카페 외부/전경 공간 이미지 (최대 1장)
+  exteriorSourceUrls?: string[]; // exterior 이미지 웹 출처 URL
 }
 
 export interface NearbyPlace {

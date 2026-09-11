@@ -18,10 +18,13 @@ export const CafeCard: React.FC<CafeCardProps> = ({
   onBookmarkToggle,
   variant = 'list',
 }) => {
-  const renderPhotoStyle = () => {
-    if (cafe.photo.type === 'image' && cafe.photo.image) {
+  const PLACEHOLDER = '/assets/cafe_calm_forest.jpg';
+
+  const renderPhotoStyle = (imgSrc?: string) => {
+    const src = imgSrc || (cafe.photo.type === 'image' ? cafe.photo.image : '');
+    if (src) {
       return {
-        backgroundImage: `url(${cafe.photo.image})`,
+        backgroundImage: `url(${src})`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
       };
@@ -31,12 +34,41 @@ export const CafeCard: React.FC<CafeCardProps> = ({
     };
   };
 
+  // 이미지 로드 실패 시 placeholder로 전환 (img background는 JS로 처리)
+  const handleImgError = (e: React.SyntheticEvent<HTMLImageElement>) => {
+    const el = e.currentTarget;
+    el.style.display = 'none';
+    const parent = el.parentElement;
+    if (parent) {
+      parent.style.backgroundImage = `url(${PLACEHOLDER})`;
+      parent.style.backgroundSize = 'cover';
+      parent.style.backgroundPosition = 'center';
+    }
+  };
+
   if (variant === 'hero') {
     return (
       <HeroCard onClick={onCardClick} role="button" tabIndex={0}>
         <HeroPhoto style={renderPhotoStyle()}>
+          {/* 이미지 로드 실패 폴백용 히든 img 태그 */}
+          <img
+            src={cafe.photo.image || PLACEHOLDER}
+            alt={cafe.name}
+            onError={handleImgError}
+            style={{ display: 'none' }}
+          />
           <MatchBadge>{cafe.match}% Match</MatchBadge>
           {cafe.photo.type !== 'image' && <PhotoEmoji>{cafe.photo.emoji}</PhotoEmoji>}
+          {cafe.imageSourceUrl && (
+            <SourceLink
+              href={cafe.imageSourceUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={(e) => e.stopPropagation()}
+            >
+              출처
+            </SourceLink>
+          )}
         </HeroPhoto>
         <CardBody>
           <TagRow>
@@ -60,6 +92,13 @@ export const CafeCard: React.FC<CafeCardProps> = ({
   return (
     <ListCard onClick={onCardClick} role="button" tabIndex={0}>
       <ListThumb style={renderPhotoStyle()}>
+        {/* 이미지 로드 실패 폴백용 히든 img 태그 */}
+        <img
+          src={cafe.photo.image || PLACEHOLDER}
+          alt={cafe.name}
+          onError={handleImgError}
+          style={{ display: 'none' }}
+        />
         {cafe.photo.type !== 'image' && cafe.photo.emoji}
       </ListThumb>
       <ListInfo>
@@ -282,3 +321,23 @@ const CardAiReason = styled.div`
   }
 `;
 
+// 이미지 출처 링크 (Google 이미지 검색 Grounding 정책 준수)
+const SourceLink = styled.a`
+  position: absolute;
+  bottom: 6px;
+  right: 8px;
+  z-index: 3;
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.75);
+  background: rgba(0, 0, 0, 0.35);
+  padding: 2px 6px;
+  border-radius: 4px;
+  text-decoration: none;
+  line-height: 1.4;
+  backdrop-filter: blur(2px);
+
+  &:hover {
+    color: #ffffff;
+    background: rgba(0, 0, 0, 0.55);
+  }
+`;

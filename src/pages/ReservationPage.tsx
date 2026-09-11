@@ -183,8 +183,10 @@ export const ReservationPage: React.FC = () => {
           
           <RatingLine>
             <Icon name="star" className="star-icon" />
-            <RatingScore>{cafe.detail.rating}</RatingScore>
-            <ReviewCount>({cafe.detail.reservation?.reviewCountLabel || '리뷰 100+'})</ReviewCount>
+            <RatingScore>{cafe.detail.rating != null ? cafe.detail.rating : '평점 정보 없음'}</RatingScore>
+            {cafe.detail.rating != null && (
+              <ReviewCount>({cafe.detail.reservation?.reviewCountLabel || '리뷰 100+'})</ReviewCount>
+            )}
           </RatingLine>
 
           {cafe.detail.reservation?.description && (

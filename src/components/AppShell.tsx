@@ -32,6 +32,7 @@ export const AppShell: React.FC<AppShellProps> = ({ children }) => {
 
 const ShellContainer = styled.div`
   max-width: ${({ theme }) => theme.layout.appMaxWidth};
+  width: 100%;
   margin: 0 auto;
   min-height: 100vh;
   min-height: 100dvh;
@@ -39,6 +40,7 @@ const ShellContainer = styled.div`
   position: relative;
   border: 0.5px solid #0000000d;
   box-shadow: 0 0 40px rgba(0, 0, 0, 0.08);
+  overflow-x: hidden;
 `;
 
 const ToastFloatingPill = styled.div`

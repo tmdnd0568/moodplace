@@ -1035,72 +1035,106 @@ export const REGIONAL_MOCK_CAFES: Record<string, Cafe[]> = {
 
 export function mockAiSearch(moodIds: string[], description: string): Cafe[] {
   const query = description.trim().toLowerCase();
-  
-  // 외부 지역 검색어 즉시 감지 (대전, 둔산, 부산, 제주)
-  for (const [regionKey, cafeList] of Object.entries(REGIONAL_MOCK_CAFES)) {
-    if (query.includes(regionKey) || (regionKey === '대전' && query.includes('둔산'))) {
-      return cafeList;
-    }
-  }
-
   const words = query ? query.split(/\s+/).filter(Boolean) : [];
 
-  const scored = MOCK_CAFES.map((cafe) => {
+  // 모든 카페 후보 수집 (기본 MOCK + 지역 MOCK + EXTRA LOCAL)
+  const candidateMap = new Map<string, Cafe>();
+
+  MOCK_CAFES.forEach((c) => candidateMap.set(c.id, c));
+
+  Object.values(REGIONAL_MOCK_CAFES).forEach((list) => {
+    list.forEach((c) => candidateMap.set(c.id, c));
+  });
+
+  EXTRA_LOCAL_CAFES.forEach((c) => {
+    if (!candidateMap.has(c.id)) {
+      candidateMap.set(
+        c.id,
+        createDynamicCafe(c.id, c.name, c.address, c.description, c.photos, c.tags)
+      );
+    }
+  });
+
+  const allCandidates = Array.from(candidateMap.values());
+
+  const scored = allCandidates.map((cafe) => {
     let score = 0;
 
-    // 1. 무드 태그 일치 검사
+    // 1. 선택된 무드 타겟 일치
     moodIds.forEach((m) => {
-      if (cafe.mood.includes(m)) {
+      if (cafe.mood.includes(m.toLowerCase())) {
         score += 25;
       }
     });
 
-    // 2. 검색어 키워드 매칭 검사
+    // 2. 검색어 키워드 매칭 (이름, 주소/위치, 설명, 태그, 메뉴, 리뷰)
     if (words.length > 0) {
       const cafeName = cafe.name.toLowerCase();
+      const cafeLoc = cafe.location.toLowerCase();
       const cafeDesc = cafe.description.toLowerCase();
-      const detailDesc = cafe.detail.description.toLowerCase();
-      const tagsStr = [...cafe.tags, ...cafe.detail.detailTags].join(' ').toLowerCase();
-      const menuStr = cafe.detail.menu.map((m) => `${m.name} ${m.desc}`).join(' ').toLowerCase();
-      const reviewsStr = cafe.detail.reviews.map((r) => `${r.text} ${r.tags.join(' ')}`).join(' ').toLowerCase();
+      const detailDesc = (cafe.detail?.description || '').toLowerCase();
+      const tagsStr = [...cafe.tags, ...(cafe.detail?.detailTags || [])].join(' ').toLowerCase();
+      const menuStr = (cafe.detail?.menu || []).map((m) => `${m.name} ${m.desc}`).join(' ').toLowerCase();
 
       words.forEach((w) => {
-        if (cafeName.includes(w)) score += 40;
-        if (tagsStr.includes(w)) score += 30;
-        if (menuStr.includes(w)) score += 35;
-        if (cafeDesc.includes(w) || detailDesc.includes(w)) score += 25;
-        if (reviewsStr.includes(w)) score += 15;
+        if (cafeName.includes(w)) score += 50;
+        if (cafeLoc.includes(w)) score += 40;
+        if (tagsStr.includes(w)) score += 35;
+        if (menuStr.includes(w)) score += 30;
+        if (cafeDesc.includes(w) || detailDesc.includes(w)) score += 20;
       });
     }
 
-    // 키워드가 없거나 매칭이 적은 경우 기본 베이스 점수 부여
     if (words.length === 0 && moodIds.length === 0) {
-      score = cafe.match;
+      score = cafe.match || 80;
     }
 
     return { cafe, score };
   });
 
-  // 점수 내림차순 정렬
+  // 점수 기준 내림차순 정렬
   scored.sort((a, b) => b.score - a.score);
 
-  const topScore = scored[0].score || 1;
+  // 최고 점수가 있는 매칭 리스트 필터
+  const matched = scored.filter((item) => item.score > 0).map((item) => item.cafe);
 
-  return scored.map(({ cafe, score }, idx) => {
-    // 상대적 매칭률 계산 (82% ~ 99%)
-    let matchRate: number;
-    if (words.length === 0 && moodIds.length === 0) {
-      matchRate = cafe.match;
-    } else if (score > 0) {
-      matchRate = Math.min(99, Math.max(84, Math.round(85 + (score / (topScore + 10)) * 14) - idx * 2));
-    } else {
-      matchRate = Math.max(78, 86 - idx * 3);
-    }
-
-    return {
+  if (matched.length > 0) {
+    return matched.slice(0, 10).map((cafe, idx) => ({
       ...cafe,
-      match: matchRate,
-    };
-  });
+      match: Math.max(82, 98 - idx * 2),
+      isExternalRegion: cafe.isExternalRegion ?? (query.length > 0 && !cafe.location.includes('성수')),
+      targetRegion: cafe.targetRegion || (query.length > 0 ? query : '맞춤 장소'),
+    }));
+  }
+
+  // 매칭된 결과가 없을 경우 (새로운 외부 지역 검색 시) 동적 추천 카페 생성
+  const regionLabel = query || '원하시는 공간';
+  return [
+    createDynamicCafe(
+      `dyn-1-${Date.now()}`,
+      `'${regionLabel}' AI 큐레이션 라운지`,
+      `${regionLabel} 인근 대표 감성 카페`,
+      `요청하신 '${regionLabel}' 분위기에 어울리는 대표 시그니처 힐링 카페입니다.`,
+      ['/assets/cafe_calm_forest.jpg', '/assets/menu_matcha_latte.jpg'],
+      ['AI추천', regionLabel, '감성명소']
+    ),
+    createDynamicCafe(
+      `dyn-2-${Date.now()}`,
+      `${regionLabel} 수제 아틀리에`,
+      `${regionLabel} 중앙로 감성 디저트 룸`,
+      `따스한 햇살과 고요한 음향, 수제 디저트가 함께하는 특색있는 장소입니다.`,
+      ['/assets/caffe_001.jpg', '/assets/menu_daelim_tart.jpg'],
+      ['디저트', '아늑한', regionLabel]
+    ),
+    createDynamicCafe(
+      `dyn-3-${Date.now()}`,
+      `${regionLabel} 로스터리 클럽`,
+      `${regionLabel} 역세권 스페셜티 룸`,
+      `핸드드립 커피와 아늑한 원목 인테리어가 선사하는 차분한 안식처입니다.`,
+      ['/assets/caffa_002.jpg', '/assets/menu_grandpa_einspanner.jpg'],
+      ['스페셜티', '핸드드립', '모던']
+    ),
+  ];
 }
+
 

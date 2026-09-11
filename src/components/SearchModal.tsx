@@ -57,14 +57,14 @@ export const SearchModal: React.FC = () => {
   };
 
   const executeSearch = async (searchTerm: string) => {
-    const query = searchTerm.trim();
-    if (!query) return;
+    const query = searchTerm.trim() || (state.modalSelectedMoods.length > 0 ? state.modalSelectedMoods.join(' ') : '추천 카페');
 
-    // 검색 기록 자동 저장
-    if (isAutoSaveOn) {
+    // 검색 기록 자동 저장 (실제 입력어가 있는 경우)
+    if (isAutoSaveOn && searchTerm.trim()) {
+      const termToSave = searchTerm.trim();
       setSearchHistory((prev) => {
-        const filtered = prev.filter((item) => item !== query);
-        const updated = [query, ...filtered].slice(0, 10);
+        const filtered = prev.filter((item) => item !== termToSave);
+        const updated = [termToSave, ...filtered].slice(0, 10);
         try {
           localStorage.setItem(HISTORY_KEY, JSON.stringify(updated));
         } catch (e) {
@@ -76,14 +76,16 @@ export const SearchModal: React.FC = () => {
 
     dispatch({ type: 'START_MOOD_SEARCH' });
     try {
-      const res = await searchCafesWithGemini([], query, state.cafes);
+      const activeMoods = state.modalSelectedMoods.length > 0 ? state.modalSelectedMoods : state.selectedMoods;
+      const res = await searchCafesWithGemini(activeMoods, query, state.cafes);
       setIsRealAiResult(res.isRealAi);
       setIsExternalRegion(!!res.isExternalRegion);
       setTargetRegion(res.targetRegion || '');
       dispatch({ type: 'RECEIVE_MOOD_SEARCH_RESULT', payload: res.cafes });
     } catch (err) {
       console.error('[Gemini Search Error]', err);
-      const fallback = mockAiSearch([], query);
+      const activeMoods = state.modalSelectedMoods.length > 0 ? state.modalSelectedMoods : state.selectedMoods;
+      const fallback = mockAiSearch(activeMoods, query);
       dispatch({ type: 'RECEIVE_MOOD_SEARCH_RESULT', payload: fallback });
     }
   };
@@ -234,7 +236,7 @@ export const SearchModal: React.FC = () => {
               ref={inputRef}
               autoFocus
               type="text"
-              placeholder="오늘은 어떤장소를 찾으시나요"
+              placeholder="장소, 분위기, 디저트 키워드를 입력하세요"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               onKeyDown={(e) => {
@@ -244,19 +246,22 @@ export const SearchModal: React.FC = () => {
                 }
               }}
             />
-            {description && (
+            {description ? (
               <ClearInputBtn type="button" onClick={() => setDescription('')} aria-label="입력 초기화">
                 <Icon name="close" />
               </ClearInputBtn>
+            ) : (
+              <CloseModalBtn type="button" onClick={handleClose} aria-label="검색창 닫기">
+                <Icon name="close" />
+              </CloseModalBtn>
             )}
-            <CloseModalBtn type="button" onClick={handleClose} aria-label="검색창 닫기">
-              <Icon name="close" />
-            </CloseModalBtn>
             <SearchSparkleIcon type="button" onClick={() => executeSearch(description)} aria-label="탐색">
               <Icon name="sparkle" />
             </SearchSparkleIcon>
           </SearchInputBox>
         </SearchTopRow>
+
+
 
         {/* 최근 검색어 목록 (위 이미지와 동일한 세로 수직 리스트) */}
         <HistorySection>
@@ -814,5 +819,44 @@ const ModalCta = styled.button<{ $outline?: boolean }>`
 
   &:hover {
     background: ${({ $outline }) => ($outline ? 'rgba(45, 82, 68, 0.05)' : '#1e3b30')};
+  }
+`;
+
+const MoodChipSection = styled.div`
+  margin: 10px 0 14px 0;
+`;
+
+const MoodChipLabel = styled.p`
+  font-size: 12.5px;
+  font-weight: 700;
+  color: ${({ theme }) => theme.colors.textMuted};
+  margin-bottom: 8px;
+`;
+
+const MoodChipContainer = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+`;
+
+const MoodChip = styled.button`
+  background: #f3f2ee;
+  border: 1px solid #e2e0d8;
+  border-radius: 20px;
+  padding: 5px 11px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: ${({ theme }) => theme.colors.text};
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  &.is-active {
+    background: #2d5244;
+    color: #ffffff;
+    border-color: #2d5244;
+  }
+
+  &:hover:not(.is-active) {
+    background: #e7e5dc;
   }
 `;
