@@ -153,6 +153,35 @@ export const FindPage: React.FC = () => {
 
   // 60개 이상의 전방 반경 3km 내 모든 카페 통합 데이터베이스 (mockData에서 불러옴)
 
+  // 대전 지역 텍스트 포함 여부 검증 (Cafe, NearbyPlace, SavedPlace 등 객체의 주소/위치 필드 활용)
+  const isDaejeonText = (text: string = ''): boolean => {
+    const loc = text.toLowerCase();
+    const externalKeywords = ['서울', '성수', '부산', '제주', '강남', '홍대', '해운대', '대구', '광주', '수원'];
+    if (externalKeywords.some((k) => loc.includes(k))) {
+      return false;
+    }
+    const daejeonKeywords = [
+      '대전', '둔산', '탄방', '월평', '유성', '궁동', '봉명', '은행', '대흥',
+      '관평', '도룡', '만년', '갈마', '용문', '괴정', '도안', '청사'
+    ];
+    return daejeonKeywords.some((k) => loc.includes(k));
+  };
+
+  const isDaejeonCafe = (c: any): boolean => {
+    const locationText = [
+      c.address,
+      c.location,
+      c.region,
+      c.name,
+      c.description,
+      c.detail?.description,
+      c.detail?.address
+    ]
+      .filter(Boolean)
+      .join(' ');
+    return isDaejeonText(locationText);
+  };
+
   // 전체 카페 정보 통합 리스트 (현재 위치 userCoords 주변 반경 0.1km ~ 2.8km 촘촘하게 핀 배치)
   const allCafes = React.useMemo(() => {
     const list: Array<{
@@ -165,12 +194,30 @@ export const FindPage: React.FC = () => {
       coords: [number, number];
     }> = [];
 
-    const seen = new Set<string>();
+    const seenIds = new Set<string>();
+    const seenNames = new Set<string>();
+
+    const isDuplicate = (id: string, name: string) => {
+      const cleanName = (name || '').trim().toLowerCase();
+      if (seenIds.has(id) || (cleanName && seenNames.has(cleanName))) return true;
+      seenIds.add(id);
+      if (cleanName) seenNames.add(cleanName);
+      return false;
+    };
+
+    // 사용자가 명시적으로 외부 지역(서울, 성수, 부산, 제주 등)을 검색했는지 확인
+    const externalKeywords = ['서울', '성수', '부산', '제주', '강남', '홍대', '해운대', '대구', '광주', '수원'];
+    const isExplicitExternalSearch = externalKeywords.some((k) =>
+      searchQuery.toLowerCase().includes(k)
+    );
 
     // 1. 기본 장소 (NEARBY_PLACES)
     NEARBY_PLACES.forEach((p, idx) => {
-      seen.add(p.id);
-      
+      if (!isExplicitExternalSearch && !isDaejeonCafe(p)) {
+        return;
+      }
+      if (isDuplicate(p.id, p.name)) return;
+
       const angle = (idx * 55 + 20) * (Math.PI / 180);
       const radiusOffset = 0.002 + (idx % 4) * 0.0035; // ~200m ~ 1.6km
       const latOffset = Math.sin(angle) * radiusOffset;
@@ -194,95 +241,97 @@ export const FindPage: React.FC = () => {
     // 2. 전체 카페 및 AI 추천 카페 리스트 (state.cafes, state.searchResults)
     const storeCafes = [...state.cafes, ...state.searchResults];
     storeCafes.forEach((c, idx) => {
-      if (!seen.has(c.id)) {
-        seen.add(c.id);
-        
-        const angle = ((idx + 3) * 75) * (Math.PI / 180);
-        const radiusOffset = 0.0018 + (idx % 5) * 0.0038; // ~180m ~ 2.1km
-        const latOffset = Math.sin(angle) * radiusOffset;
-        const lngOffset = Math.cos(angle) * radiusOffset;
-        const coords: [number, number] = [
-          userCoords[0] + latOffset,
-          userCoords[1] + lngOffset
-        ];
-
-        list.push({
-          id: c.id,
-          name: c.name,
-          address: c.location || '내 주변 추천 카페',
-          description: c.detail?.description || `${c.name} - 감성 무드 맞춤 추천 카페`,
-          photos: (c.photo.type === 'image' && c.photo.image) ? [c.photo.image] : ['/assets/caffe_001.jpg'],
-          tags: c.mood.map((m) => ({ icon: 'warm', label: m })),
-          coords,
-        });
+      if (!isExplicitExternalSearch && !isDaejeonCafe(c)) {
+        return;
       }
+      if (isDuplicate(c.id, c.name)) return;
+
+      const angle = ((idx + 3) * 75) * (Math.PI / 180);
+      const radiusOffset = 0.0018 + (idx % 5) * 0.0038; // ~180m ~ 2.1km
+      const latOffset = Math.sin(angle) * radiusOffset;
+      const lngOffset = Math.cos(angle) * radiusOffset;
+      const coords: [number, number] = [
+        userCoords[0] + latOffset,
+        userCoords[1] + lngOffset
+      ];
+
+      list.push({
+        id: c.id,
+        name: c.name,
+        address: c.location || c.detail?.description || '대전 추천 카페',
+        description: c.detail?.description || `${c.name} - 감성 무드 맞춤 추천 카페`,
+        photos: (c.photo?.type === 'image' && c.photo?.image) ? [c.photo.image] : ['/assets/caffe_001.jpg'],
+        tags: c.mood ? c.mood.map((m) => ({ icon: 'warm', label: m })) : [],
+        coords,
+      });
     });
 
     // 3. 둔산동/유성/대전 브랜드 & 주변 인기 카페 (EXTRA_LOCAL_CAFES) 18종 촘촘히 배치
     EXTRA_LOCAL_CAFES.forEach((c, idx) => {
-      if (!seen.has(c.id)) {
-        seen.add(c.id);
-        
-        // 내 위치 중심 0.15km ~ 2.7km 반경 내에 피보나치 나선형으로 골고루 수놓기
-        const phi = (1 + Math.sqrt(5)) / 2;
-        const angle = 2 * Math.PI * idx / phi;
-        const radiusOffset = 0.0015 + (idx / EXTRA_LOCAL_CAFES.length) * 0.021; // 150m ~ 2.7km
-        
-        const latOffset = Math.sin(angle) * radiusOffset;
-        const lngOffset = Math.cos(angle) * radiusOffset;
-        const coords: [number, number] = [
-          userCoords[0] + latOffset,
-          userCoords[1] + lngOffset
-        ];
-
-        list.push({
-          id: c.id,
-          name: c.name,
-          address: c.address,
-          description: c.description,
-          photos: c.photos,
-          tags: c.tags,
-          coords,
-        });
+      if (!isExplicitExternalSearch && !isDaejeonCafe(c)) {
+        return;
       }
+      if (isDuplicate(c.id, c.name)) return;
+
+      const phi = (1 + Math.sqrt(5)) / 2;
+      const angle = (2 * Math.PI * idx) / phi;
+      const radiusOffset = 0.0015 + (idx / EXTRA_LOCAL_CAFES.length) * 0.021; // 150m ~ 2.7km
+
+      const latOffset = Math.sin(angle) * radiusOffset;
+      const lngOffset = Math.cos(angle) * radiusOffset;
+      const coords: [number, number] = [
+        userCoords[0] + latOffset,
+        userCoords[1] + lngOffset
+      ];
+
+      list.push({
+        id: c.id,
+        name: c.name,
+        address: c.address,
+        description: c.description,
+        photos: c.photos,
+        tags: c.tags,
+        coords,
+      });
     });
 
-    // 4. 전국 주요 도시 대표 카페 (REGIONAL_MOCK_CAFES) 통합 (외부 지역 검색 시에만 타지역 허용)
-    const isExplicitExternalSearch = ['서울', '성수', '부산', '제주', '강남', '홍대', '해운대', '대구', '광주'].some(
-      (k) => searchQuery.toLowerCase().includes(k)
-    );
-
+    // 4. 전국 주요 도시 대표 카페 (REGIONAL_MOCK_CAFES) 통합 (외부 지역 검색 시 해당 지역 추가, 기본 탐색 시 대전만)
     Object.entries(REGIONAL_MOCK_CAFES).forEach(([regionName, cafeList]) => {
-      // 대전 탐색일 때는 대전 카페만 추가
       if (!isExplicitExternalSearch && regionName !== '대전') {
         return;
       }
 
       cafeList.forEach((c, idx) => {
-        if (!seen.has(c.id)) {
-          seen.add(c.id);
-          
-          let coords: [number, number];
-          if (regionName === '대전') {
-            coords = [36.3537 + (idx * 0.004), 127.3872 + (idx * 0.003)];
-          } else if (regionName === '부산') {
-            coords = [35.1587 + (idx * 0.005), 129.1604 + (idx * 0.004)];
-          } else if (regionName === '제주') {
-            coords = [33.4996 + (idx * 0.006), 126.5312 + (idx * 0.005)];
-          } else {
-            coords = [37.5665 + (idx * 0.004), 126.9780 + (idx * 0.003)];
-          }
-
-          list.push({
-            id: c.id,
-            name: c.name,
-            address: c.location || `${regionName} 추천 카페`,
-            description: c.description || c.detail?.description || `${c.name} - ${regionName} 감성 핫플`,
-            photos: (c.photo.type === 'image' && c.photo.image) ? [c.photo.image] : ['/assets/caffe_001.jpg'],
-            tags: c.tags ? c.tags.map((t) => ({ icon: 'warm', label: t.replace('#', '') })) : [{ icon: 'warm', label: regionName }],
-            coords,
-          });
+        if (!isExplicitExternalSearch && !isDaejeonCafe(c)) {
+          return;
         }
+        if (isDuplicate(c.id, c.name)) return;
+
+        let coords: [number, number];
+        if (regionName === '대전' || isDaejeonCafe(c)) {
+          coords = [36.3537 + (idx * 0.004), 127.3872 + (idx * 0.003)];
+        } else if (regionName === '부산') {
+          coords = [35.1587 + (idx * 0.005), 129.1604 + (idx * 0.004)];
+        } else if (regionName === '제주') {
+          coords = [33.4996 + (idx * 0.006), 126.5312 + (idx * 0.005)];
+        } else {
+          coords = [37.5665 + (idx * 0.004), 126.9780 + (idx * 0.003)];
+        }
+
+        // 좌표-지역 교차 검증: 대전 기본 탐색 중이면 대전 외부 좌표(서울 37.5xx 등) 부여 금지
+        if (!isExplicitExternalSearch && (coords[0] > 37.0 || coords[1] < 127.0)) {
+          coords = [36.3537 + (idx * 0.002), 127.3872 + (idx * 0.002)];
+        }
+
+        list.push({
+          id: c.id,
+          name: c.name,
+          address: c.location || `${regionName} 추천 카페`,
+          description: c.description || c.detail?.description || `${c.name} - ${regionName} 감성 핫플`,
+          photos: (c.photo?.type === 'image' && c.photo?.image) ? [c.photo.image] : ['/assets/caffe_001.jpg'],
+          tags: c.tags ? c.tags.map((t) => ({ icon: 'warm', label: t.replace('#', '') })) : [{ icon: 'warm', label: regionName }],
+          coords,
+        });
       });
     });
 
