@@ -54,7 +54,7 @@ export const MainPage: React.FC = () => {
   const handleThemeClick = async (theme: typeof THEME_FILTERS[0]) => {
     dispatch({ type: 'TOGGLE_THEME', payload: theme.id });
 
-    const locationText = MAP_ORIGIN_LABEL || '현재 위치(서울시 종로구)';
+    const locationText = MAP_ORIGIN_LABEL || '대전 기반 탐색';
     const query = `${locationText} 근처 ${theme.label} 분위기의 추천 공간`;
 
     dispatch({ type: 'START_MOOD_SEARCH' });

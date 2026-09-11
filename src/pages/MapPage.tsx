@@ -361,7 +361,7 @@ export const MapPage: React.FC = () => {
     distanceLabel: realDistanceText,
     metaLabel: travelMode === 'walk' ? `소모 칼로리 약 ${Math.round(realDistanceKm * 40)}kcal` : travelMode === 'taxi' ? `예상 요금 약 ${Math.max(4800, Math.round(4800 + realDistanceKm * 1000))}원` : '시내버스 / 대중교통 노선',
     progress: 80,
-    description: `${userLocationLabel}에서 ${destinationLabel}까지의 실제 실시간 경로입니다.`
+    description: `출발지와 목적지를 기준으로 한 경로 미리보기입니다. 실제 길찾기는 카카오맵 또는 네이버지도를 이용해주세요.`
   };
 
   const currentOriginLabel = userLocationLabel;

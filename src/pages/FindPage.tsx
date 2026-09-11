@@ -221,7 +221,7 @@ export const FindPage: React.FC = () => {
     return isDaejeonText(locationText);
   };
 
-  // 전체 카페 정보 통합 리스트 (현재 위치 userCoords 주변 반경 0.1km ~ 2.8km 촘촘하게 핀 배치)
+  // 전체 카페 정보 통합 리스트 (실제 주소/ID 기반 좌표로 마커 배치)
   const allCafes = React.useMemo(() => {
     const list: Array<{
       id: string;
