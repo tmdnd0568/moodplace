@@ -436,7 +436,7 @@ export const FindPage: React.FC = () => {
     tileLayerRef.current = newLayer;
   }, [mapType]);
 
-  // 실시간 교통 흐름 레이어 토글
+  // 교통 및 도로 정보 레이어 토글
   React.useEffect(() => {
     const L = (window as any).L;
     const map = mapRef.current;
@@ -806,7 +806,7 @@ export const FindPage: React.FC = () => {
           <DrawerSection>
             <SectionLabel>교통 및 도로 정보</SectionLabel>
             <CheckboxRow onClick={() => setShowTraffic(!showTraffic)}>
-              <span>실시간 교통 흐름 표시</span>
+              <span>교통 및 도로 정보 표시</span>
               <ToggleSwitch className={showTraffic ? 'is-active' : ''} />
             </CheckboxRow>
             <CheckboxRow onClick={() => setShowBicycle(!showBicycle)}>

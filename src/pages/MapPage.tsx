@@ -77,7 +77,7 @@ export const MapPage: React.FC = () => {
 
   const [userGpsCoords, setUserGpsCoords] = React.useState<[number, number] | null>(null);
   
-  // 실제 목적지에 대전 관련 위치/설명이 포함되어 있는 경우에만 true (|| true 버그 제거)
+  // 실제 목적지에 대전 관련 위치/설명이 포함되어 있는 경우에만 true
   const isDaejeonTarget = Boolean(
     cafe?.location?.includes('대전') ||
     cafe?.location?.includes('둔산') ||
@@ -1526,7 +1526,7 @@ const FeedbackSubmitBtn = styled.button`
   }
 `;
 
-/* ─── 실시간 길안내 모달 스타일 ─── */
+/* ─── 경로 미리보기 모달 스타일 ─── */
 const NavModalOverlay = styled.div`
   position: fixed;
   top: 0;
