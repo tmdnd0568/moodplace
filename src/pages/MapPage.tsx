@@ -14,6 +14,20 @@ const CAFE_COORDS: Record<string, [number, number]> = {
   'brick-atelier': [36.3508, 127.3762],
 };
 
+const getCoords = (id: string, location: string = ''): [number, number] => {
+  if (CAFE_COORDS[id]) return CAFE_COORDS[id];
+  const loc = (location || '').toLowerCase();
+  if (loc.includes('대전') || loc.includes('둔산')) return [36.3537, 127.3872];
+  if (loc.includes('부산') || loc.includes('해운대')) return [35.1587, 129.1604];
+  if (loc.includes('제주')) return [33.4996, 126.5312];
+  if (loc.includes('강남')) return [37.4979, 127.0276];
+  if (loc.includes('홍대') || loc.includes('마포')) return [37.5563, 126.9226];
+  if (loc.includes('대구')) return [35.8714, 128.6014];
+  if (loc.includes('광주')) return [35.1595, 126.8526];
+  if (loc.includes('수원')) return [37.2636, 127.0286];
+  return [36.3537, 127.3872];
+};
+
 export const MapPage: React.FC = () => {
   const cafeId = useParams<{ cafeId: string }>().cafeId || 'forest-lounge';
   const navigate = useNavigate();
@@ -144,20 +158,6 @@ export const MapPage: React.FC = () => {
     const L = (window as any).L;
     if (!L) return;
 
-    const getCoords = (id: string, location: string = ''): [number, number] => {
-      if (CAFE_COORDS[id]) return CAFE_COORDS[id];
-      const loc = (location || '').toLowerCase();
-      if (loc.includes('대전') || loc.includes('둔산')) return [36.3537, 127.3872];
-      if (loc.includes('부산') || loc.includes('해운대')) return [35.1587, 129.1604];
-      if (loc.includes('제주')) return [33.4996, 126.5312];
-      if (loc.includes('강남')) return [37.4979, 127.0276];
-      if (loc.includes('홍대') || loc.includes('마포')) return [37.5563, 126.9226];
-      if (loc.includes('대구')) return [35.8714, 128.6014];
-      if (loc.includes('광주')) return [35.1595, 126.8526];
-      if (loc.includes('수원')) return [37.2636, 127.0286];
-      return [36.3537, 127.3872];
-    };
-
     // 출발지: 둔산동 오라클 빌딩 좌표 [36.3524, 127.3789] 적용
     const defaultOriginCoords: [number, number] = [36.3524, 127.3789];
     const origin: [number, number] = userGpsCoords || defaultOriginCoords;
@@ -272,7 +272,7 @@ export const MapPage: React.FC = () => {
     const map = mapRef.current;
     const L = (window as any).L;
 
-    const showLocation = (lat: number, lng: number, labelText: string) => {
+    const showLocation = (lat: number, lng: number, labelText: string, isRealGps: boolean) => {
       setUserGpsCoords([lat, lng]);
       setUserLocationLabel(labelText);
 
@@ -291,6 +291,13 @@ export const MapPage: React.FC = () => {
         userMarkerRef.current = L.marker([lat, lng], { icon: blueDotIcon }).addTo(map);
         map.flyTo([lat, lng], 16, { animate: true, duration: 1.2 });
       }
+
+      if (isRealGps) {
+        dispatch({ type: 'SHOW_TOAST', payload: '현재 위치로 지도와 길찾기 출발지가 설정되었습니다.' });
+      } else {
+        dispatch({ type: 'SHOW_TOAST', payload: '위치 권한을 허용하면 현재 위치를 확인할 수 있습니다.' });
+      }
+      setTimeout(() => dispatch({ type: 'HIDE_TOAST' }), 2500);
     };
 
     if (navigator.geolocation) {
@@ -298,37 +305,64 @@ export const MapPage: React.FC = () => {
         (position) => {
           const lat = position.coords.latitude;
           const lng = position.coords.longitude;
-          showLocation(lat, lng, '내 현재 위치 (GPS 위치)');
+          showLocation(lat, lng, '내 현재 위치 (GPS)', true);
         },
         (error) => {
           console.warn('GPS location request error or denied:', error);
-          showLocation(36.3524, 127.3789, '위치 권한 없음 · 기본 위치 사용');
+          showLocation(36.3524, 127.3789, '기본 출발지 · 대전 둔산동', false);
         },
         { enableHighAccuracy: true, timeout: 6000, maximumAge: 0 }
       );
     } else {
-      showLocation(36.3524, 127.3789, '위치 권한 없음 · 기본 위치 사용');
+      showLocation(36.3524, 127.3789, '기본 출발지 · 대전 둔산동', false);
     }
   };
 
   const travelMode = state.travelMode;
-  const rawRoutes = cafe.detail.route?.routesByMode[travelMode] || [];
-  const activeRouteId = state.selectedRouteId || rawRoutes[0]?.id || '';
 
-  const getOrderedRoutes = () => {
-    if (!rawRoutes.length) return [];
-    if (!activeRouteId) return rawRoutes;
-    const idx = rawRoutes.findIndex((r) => r.id === activeRouteId);
-    if (idx <= 0) return rawRoutes;
-    const reordered = [...rawRoutes];
-    const [picked] = reordered.splice(idx, 1);
-    reordered.unshift(picked);
-    return reordered;
+  // Haversine 실시간 두 좌표간 거리 계산 (km)
+  const calculateDistanceKm = (lat1: number, lon1: number, lat2: number, lon2: number) => {
+    const R = 6371;
+    const dLat = (lat2 - lat1) * (Math.PI / 180);
+    const dLon = (lon2 - lon1) * (Math.PI / 180);
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(lat1 * (Math.PI / 180)) * Math.cos(lat2 * (Math.PI / 180)) *
+      Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
   };
 
-  const orderedRoutes = getOrderedRoutes();
-  const [featuredRoute] = orderedRoutes;
-  const destinationLabel = cafe.detail.route?.destinationLabel || cafe.name;
+  const currentOriginCoords: [number, number] = userGpsCoords || [36.3524, 127.3789];
+  const destinationCoords: [number, number] = getCoords(cafeId, cafe?.location);
+
+  const realDistanceKm = calculateDistanceKm(
+    currentOriginCoords[0],
+    currentOriginCoords[1],
+    destinationCoords[0],
+    destinationCoords[1]
+  );
+
+  const realDistanceText = realDistanceKm < 1 
+    ? `${Math.round(realDistanceKm * 1000)}m` 
+    : `${realDistanceKm.toFixed(1)}km`;
+
+  const realDurationMin = travelMode === 'walk'
+    ? Math.max(2, Math.round((realDistanceKm / 4.5) * 60))
+    : travelMode === 'taxi'
+    ? Math.max(1, Math.round((realDistanceKm / 30) * 60))
+    : Math.max(3, Math.round((realDistanceKm / 20) * 60));
+
+  const destinationLabel = cafe.name;
+
+  const featuredRoute = {
+    badge: travelMode === 'walk' ? '최단도보' : travelMode === 'taxi' ? '최단차량' : '추천노선',
+    durationMin: realDurationMin,
+    distanceLabel: realDistanceText,
+    metaLabel: travelMode === 'walk' ? `소모 칼로리 약 ${Math.round(realDistanceKm * 40)}kcal` : travelMode === 'taxi' ? `예상 요금 약 ${Math.max(4800, Math.round(4800 + realDistanceKm * 1000))}원` : '시내버스 / 대중교통 노선',
+    progress: 80,
+    description: `${userLocationLabel}에서 ${destinationLabel}까지의 실제 실시간 경로입니다.`
+  };
 
   const currentOriginLabel = userLocationLabel;
 
@@ -557,17 +591,60 @@ export const MapPage: React.FC = () => {
             <NavStatsRow>
               <NavStatItem>
                 <div className="label">예상 소요 시간</div>
-                <div className="value" style={{ color: '#2D5244' }}>{featuredRoute?.durationMin || 12}분</div>
+                <div className="value" style={{ color: '#2D5244' }}>{featuredRoute?.durationMin}분</div>
               </NavStatItem>
               <NavStatItem>
                 <div className="label">예상 거리</div>
-                <div className="value">{featuredRoute?.distanceLabel || '850m'}</div>
+                <div className="value">{featuredRoute?.distanceLabel}</div>
               </NavStatItem>
               <NavStatItem>
                 <div className="label">이동 수단</div>
                 <div className="value">{travelMode === 'walk' ? '도보' : travelMode === 'transit' ? '대중교통' : '택시'}</div>
               </NavStatItem>
             </NavStatsRow>
+
+            <div style={{ display: 'flex', gap: '8px', marginTop: '14px', marginBottom: '10px' }}>
+              <button
+                type="button"
+                onClick={() => {
+                  const name = encodeURIComponent(destinationLabel);
+                  window.open(`https://map.naver.com/v5/directions/${currentOriginCoords[0]},${currentOriginCoords[1]},출발지,${destinationCoords[0]},${destinationCoords[1]},${name}/-/TRANSIT`, '_blank');
+                }}
+                style={{
+                  flex: 1,
+                  padding: '12px',
+                  borderRadius: '10px',
+                  background: '#03C75A',
+                  color: '#ffffff',
+                  fontWeight: '700',
+                  fontSize: '13px',
+                  border: 'none',
+                  cursor: 'pointer'
+                }}
+              >
+                네이버 지도 길찾기
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  const name = encodeURIComponent(destinationLabel);
+                  window.open(`https://map.kakao.com/link/to/${name},${destinationCoords[0]},${destinationCoords[1]}`, '_blank');
+                }}
+                style={{
+                  flex: 1,
+                  padding: '12px',
+                  borderRadius: '10px',
+                  background: '#FEE500',
+                  color: '#191919',
+                  fontWeight: '700',
+                  fontSize: '13px',
+                  border: 'none',
+                  cursor: 'pointer'
+                }}
+              >
+                카카오맵 길찾기
+              </button>
+            </div>
 
             <NavEndBtn type="button" onClick={() => setIsNavigating(false)}>
               미리보기 종료

@@ -248,16 +248,16 @@ export const MOCK_CAFES: Cafe[] = [
         notice: '• 조용한 분위기 유지를 위해 3인 이상 단체 방문 시 사전에 문의해 주시기 바랍니다.',
       },
       route: {
-        destinationLabel: '센터커피 서울숲점',
+        destinationLabel: '스타벅스 대전둔산점',
         routesByMode: {
           walk: [
-            { id: 'urban-nest-walk-1', badge: '추천', durationMin: 5, distanceLabel: '300m', metaLabel: '가장 짧은 도보 거리', progress: 90, description: '성수역 4번출구에서 직진 후 골목 좌회전' }
+            { id: 'urban-nest-walk-1', badge: '추천', durationMin: 4, distanceLabel: '280m', metaLabel: '가장 짧은 도보 거리', progress: 90, description: '둔산남로 직진 후 골목 도보' }
           ],
           transit: [
-            { id: 'urban-nest-transit-1', badge: '지하철', durationMin: 4, distanceLabel: '400m', metaLabel: '2호선 성수역 하차', progress: 95, description: '2호선 성수역 4번출구 이용' }
+            { id: 'urban-nest-transit-1', badge: '지하철', durationMin: 4, distanceLabel: '280m', metaLabel: '대전 1호선 시청역', progress: 95, description: '대전 1호선 시청역 8번출구 이용' }
           ],
           taxi: [
-            { id: 'urban-nest-taxi-1', badge: '기본요금', durationMin: 3, distanceLabel: '600m', metaLabel: '예상요금 4,800원', progress: 98, description: '성수이로를 경유하는 최단차량코스' }
+            { id: 'urban-nest-taxi-1', badge: '기본요금', durationMin: 2, distanceLabel: '500m', metaLabel: '예상요금 4,800원', progress: 98, description: '대덕대로를 경유하는 최단차량코스' }
           ]
         }
       }
@@ -411,7 +411,7 @@ export const MOCK_CAFES: Cafe[] = [
         destinationLabel: '맛차차',
         routesByMode: {
           walk: [
-            { id: 'quiet-tea-room-walk-1', badge: '추천', durationMin: 10, distanceLabel: '700m', metaLabel: '골목길', progress: 80, description: '성수역 연무장길 안쪽 골목' }
+            { id: 'quiet-tea-room-walk-1', badge: '추천', durationMin: 10, distanceLabel: '700m', metaLabel: '골목길', progress: 80, description: '카페 진입로 안쪽 골목' }
           ],
           transit: [
             { id: 'quiet-tea-room-transit-1', badge: '도보이동', durationMin: 10, distanceLabel: '700m', metaLabel: '도보전용', progress: 80, description: '연무장길을 통한 도보 경로' }
@@ -491,13 +491,13 @@ export const MOCK_CAFES: Cafe[] = [
         destinationLabel: '카페 할아버지공장',
         routesByMode: {
           walk: [
-            { id: 'calm-forest-walk-1', badge: '추천', durationMin: 6, distanceLabel: '400m', metaLabel: '도보 코스', progress: 90, description: '성수역 3번출구 뚝섬역 방향 도보 6분' }
+            { id: 'calm-forest-walk-1', badge: '추천', durationMin: 6, distanceLabel: '400m', metaLabel: '도보 코스', progress: 90, description: '카페 진입로 방향 도보 6분' }
           ],
           transit: [
-            { id: 'calm-forest-transit-1', badge: '지하철', durationMin: 6, distanceLabel: '400m', metaLabel: '성수역 하차', progress: 90, description: '2호선 성수역 3번출구 도보' }
+            { id: 'calm-forest-transit-1', badge: '지하철', durationMin: 6, distanceLabel: '400m', metaLabel: '인근 정류장 하차', progress: 90, description: '인근 대중교통 정류장 하차 후 도보' }
           ],
           taxi: [
-            { id: 'calm-forest-taxi-1', badge: '기본요금', durationMin: 4, distanceLabel: '800m', metaLabel: '예상요금 5,000원', progress: 92, description: '성수이로 골목을 통과하는 경로' }
+            { id: 'calm-forest-taxi-1', badge: '기본요금', durationMin: 4, distanceLabel: '800m', metaLabel: '예상요금 5,000원', progress: 92, description: '진입 골목을 통과하는 경로' }
           ]
         }
       }
@@ -571,13 +571,13 @@ export const MOCK_CAFES: Cafe[] = [
         destinationLabel: '피치스 도원',
         routesByMode: {
           walk: [
-            { id: 'brick-atelier-walk-1', badge: '추천', durationMin: 11, distanceLabel: '800m', metaLabel: '골목길 코스', progress: 75, description: '뚝섬역 5번출구 근처' }
+            { id: 'brick-atelier-walk-1', badge: '추천', durationMin: 11, distanceLabel: '800m', metaLabel: '골목길 코스', progress: 75, description: '주요 정류장 근처 도보 이동' }
           ],
           transit: [
-            { id: 'brick-atelier-transit-1', badge: '지하철', durationMin: 11, distanceLabel: '800m', metaLabel: '2호선 뚝섬역 하차', progress: 75, description: '2호선 뚝섬역 이용' }
+            { id: 'brick-atelier-transit-1', badge: '지하철', durationMin: 11, distanceLabel: '800m', metaLabel: '인근 정류장 하차', progress: 75, description: '인근 대중교통 이용' }
           ],
           taxi: [
-            { id: 'brick-atelier-taxi-1', badge: '기본요금', durationMin: 6, distanceLabel: '1.2km', metaLabel: '예상요금 5,500원', progress: 80, description: '성수동 뚝섬로 경유 최단차량경로' }
+            { id: 'brick-atelier-taxi-1', badge: '기본요금', durationMin: 6, distanceLabel: '1.2km', metaLabel: '예상요금 5,500원', progress: 80, description: '주요 대로 경유 최단차량경로' }
           ]
         }
       }

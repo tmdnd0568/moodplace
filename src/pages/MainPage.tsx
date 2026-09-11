@@ -146,9 +146,11 @@ export const MainPage: React.FC = () => {
               오늘의 추천
               {state.searchPhase === 'result' && <AiResultTag>AI 검색 결과</AiResultTag>}
             </SectionTitle>
-            <ResetButton type="button" onClick={handleResetSearch} title="Reset AI search and filters" aria-label="초기화">
-              <Icon name="reset" />
-            </ResetButton>
+            {(state.searchPhase === 'result' || state.searchResults.length > 0) && (
+              <ResetButton type="button" onClick={handleResetSearch} title="Reset AI search and filters" aria-label="초기화">
+                <Icon name="reset" />
+              </ResetButton>
+            )}
           </SectionHeader>
 
           {state.searchPhase === 'loading' && (

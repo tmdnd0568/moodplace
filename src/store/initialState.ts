@@ -10,6 +10,15 @@ const getSavedVisitedCafeIds = (): string[] => {
   }
 };
 
+const getSavedBookmarkedIds = (): string[] => {
+  try {
+    const saved = localStorage.getItem('moodplace_bookmarked_ids');
+    return saved ? JSON.parse(saved) : ['forest-lounge', 'urban-nest'];
+  } catch {
+    return ['forest-lounge', 'urban-nest'];
+  }
+};
+
 export const initialState: AppState = {
   screen: 'splash',
   isSearchModalOpen: false,
@@ -20,7 +29,7 @@ export const initialState: AppState = {
   searchPhase: 'idle',
   cafes: MOCK_CAFES,
   searchResults: [],
-  bookmarkedIds: ['forest-lounge', 'urban-nest'], // 기본적으로 북마크된 아이템 데모로 추가
+  bookmarkedIds: getSavedBookmarkedIds(),
   visitedCafeIds: getSavedVisitedCafeIds(),
   activeTab: 'home',
   selectedThemes: [],

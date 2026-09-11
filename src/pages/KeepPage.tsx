@@ -2,7 +2,7 @@ import React from 'react';
 import styled from 'styled-components';
 import { useNavigate } from 'react-router-dom';
 import { useStore } from '../store/StoreContext';
-import { SAVED_PLACES, SAVED_CATEGORY_FILTERS } from '../data/mockData';
+import { getCafeById, SAVED_CATEGORY_FILTERS } from '../data/mockData';
 import { BottomNav } from '../components/BottomNav';
 import { Icon } from '../components/icons/Icons';
 
@@ -40,7 +40,21 @@ export const KeepPage: React.FC = () => {
     navigate(`/review/${id}`);
   };
 
-  const savedPlaces = SAVED_PLACES.filter((place) => state.bookmarkedIds.includes(place.id));
+  const savedPlaces = React.useMemo(() => {
+    const uniqueIds = Array.from(new Set(state.bookmarkedIds));
+    return uniqueIds
+      .map((id) => getCafeById(id))
+      .filter(Boolean)
+      .map((cafe) => ({
+        id: cafe.id,
+        name: cafe.name,
+        address: cafe.location,
+        image: cafe.photo?.type === 'image' && cafe.photo?.image ? cafe.photo.image : '/assets/caffe_001.jpg',
+        tags: cafe.tags || [],
+        category: 'cafe',
+      }));
+  }, [state.bookmarkedIds, state.cafes]);
+
   const visiblePlaces =
     state.savedFilterCategory === 'all'
       ? savedPlaces

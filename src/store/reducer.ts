@@ -99,11 +99,15 @@ export function rootReducer(state: AppState, action: AppAction): AppState {
     case 'TOGGLE_BOOKMARK': {
       const id = action.payload;
       const exists = state.bookmarkedIds.includes(id);
+      const nextBookmarks = exists
+        ? state.bookmarkedIds.filter((b) => b !== id)
+        : [...state.bookmarkedIds, id];
+      try {
+        localStorage.setItem('moodplace_bookmarked_ids', JSON.stringify(nextBookmarks));
+      } catch (e) {}
       return {
         ...state,
-        bookmarkedIds: exists
-          ? state.bookmarkedIds.filter((b) => b !== id)
-          : [...state.bookmarkedIds, id],
+        bookmarkedIds: nextBookmarks,
       };
     }
 

@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { signOut } from 'firebase/auth';
 import { auth } from '../firebase';
 import { useStore } from '../store/StoreContext';
-import { MY_PROFILE, ACCOUNT_MENU_ITEMS } from '../data/mockData';
+import { MY_PROFILE, ACCOUNT_MENU_ITEMS, getCafeById } from '../data/mockData';
 import { BottomNav } from '../components/BottomNav';
 import { Icon } from '../components/icons/Icons';
 
@@ -502,8 +502,9 @@ export const MyPage: React.FC = () => {
             <ModalScrollContent>
               {state.bookmarkedIds.length > 0 ? (
                 <StatItemList>
-                  {state.cafes
-                    .filter((cafe) => state.bookmarkedIds.includes(cafe.id))
+                  {Array.from(new Set(state.bookmarkedIds))
+                    .map((id) => getCafeById(id))
+                    .filter(Boolean)
                     .map((cafe) => (
                       <StatItemCard
                         key={cafe.id}
@@ -513,7 +514,7 @@ export const MyPage: React.FC = () => {
                           navigate(`/review/${cafe.id}`);
                         }}
                       >
-                        <StatItemImage $image={cafe.photo.image || '/assets/caffe_001.jpg'} />
+                        <StatItemImage $image={cafe.photo?.type === 'image' && cafe.photo?.image ? cafe.photo.image : '/assets/caffe_001.jpg'} />
                         <StatItemMeta>
                           <StatItemName>{cafe.name}</StatItemName>
                           <StatItemSub>{cafe.location}</StatItemSub>
