@@ -42,8 +42,9 @@ const apiFallbackPlugin = () => ({
             if (data.documents) allCafes.push(...data.documents);
             if (data.meta?.is_end || allCafes.length >= 50) break;
           }
+          const uniqueCafes = Array.from(new Map(allCafes.map((c: any) => [c.id, c])).values());
           res.statusCode = 200;
-          res.end(JSON.stringify({ cafes: allCafes.slice(0, 50) }));
+          res.end(JSON.stringify({ cafes: uniqueCafes.slice(0, 50) }));
         } catch (e: any) {
           res.statusCode = 500;
           res.end(JSON.stringify({ error: 'Failed to fetch cafes' }));

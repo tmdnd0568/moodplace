@@ -41,8 +41,11 @@ export default async function handler(req: any, res: any) {
       }
     }
 
+    // 중복 제거 (place ID 기준)
+    const uniqueCafes = Array.from(new Map(allCafes.map((c: any) => [c.id, c])).values());
+
     // 정확히 최대 50개 제한
-    const slicedCafes = allCafes.slice(0, 50);
+    const slicedCafes = uniqueCafes.slice(0, 50);
 
     return res.status(200).json({ cafes: slicedCafes });
   } catch (error: any) {

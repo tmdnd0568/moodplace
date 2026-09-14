@@ -1,4 +1,4 @@
-﻿import type { Cafe } from '../src/store/types';
+import type { Cafe } from '../src/store/types';
 
 export interface GeminiSearchResult {
   cafes: Cafe[];
@@ -339,8 +339,11 @@ async function searchExternalRegionWithKakao(
       return { cafes: [], isRealAi: false, aiErrorMessage: 'No cafes found in Kakao API' };
     }
 
+    // 중복 제거
+    const uniqueCafes = Array.from(new Map(allCafes.map((c: any) => [c.id, c])).values());
+
     // 2. 받아온 데이터를 Cafe 인터페이스로 매핑
-    const mappedCafes: any[] = allCafes.slice(0, 50).map((place: any, index: number) => {
+    const mappedCafes: any[] = uniqueCafes.slice(0, 50).map((place: any, index: number) => {
       return {
         id: `kakao-ext-${place.id}`,
         name: place.place_name || '카페',
