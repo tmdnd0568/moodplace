@@ -26,6 +26,9 @@ export default async function handler(req: any, res: any) {
       });
 
       if (!response.ok) {
+        const errorBody = await response.text();
+        console.error('[KAKAO API ERROR]', response.status, errorBody);
+
         if (page === 1) {
           return res.status(response.status).json({ error: `Kakao API fetch failed: ${response.statusText}` });
         }
