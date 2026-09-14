@@ -81,7 +81,8 @@ export const SearchModal: React.FC = () => {
       setIsRealAiResult(res.isRealAi);
       setIsExternalRegion(!!res.isExternalRegion);
       setTargetRegion(res.targetRegion || '');
-      dispatch({ type: 'RECEIVE_MOOD_SEARCH_RESULT', payload: res.cafes });
+      // AI 추천(cafes) + Kakao 전체(allKakaoCafes)를 함께 dispatch
+      dispatch({ type: 'RECEIVE_MOOD_SEARCH_RESULT', payload: res.cafes, allKakaoCafes: res.allKakaoCafes || [] });
     } catch (err) {
       console.error('[Gemini Search Error]', err);
       const activeMoods = state.modalSelectedMoods.length > 0 ? state.modalSelectedMoods : state.selectedMoods;

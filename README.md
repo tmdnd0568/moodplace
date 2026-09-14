@@ -121,3 +121,17 @@ Firebase Authentication 기반으로 이메일 및 소셜 인증 기능을 구�
 - 배포주소: https://moodplace001.vercel.app/
 
 - 노트폴리오: https://notefolio.net/aivibe001/466150
+
+---
+
+### 주변 카페 검색 구조 개선
+
+- Kakao Local API를 활용한 실제 장소 검색 (카테고리 검색 `CE7`, 키워드 검색 병행)
+- pagination을 활용한 주변 카페 데이터 확대 (최대 4페이지, 최대 50개 확보)
+- Kakao 장소 ID 기반 중복 제거 (`Map` 자료구조 활용)
+- 전체 주변 카페(지도 마커용)와 AI 추천 카페(사용자 무드 기반 선별) 데이터 완전 분리
+- Kakao Local API: 실제 장소 데이터 검색 (이름, 주소, 위경도, 전화번호, 카테고리) 담당
+- Gemini API: Kakao로 확보된 실제 카페 목록 안에서 사용자 무드 기반 추천만 담당
+- Gemini 추천 결과 검증: Kakao 목록에 없는 카페는 추천 결과에서 자동 제외
+- Gemini API 실패 시에도 Kakao 확보 카페는 지도에 정상 유지 (독립 fallback)
+- API 호출량 최소화: 카페 1개당 별도 Gemini 호출 완전 제거, 전체 목록 1회 추천 요청

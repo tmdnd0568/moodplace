@@ -295,21 +295,26 @@ export const FindPage: React.FC = () => {
     // 2. 전체 카페 및 AI 추천 카페 리스트 (state.cafes, state.searchResults)
     const storeCafes = [...state.cafes, ...state.searchResults];
     storeCafes.forEach((c) => {
-      if (!isExplicitExternalSearch && !isDaejeonCafe(c)) {
+      // Kakao API로 받아온 카페(id가 kakao-로 시작)는 지역 필터 미적용
+      const isKakaoCafe = c.id.startsWith('kakao-');
+      if (!isKakaoCafe && !isExplicitExternalSearch && !isDaejeonCafe(c)) {
         return;
       }
       if (isDuplicate(c.id, c.name)) return;
 
-      const address = c.location || c.detail?.description || '대전 추천 카페';
-      const coords = getRealCafeCoords(c.id, c.name, address);
+      const address = c.location || c.detail?.description || '카페';
+      // Kakao 카페는 기존에 coords가 있으면 재사용, 없으면 주소 기반으로 좌표 추정
+      const coords: [number, number] = (c as any).coords || getRealCafeCoords(c.id, c.name, address);
 
       list.push({
         id: c.id,
         name: c.name,
         address,
         description: c.detail?.description || `${c.name} - 감성 무드 맞춤 추천 카페`,
-        photos: (c.photo?.type === 'image' && c.photo?.image) ? [c.photo.image] : ['/assets/caffe_001.jpg'],
-        tags: c.mood ? c.mood.map((m) => ({ icon: 'warm', label: m })) : [],
+        photos: isKakaoCafe
+          ? ((c as any).photos || ['/assets/caffe_001.jpg'])
+          : ((c.photo?.type === 'image' && c.photo?.image) ? [c.photo.image] : ['/assets/caffe_001.jpg']),
+        tags: c.mood ? c.mood.map((m) => ({ icon: 'warm', label: m })) : ((c as any).tags || []),
         coords,
       });
     });

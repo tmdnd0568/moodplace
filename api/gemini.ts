@@ -1,7 +1,8 @@
 import type { Cafe } from '../src/store/types';
 
 export interface GeminiSearchResult {
-  cafes: Cafe[];
+  cafes: Cafe[];          // Gemini AI 추천 결과 (= 사용자 무드에 적합한 상위 카페)
+  allKakaoCafes?: any[];  // Kakao API가 확보한 전체 실제 카페 (지도 마커용)
   isRealAi: boolean;
   aiErrorMessage?: string;
   isExternalRegion?: boolean;
@@ -198,7 +199,8 @@ export default async function handler(req: any, res: any) {
 
   if (!isExternalRegionQuery) {
     const result = await searchLocalCafes(moodIds, description, allCafes, apiKey, 'Seongsu-dong, Seoul');
-    return res.status(200).json(result);
+    // 비외부지역의 경우, allCafes가 이미 Kakao로 확보된 전체 목록
+    return res.status(200).json({ ...result, allKakaoCafes: allCafes });
   } else {
     const targetRegion = extractRegion(description);
     const result = await searchExternalRegionWithKakao(apiKey, targetRegion, description, moodIds);
@@ -312,7 +314,7 @@ async function searchExternalRegionWithKakao(
   const kakaoApiKey = (process.env.KAKAO_REST_API_KEY || '').trim();
   if (!kakaoApiKey) {
     console.warn('[Gemini API] KAKAO_REST_API_KEY is missing for external region search.');
-    return { cafes: [], isRealAi: false, aiErrorMessage: 'KAKAO_REST_API_KEY missing' };
+    return { cafes: [], allKakaoCafes: [], isRealAi: false, aiErrorMessage: 'KAKAO_REST_API_KEY missing' };
   }
 
   try {
@@ -336,39 +338,46 @@ async function searchExternalRegionWithKakao(
     }
 
     if (allCafes.length === 0) {
-      return { cafes: [], isRealAi: false, aiErrorMessage: 'No cafes found in Kakao API' };
+      return { cafes: [], allKakaoCafes: [], isRealAi: false, aiErrorMessage: 'No cafes found in Kakao API' };
     }
 
-    // 중복 제거
-    const uniqueCafes = Array.from(new Map(allCafes.map((c: any) => [c.id, c])).values());
+    // 중복 제거 (Kakao place ID 기준)
+    const uniqueRaw = Array.from(new Map(allCafes.map((c: any) => [c.id, c])).values());
 
-    // 2. 받아온 데이터를 Cafe 인터페이스로 매핑
-    const mappedCafes: any[] = uniqueCafes.slice(0, 50).map((place: any, index: number) => {
-      return {
-        id: `kakao-ext-${place.id}`,
-        name: place.place_name || '카페',
-        address: place.road_address_name || place.address_name || '주소 없음',
-        description: 'Kakao Local 검색으로 발견된 카페입니다.',
-        photos: ['/assets/caffe_001.jpg'],
-        tags: [{ icon: 'warm', label: place.category_name?.split(' > ').pop() || '카페' }],
-        coords: [Number(place.y), Number(place.x)],
-        phone: place.phone || '',
-        placeUrl: place.place_url || '',
-        location: place.road_address_name || place.address_name,
-        mood: [],
-        detail: {
-          description: '',
-          menu: [],
-          detailTags: [],
-        }
-      };
-    });
+    // 2. 받아온 데이터를 FindPage가 인식하는 형식으로 매핑 (전체 리스트)
+    const allKakaoCafes: any[] = uniqueRaw.slice(0, 50).map((place: any) => ({
+      id: `kakao-ext-${place.id}`,
+      name: place.place_name || '카페',
+      address: place.road_address_name || place.address_name || '주소 없음',
+      description: place.category_name || 'Kakao Local 검색으로 발견된 카페입니다.',
+      photos: ['/assets/caffe_001.jpg'],
+      tags: [{ icon: 'warm', label: place.category_name?.split(' > ').pop() || '카페' }],
+      coords: [Number(place.y), Number(place.x)],
+      phone: place.phone || '',
+      placeUrl: place.place_url || '',
+      location: place.road_address_name || place.address_name,
+      distance: Number(place.distance || 0),
+      mood: [],
+      detail: { description: '', menu: [], detailTags: [] },
+    }));
 
-    // 3. Gemini에게 분석 및 랭킹 요청
-    return await searchLocalCafes(moodIds, description, mappedCafes, geminiApiKey, targetRegion);
+    // 3. Gemini에게 분석 및 랭킹 요청 (전체 목록 전달)
+    const aiResult = await searchLocalCafes(moodIds, description, allKakaoCafes, geminiApiKey, targetRegion);
+
+    // 4. Gemini 추천 결과를 Kakao 원본 기준으로 검증 (없는 카페 제거)
+    const kakaoIdSet = new Set(allKakaoCafes.map((c) => c.id));
+    const verifiedAiCafes = aiResult.cafes.filter((c) => kakaoIdSet.has(c.id));
+
+    return {
+      cafes: verifiedAiCafes,         // AI 추천 (Kakao 목록 안에서만)
+      allKakaoCafes,                  // 전체 Kakao 카페 (지도 마커용)
+      isRealAi: aiResult.isRealAi,
+      isExternalRegion: true,
+      targetRegion,
+    };
 
   } catch (err: any) {
     console.error('searchExternalRegionWithKakao error:', err);
-    return { cafes: [], isRealAi: false, aiErrorMessage: err.message };
+    return { cafes: [], allKakaoCafes: [], isRealAi: false, aiErrorMessage: err.message };
   }
 }

@@ -2,7 +2,8 @@ import type { Cafe } from '../store/types';
 import { mockAiSearch } from '../data/mockData';
 
 export interface GeminiSearchResult {
-  cafes: Cafe[];
+  cafes: Cafe[];          // Gemini AI 추천 결과
+  allKakaoCafes?: any[];  // Kakao 전체 카페 (지도 마커용)
   isRealAi: boolean;
   aiErrorMessage?: string;
   isExternalRegion?: boolean;
@@ -43,6 +44,10 @@ export async function searchCafesWithGemini(
     if (response.ok) {
       const data: GeminiSearchResult = await response.json();
       if (data && Array.isArray(data.cafes) && data.cafes.length > 0) {
+        return data; // allKakaoCafes도 함께 반환됨
+      }
+      // cafes가 비어있어도 allKakaoCafes가 있으면 반환 (전체만 표시)
+      if (data && Array.isArray(data.allKakaoCafes) && data.allKakaoCafes.length > 0) {
         return data;
       }
     }

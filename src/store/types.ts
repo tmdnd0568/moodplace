@@ -145,7 +145,7 @@ export type AppAction =
   | { type: 'TOGGLE_MODAL_MOOD'; payload: string }
   | { type: 'SET_MOOD_DESCRIPTION'; payload: string }
   | { type: 'START_MOOD_SEARCH' }
-  | { type: 'RECEIVE_MOOD_SEARCH_RESULT'; payload: Cafe[] }
+  | { type: 'RECEIVE_MOOD_SEARCH_RESULT'; payload: Cafe[]; allKakaoCafes?: any[] }
   | { type: 'TOGGLE_BOOKMARK'; payload: string; cafe?: Cafe }
   | { type: 'SET_ACTIVE_TAB'; payload: string }
   | { type: 'TOGGLE_THEME'; payload: string }

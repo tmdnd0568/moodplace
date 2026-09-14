@@ -88,7 +88,25 @@ export function rootReducer(state: AppState, action: AppAction): AppState {
 
     case 'RECEIVE_MOOD_SEARCH_RESULT': {
       const existingIds = new Set(state.cafes.map((c) => c.id));
-      const newCafes = action.payload.filter((c) => !existingIds.has(c.id));
+      // AI 추천 결과 + Kakao 전체 리스트(지도 마커용) 병합
+      const allNewItems = [
+        ...(action.payload || []),
+        ...((action.allKakaoCafes || []).map((c: any) => ({
+          // Kakao 데이터를 Cafe 현환 (기존 필드만 사용)
+          id: c.id,
+          name: c.name,
+          location: c.address || c.location || '',
+          description: c.description || '',
+          match: c.match || 70,
+          tags: c.tags || [],
+          mood: c.mood || [],
+          bookmarked: false,
+          hero: false,
+          photo: { type: 'color', from: '#2D5244', to: '#4a7c5e', emoji: '☕️', image: (c.photos || ['/assets/caffe_001.jpg'])[0] },
+          detail: c.detail || { detailTags: [], description: '', rating: null, hoursLabel: null, reviewCount: null, menu: [], reviews: [] },
+        })))
+      ];
+      const newCafes = allNewItems.filter((c) => !existingIds.has(c.id));
       return {
         ...state,
         searchPhase: 'result',
