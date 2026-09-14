@@ -112,6 +112,19 @@ Firebase Authentication 기반으로 이메일 및 소셜 인증 기능을 구�
 | localStorage 비밀번호 저장 보안 위험 | 브라우저 저장소에 사용자 비밀번호 저장 | Firebase Authentication 중심으로 통합하고 비밀번호 localStorage 저장 완전 제거 |
 | 외부 AI (Gemini) API 호출 실패 시 서비스 중단 | 네트워크 또는 API 오류 시 추천 결과를 제공할 수 없음 | API 실패 시 fallback 추천 데이터로 전환하여 앱 이용이 중단되지 않도록 처리 |
 
+### 주변 카페 검색 및 데이터 처리 구조 개선
+
+- **Kakao Local API 기반 실제 주변 카페 검색**: 사용자 위치 좌표 또는 지정 지역 기준 카테고리 검색(`CE7`) 및 키워드 검색 수행
+- **Kakao API Pagination 적용**: 페이지별 검색 결과를 순차 요청하여 도심 지역 기준 최소 30개 이상의 실제 카페 데이터 확보 (1~3페이지, 최대 45개, `is_end` 도달 시 자동 종료)
+- **3단계 카페 중복 제거 로직**: Kakao Place ID, 카페 이름 + 주소, 위경도 좌표를 종합 검증하여 동일 프랜차이즈 지점 유실 없이 중복 마커 제거
+- **Gemini 추천(`cafes`)과 Kakao 전체 목록(`allKakaoCafes`) 완전 분리**:
+  - `allKakaoCafes`: Kakao Local API로 확보된 전체 실제 카페 목록 (기본/전체 지도 마커용)
+  - `cafes`: Gemini AI가 무드 맞춤 큐레이션한 소수 카페 목록 (추천 UI용)
+  - Gemini 추천 실패 시에도 Kakao 전체 카페 데이터는 지도상에 정상 유지 (독립 fallback)
+- **실제 Kakao 좌표 기반 길찾기 목적지 연결**: 지역 중심 fallback 좌표 대신 Kakao 실제 좌표(`coords`)를 1순위로 사용하며 `address`, `roadAddress`, `phone`, `placeUrl`, `kakaoPlaceId` 등 Cafe 객체 전체 보존
+- **TypeScript 타입 안정성 및 Vercel Build 보장**: `allKakaoCafes?: Cafe[]` 타입 선언 통합 및 Vercel Production Build (`tsc -b && vite build`) 검증 완료
+- **서버리스 API 환경변수 관리**: Kakao REST API 호출은 Vercel Serverless Functions (`api/cafes.ts`) 및 Dev proxy 서버에서 안전하게 수행 (`KAKAO_REST_API_KEY`, `GEMINI_API_KEY`)
+
 ## 🧷 바로가기
 
 - 깃허브: https://github.com/tmdnd0568/moodplace
@@ -126,15 +139,3 @@ Firebase Authentication 기반으로 이메일 및 소셜 인증 기능을 구�
 
 ---
 
-### 주변 카페 검색 및 데이터 처리 구조 개선
-
-- **Kakao Local API 기반 실제 주변 카페 검색**: 사용자 위치 좌표 또는 지정 지역 기준 카테고리 검색(`CE7`) 및 키워드 검색 수행
-- **Kakao API Pagination 적용**: 페이지별 검색 결과를 순차 요청하여 도심 지역 기준 최소 30개 이상의 실제 카페 데이터 확보 (1~3페이지, 최대 45개, `is_end` 도달 시 자동 종료)
-- **3단계 카페 중복 제거 로직**: Kakao Place ID, 카페 이름 + 주소, 위경도 좌표를 종합 검증하여 동일 프랜차이즈 지점 유실 없이 중복 마커 제거
-- **Gemini 추천(`cafes`)과 Kakao 전체 목록(`allKakaoCafes`) 완전 분리**:
-  - `allKakaoCafes`: Kakao Local API로 확보된 전체 실제 카페 목록 (기본/전체 지도 마커용)
-  - `cafes`: Gemini AI가 무드 맞춤 큐레이션한 소수 카페 목록 (추천 UI용)
-  - Gemini 추천 실패 시에도 Kakao 전체 카페 데이터는 지도상에 정상 유지 (독립 fallback)
-- **실제 Kakao 좌표 기반 길찾기 목적지 연결**: 지역 중심 fallback 좌표 대신 Kakao 실제 좌표(`coords`)를 1순위로 사용하며 `address`, `roadAddress`, `phone`, `placeUrl`, `kakaoPlaceId` 등 Cafe 객체 전체 보존
-- **TypeScript 타입 안정성 및 Vercel Build 보장**: `allKakaoCafes?: Cafe[]` 타입 선언 통합 및 Vercel Production Build (`tsc -b && vite build`) 검증 완료
-- **서버리스 API 환경변수 관리**: Kakao REST API 호출은 Vercel Serverless Functions (`api/cafes.ts`) 및 Dev proxy 서버에서 안전하게 수행 (`KAKAO_REST_API_KEY`, `GEMINI_API_KEY`)
