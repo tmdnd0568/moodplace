@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import styled, { keyframes } from 'styled-components';
-import { useNavigate } from 'react-router-dom';
+
 import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
@@ -45,7 +45,6 @@ const getKoreanAuthErrorMessage = (errorCode: string): string => {
 };
 
 export const LoginPage: React.FC = () => {
-  const navigate = useNavigate();
   
   // 페이지 뷰 모드: login (로그인), signup (회원가입), find-password (비번 찾기), find-password-reset (비번 재설정)
   const [currentView, setCurrentView] = useState<'login' | 'signup' | 'find-password' | 'find-password-reset'>('login');

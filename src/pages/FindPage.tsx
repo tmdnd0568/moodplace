@@ -169,6 +169,16 @@ export const FindPage: React.FC = () => {
   const [mapCenter, setMapCenter] = useState<[number, number]>([36.3537, 127.3872]);
   const searchAbortControllerRef = React.useRef<AbortController | null>(null);
   const lastFetchCenter = React.useRef<[number, number] | null>(null);
+  const fetchedCacheRef = React.useRef<Map<string, boolean>>(new Map());
+
+  // Map & Marker Refs (선언부 상향 조정 - ReferenceError 방지)
+  const mapRef = React.useRef<any>(null);
+  const markersRef = React.useRef<Record<string, any>>({});
+  const circleRef = React.useRef<any>(null);
+  const tileLayerRef = React.useRef<any>(null);
+  const trafficLayerRef = React.useRef<any>(null);
+  const bikeLayerRef = React.useRef<any>(null);
+  const userMarkerRef = React.useRef<any>(null);
 
   // Drag Gesture States for Bottom Sheet
   const [dragOffset, setDragOffset] = useState<number>(0);
@@ -398,18 +408,18 @@ export const FindPage: React.FC = () => {
     let displayRadius = radiusKm;
     if (mapRef.current) {
       const z = mapRef.current.getZoom();
-      if (z >= 16) displayRadius = Math.min(radiusKm, 1.0);
-      else if (z <= 13) displayRadius = Math.max(radiusKm, 3.0);
-      else displayRadius = Math.max(radiusKm, 2.0); // fallback to minimum 2km for reasonable amount
+      if (z >= 16) displayRadius = Math.min(radiusKm, 1.5);
+      else if (z <= 13) displayRadius = Math.max(radiusKm, 5.0);
+      else displayRadius = Math.max(radiusKm, 3.5); // fallback to minimum 3.5km for reasonable amount
     }
 
     if (radiusKm >= 20) {
-      return [...cafesWithDistance].sort((a, b) => a.distFromCenterKm - b.distFromCenterKm).slice(0, 30);
+      return [...cafesWithDistance].sort((a, b) => a.distFromCenterKm - b.distFromCenterKm).slice(0, 50);
     }
     return cafesWithDistance
       .filter((c) => c.distFromCenterKm <= displayRadius)
       .sort((a, b) => a.distFromCenterKm - b.distFromCenterKm)
-      .slice(0, 30);
+      .slice(0, 50);
   }, [cafesWithDistance, radiusKm, mapCenter]);
 
   const selectedPlace = cafesWithin3km.find((p) => p.id === selectedPlaceId) || cafesWithin3km[0] || cafesWithDistance[0];
@@ -466,12 +476,7 @@ export const FindPage: React.FC = () => {
 
 
 
-  const mapRef = React.useRef<any>(null);
-  const markersRef = React.useRef<Record<string, any>>({});
-  const circleRef = React.useRef<any>(null);
-  const tileLayerRef = React.useRef<any>(null);
-  const trafficLayerRef = React.useRef<any>(null);
-  const bikeLayerRef = React.useRef<any>(null);
+
 
   // 1. GPU 하드웨어 가속 Leaflet Map 엔진 초기화
   React.useEffect(() => {
@@ -504,7 +509,7 @@ export const FindPage: React.FC = () => {
       moveTimer = setTimeout(() => {
         const center = map.getCenter();
         setMapCenter([center.lat, center.lng]);
-      }, 500);
+      }, 800);
     });
 
     return () => {
@@ -522,9 +527,6 @@ export const FindPage: React.FC = () => {
 
   // Overpass API로 주변 카페 실시간 가져오기
   React.useEffect(() => {
-    // 반경 20km(전체)일 경우 부하 방지를 위해 5km로 제한
-    const searchRadius = radiusKm >= 20 ? 5000 : radiusKm * 1000;
-    
     // 이전 검색 중심과 너무 가까우면(예: 300m 이내) 재검색 생략
     if (lastFetchCenter.current) {
       const dist = getDistanceFromLatLonInKm(
@@ -542,38 +544,55 @@ export const FindPage: React.FC = () => {
 
     const OVERPASS_ENDPOINTS = [
       'https://overpass-api.de/api/interpreter',
+      'https://overpass.kumi.systems/api/interpreter',
       'https://lz4.overpass-api.de/api/interpreter',
     ];
 
+    const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
     const fetchWithRadius = async (radiusMeters: number, signal: AbortSignal) => {
       const query = `
-        [out:json][timeout:10];
-        nwr["amenity"="cafe"](around:${radiusMeters},${mapCenter[0]},${mapCenter[1]});
-        out center;
+        [out:json][timeout:25];
+        (
+          nwr["amenity"="cafe"](around:${radiusMeters},${mapCenter[0]},${mapCenter[1]});
+          nwr["shop"="coffee"](around:${radiusMeters},${mapCenter[0]},${mapCenter[1]});
+        );
+        out center tags;
       `;
       const params = `?data=${encodeURIComponent(query)}`;
+      let attempts = 2; // 최대 2회 재시도
       
-      let lastError;
-      for (const endpoint of OVERPASS_ENDPOINTS) {
-        try {
-          const res = await fetch(endpoint + params, { signal });
-          if (!res.ok) throw new Error('API fetch failed');
-          const data = await res.json();
-          return data?.elements || [];
-        } catch (e: any) {
-          if (e.name === 'AbortError') throw e;
-          lastError = e;
+      while (attempts >= 0) {
+        for (const endpoint of OVERPASS_ENDPOINTS) {
+          try {
+            const res = await fetch(endpoint + params, { signal });
+            if (res.status === 429) throw new Error('Too Many Requests');
+            if (!res.ok) throw new Error(`API fetch failed: ${res.status}`);
+            const data = await res.json();
+            return data?.elements || [];
+          } catch (e: any) {
+            if (e.name === 'AbortError') throw e;
+          }
+        }
+        attempts--;
+        if (attempts >= 0) {
+          await sleep(1500); // 1.5초 대기 후 재시도
         }
       }
-      throw lastError || new Error('All Overpass endpoints failed');
+      return []; // 에러 시 빈 배열 반환하여 앱 중단 방지 및 기존 데이터 유지
     };
 
     const fetchCafesFromOSM = async () => {
       try {
+        const cacheKey = `${mapCenter[0].toFixed(2)},${mapCenter[1].toFixed(2)}`;
+        if (fetchedCacheRef.current.has(cacheKey)) {
+          return; // 캐시된 지역이면 API 호출 생략
+        }
+
         let currentZoom = mapRef.current ? mapRef.current.getZoom() : 14;
-        let baseRadius = 2000;
-        if (currentZoom >= 16) baseRadius = 1000;
-        else if (currentZoom <= 13) baseRadius = 3000;
+        let baseRadius = 4000;
+        if (currentZoom >= 16) baseRadius = 2000;
+        else if (currentZoom <= 13) baseRadius = 5000;
 
         if (radiusKm * 1000 > baseRadius && radiusKm < 20) {
            baseRadius = radiusKm * 1000;
@@ -581,13 +600,13 @@ export const FindPage: React.FC = () => {
 
         let elements = await fetchWithRadius(baseRadius, abortController.signal);
 
-        // 결과가 10개 미만이면 3km까지 한 번만 확장해서 추가 검색한다.
-        if (elements.length < 10 && baseRadius < 3000) {
-           const moreElements = await fetchWithRadius(3000, abortController.signal);
+        if (elements.length < 10 && baseRadius < 5000) {
+           const moreElements = await fetchWithRadius(5000, abortController.signal);
            elements = moreElements;
         }
         
         if (elements && elements.length > 0) {
+          fetchedCacheRef.current.set(cacheKey, true); // 성공 시 캐시 등록
           const newCafes = elements
             .filter((el: any) => {
                const lat = el.lat || el.center?.lat;
@@ -827,7 +846,6 @@ export const FindPage: React.FC = () => {
     }
   };
 
-  const userMarkerRef = React.useRef<any>(null);
 
   const handleLocateClick = () => {
     const map = mapRef.current;
