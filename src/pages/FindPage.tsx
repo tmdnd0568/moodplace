@@ -368,7 +368,7 @@ export const FindPage: React.FC = () => {
     return list;
   }, [state.cafes, state.searchResults, EXTRA_LOCAL_CAFES, userCoords, searchQuery, fetchedCafes]);
 
-  // 내 위치 기준 모든 카페 거리 계산
+  // 지도 중심 기준 및 내 위치 기준 모든 카페 거리 계산
   const cafesWithDistance = React.useMemo(() => {
     return allCafes.map((cafe) => {
       const distKm = getDistanceFromLatLonInKm(
@@ -377,24 +377,40 @@ export const FindPage: React.FC = () => {
         cafe.coords[0],
         cafe.coords[1]
       );
+      const distFromCenterKm = getDistanceFromLatLonInKm(
+        mapCenter[0],
+        mapCenter[1],
+        cafe.coords[0],
+        cafe.coords[1]
+      );
       const distText = distKm < 1 ? `${Math.round(distKm * 1000)}m` : `${distKm.toFixed(1)}km`;
       return {
         ...cafe,
         distKm,
+        distFromCenterKm,
         distText,
       };
     });
-  }, [allCafes, userCoords]);
+  }, [allCafes, userCoords, mapCenter]);
 
-  // km 반경 내 카페 필터링 (radiusKm >= 20 이면 '전체' 전국 카페 검색 모드)
+  // 지도 중심 반경 내 카페 필터링 (최대 30개 표시)
   const cafesWithin3km = React.useMemo(() => {
+    let displayRadius = radiusKm;
+    if (mapRef.current) {
+      const z = mapRef.current.getZoom();
+      if (z >= 16) displayRadius = Math.min(radiusKm, 1.0);
+      else if (z <= 13) displayRadius = Math.max(radiusKm, 3.0);
+      else displayRadius = Math.max(radiusKm, 2.0); // fallback to minimum 2km for reasonable amount
+    }
+
     if (radiusKm >= 20) {
-      return [...cafesWithDistance].sort((a, b) => a.distKm - b.distKm);
+      return [...cafesWithDistance].sort((a, b) => a.distFromCenterKm - b.distFromCenterKm).slice(0, 30);
     }
     return cafesWithDistance
-      .filter((c) => c.distKm <= radiusKm)
-      .sort((a, b) => a.distKm - b.distKm);
-  }, [cafesWithDistance, radiusKm]);
+      .filter((c) => c.distFromCenterKm <= displayRadius)
+      .sort((a, b) => a.distFromCenterKm - b.distFromCenterKm)
+      .slice(0, 30);
+  }, [cafesWithDistance, radiusKm, mapCenter]);
 
   const selectedPlace = cafesWithin3km.find((p) => p.id === selectedPlaceId) || cafesWithin3km[0] || cafesWithDistance[0];
 
@@ -524,21 +540,41 @@ export const FindPage: React.FC = () => {
     const abortController = new AbortController();
     searchAbortControllerRef.current = abortController;
 
+    const fetchWithRadius = async (radiusMeters: number, signal: AbortSignal) => {
+      const query = `
+        [out:json][timeout:10];
+        node["amenity"="cafe"](around:${radiusMeters},${mapCenter[0]},${mapCenter[1]});
+        out body;
+      `;
+      const url = `https://overpass-api.de/api/interpreter?data=${encodeURIComponent(query)}`;
+      const res = await fetch(url, { signal });
+      if (!res.ok) throw new Error('API fetch failed');
+      const data = await res.json();
+      return data?.elements || [];
+    };
+
     const fetchCafesFromOSM = async () => {
       try {
-        const query = `
-          [out:json][timeout:10];
-          node["amenity"="cafe"](around:${searchRadius},${mapCenter[0]},${mapCenter[1]});
-          out body;
-        `;
-        const url = `https://overpass-api.de/api/interpreter?data=${encodeURIComponent(query)}`;
-        const res = await fetch(url, { signal: abortController.signal });
-        if (!res.ok) throw new Error('API fetch failed');
-        const data = await res.json();
+        let currentZoom = mapRef.current ? mapRef.current.getZoom() : 14;
+        let baseRadius = 2000;
+        if (currentZoom >= 16) baseRadius = 1000;
+        else if (currentZoom <= 13) baseRadius = 3000;
+
+        if (radiusKm * 1000 > baseRadius && radiusKm < 20) {
+           baseRadius = radiusKm * 1000;
+        }
+
+        let elements = await fetchWithRadius(baseRadius, abortController.signal);
+
+        // 결과가 10개 미만이면 3km까지 한 번만 확장해서 추가 검색한다.
+        if (elements.length < 10 && baseRadius < 3000) {
+           const moreElements = await fetchWithRadius(3000, abortController.signal);
+           elements = moreElements;
+        }
         
-        if (data && data.elements) {
-          const newCafes = data.elements
-            .filter((el: any) => el.lat && el.lon && !isNaN(el.lat) && !isNaN(el.lon))
+        if (elements && elements.length > 0) {
+          const newCafes = elements
+            .filter((el: any) => el.lat && el.lon && !isNaN(el.lat) && !isNaN(el.lon) && el.lat !== 0 && el.lon !== 0)
             .map((el: any) => {
               const name = el.tags?.name || el.tags?.['name:ko'] || el.tags?.['name:en'] || '주변 카페';
               const id = `osm-${el.id}`;
@@ -556,11 +592,25 @@ export const FindPage: React.FC = () => {
           setFetchedCafes(prev => {
             const existingIds = new Set(prev.map(c => c.id));
             const existingCoords = new Set(prev.map(c => `${c.coords[0].toFixed(4)},${c.coords[1].toFixed(4)}`));
+            const existingNamesAddress = new Set(prev.map(c => `${c.name}_${c.address}`));
+            const existingNamesCoords = new Set(prev.map(c => `${c.name}_${c.coords[0].toFixed(4)},${c.coords[1].toFixed(4)}`));
             
             const filteredNew = newCafes.filter((c: any) => {
               if (existingIds.has(c.id)) return false;
+              
               const coordKey = `${c.coords[0].toFixed(4)},${c.coords[1].toFixed(4)}`;
               if (existingCoords.has(coordKey)) return false;
+              
+              const nameAddrKey = `${c.name}_${c.address}`;
+              if (existingNamesAddress.has(nameAddrKey) && c.address !== '상세 주소 없음') return false;
+
+              const nameCoordKey = `${c.name}_${coordKey}`;
+              if (existingNamesCoords.has(nameCoordKey)) return false;
+
+              // 먼 지역 제외 (지도 중심 기준 5km 밖)
+              const distFromCenter = getDistanceFromLatLonInKm(mapCenter[0], mapCenter[1], c.coords[0], c.coords[1]);
+              if (distFromCenter > 5.0) return false;
+
               return true;
             });
             
