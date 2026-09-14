@@ -540,17 +540,32 @@ export const FindPage: React.FC = () => {
     const abortController = new AbortController();
     searchAbortControllerRef.current = abortController;
 
+    const OVERPASS_ENDPOINTS = [
+      'https://overpass-api.de/api/interpreter',
+      'https://lz4.overpass-api.de/api/interpreter',
+    ];
+
     const fetchWithRadius = async (radiusMeters: number, signal: AbortSignal) => {
       const query = `
         [out:json][timeout:10];
-        node["amenity"="cafe"](around:${radiusMeters},${mapCenter[0]},${mapCenter[1]});
-        out body;
+        nwr["amenity"="cafe"](around:${radiusMeters},${mapCenter[0]},${mapCenter[1]});
+        out center;
       `;
-      const url = `https://overpass-api.de/api/interpreter?data=${encodeURIComponent(query)}`;
-      const res = await fetch(url, { signal });
-      if (!res.ok) throw new Error('API fetch failed');
-      const data = await res.json();
-      return data?.elements || [];
+      const params = `?data=${encodeURIComponent(query)}`;
+      
+      let lastError;
+      for (const endpoint of OVERPASS_ENDPOINTS) {
+        try {
+          const res = await fetch(endpoint + params, { signal });
+          if (!res.ok) throw new Error('API fetch failed');
+          const data = await res.json();
+          return data?.elements || [];
+        } catch (e: any) {
+          if (e.name === 'AbortError') throw e;
+          lastError = e;
+        }
+      }
+      throw lastError || new Error('All Overpass endpoints failed');
     };
 
     const fetchCafesFromOSM = async () => {
@@ -574,10 +589,16 @@ export const FindPage: React.FC = () => {
         
         if (elements && elements.length > 0) {
           const newCafes = elements
-            .filter((el: any) => el.lat && el.lon && !isNaN(el.lat) && !isNaN(el.lon) && el.lat !== 0 && el.lon !== 0)
+            .filter((el: any) => {
+               const lat = el.lat || el.center?.lat;
+               const lon = el.lon || el.center?.lon;
+               return lat && lon && !isNaN(lat) && !isNaN(lon) && lat !== 0 && lon !== 0;
+            })
             .map((el: any) => {
+              const lat = el.lat || el.center?.lat;
+              const lon = el.lon || el.center?.lon;
               const name = el.tags?.name || el.tags?.['name:ko'] || el.tags?.['name:en'] || '주변 카페';
-              const id = `osm-${el.id}`;
+              const id = `osm-${el.type || 'node'}-${el.id}`;
               return {
                 id,
                 name,
@@ -585,7 +606,7 @@ export const FindPage: React.FC = () => {
                 description: '실시간 지도 탐색으로 발견된 카페입니다.',
                 photos: ['/assets/caffe_001.jpg'],
                 tags: [{ icon: 'warm', label: '주변 탐색' }],
-                coords: [el.lat, el.lon] as [number, number],
+                coords: [lat, lon] as [number, number],
               };
             });
           
