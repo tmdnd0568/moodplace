@@ -1,4 +1,4 @@
-import type { Cafe } from '../src/store/types';
+﻿import type { Cafe } from '../src/store/types';
 
 export interface GeminiSearchResult {
   cafes: Cafe[];
@@ -197,16 +197,11 @@ export default async function handler(req: any, res: any) {
   const isExternalRegionQuery = detectExternalRegion(description);
 
   if (!isExternalRegionQuery) {
-    const result = await searchLocalCafes(moodIds, description, allCafes, apiKey);
+    const result = await searchLocalCafes(moodIds, description, allCafes, apiKey, 'Seongsu-dong, Seoul');
     return res.status(200).json(result);
   } else {
     const targetRegion = extractRegion(description);
-    const moodLabel =
-      moodIds.length > 0
-        ? moodIds.map((id: string) => MOOD_LABELS[id] || id).join(', ')
-        : '감성적인';
-
-    const result = await searchWithGrounding(apiKey, targetRegion, moodLabel, description, moodIds);
+    const result = await searchExternalRegionWithKakao(apiKey, targetRegion, description, moodIds);
     return res.status(200).json(result);
   }
 }
@@ -217,26 +212,27 @@ export default async function handler(req: any, res: any) {
 async function searchLocalCafes(
   moodIds: string[],
   description: string,
-  allCafes: Cafe[],
-  apiKey: string
+  allCafes: any[],
+  apiKey: string,
+  region: string = 'Seongsu-dong, Seoul'
 ): Promise<GeminiSearchResult> {
   const systemPrompt = `
-You are a cafe curator AI for MoodPlace app (Seongsu-dong, Seoul).
+You are a cafe curator AI for MoodPlace app (${region}).
 User request:
 - Selected Moods: [${moodIds.join(', ')}]
 - Search Query Text: "${description}"
 
-APP LOCAL DATABASE CAFES (Seongsu-dong, Seoul):
+APP LOCAL DATABASE CAFES (${region}):
 ${JSON.stringify(
     allCafes.map((c) => ({
       id: c.id,
       name: c.name,
-      location: c.location,
-      description: c.description,
-      tags: c.tags,
-      mood: c.mood,
-      detailDesc: c.detail.description,
-      menu: c.detail.menu.map((m) => m.name).join(', '),
+      location: c.location || c.address,
+      description: c.description || '',
+      tags: c.tags || [],
+      mood: c.mood || [],
+      detailDesc: c.detail?.description || '',
+      menu: c.detail?.menu?.map((m: any) => m.name).join(', ') || '',
     })),
     null,
     2
@@ -289,12 +285,12 @@ INSTRUCTIONS:
         const results: Cafe[] = aiRecs.reduce<Cafe[]>((acc, item) => {
           const dbCafe = dbMap.get(item.id);
           if (!dbCafe) return acc;
-          acc.push({ ...dbCafe, match: item.match || dbCafe.match, aiReason: item.aiReason } as Cafe);
+          acc.push({ ...dbCafe, match: item.match || dbCafe.match || 80, aiReason: item.aiReason });
           return acc;
         }, []);
 
         results.sort((a, b) => b.match - a.match);
-        return { cafes: results, isRealAi: true, isExternalRegion: false, targetRegion: '' };
+        return { cafes: results, isRealAi: true, isExternalRegion: region !== 'Seongsu-dong, Seoul', targetRegion: region !== 'Seongsu-dong, Seoul' ? region : '' };
       }
     } catch (err: any) {
       lastError = err?.message || 'Network error';
@@ -305,677 +301,71 @@ INSTRUCTIONS:
 }
 
 // ─────────────────────────────────────────────────────────────
-// Google Search Grounding (Step1, Step2, Step3)
+// Kakao Local API 활용 외부 지역 검색 및 Gemini 랭킹
 // ─────────────────────────────────────────────────────────────
-async function searchWithGrounding(
-  apiKey: string,
+async function searchExternalRegionWithKakao(
+  geminiApiKey: string,
   targetRegion: string,
-  moodLabel: string,
   description: string,
   moodIds: string[]
 ): Promise<GeminiSearchResult> {
-  const step1Prompt = `
-한국 ${targetRegion} 지역에서 "${moodLabel}" 분위기에 잘 맞는 감성 카페를 3~4곳 찾아주세요.
-검색 쿼리: "${description}"
-
-Google 검색 결과를 활용해서 실제로 존재하는 카페만 추천하세요.
-각 카페에 대해 다음 정보를 알려주세요:
-- 카페 이름 (정확한 상호명)
-- 주소 (정확한 도로명 또는 지번 주소)
-- Google Maps URL (있다면)
-- 카페 분위기/특징 설명
-- 영업시간 (실제 확인된 경우만, 모르면 "정보 없음"이라고 하세요)
-- 평점 (실제 확인된 경우만, 모르면 "정보 없음"이라고 하세요)
-
-중요: 실제로 존재하지 않는 카페나 주소를 절대 만들어내지 마세요.
-실제 검색 결과에 기반해서만 답변하세요.
-`;
-
-  const buildStep2Prompt = (groundedText: string) => `
-다음은 Google 검색으로 확인된 ${targetRegion} 지역의 실제 카페 정보입니다:
-
----
-${groundedText}
----
-
-위 정보를 바탕으로, 사용자 요청에 맞는 카페 추천 결과를 JSON 배열로 출력해주세요.
-
-사용자 무드: [${moodIds.join(', ')}] (${moodLabel})
-사용자 검색어: "${description}"
-
-중요 규칙:
-1. 위 검색 결과에 실제로 언급된 카페만 포함하세요.
-2. 검색 결과에 없는 카페를 새로 만들어내지 마세요.
-3. rating, hoursLabel, reviewCount는 검색 결과에서 실제로 확인된 경우만 값을 넣으세요.
-   확인되지 않으면 반드시 null로 처리하세요.
-4. mapsUrl은 검색 결과에서 실제 Google Maps URL이 확인된 경우만 포함하세요.
-   없으면 null로 처리하세요.
-5. moodTags, matchScore, reason은 Gemini가 분석해서 생성해도 됩니다.
-
-반드시 아래 JSON 배열 형식으로만 출력하세요 (마크다운 없이):
-[
-  {
-    "id": "cafe_id_lowercase_underscore",
-    "name": "카페 이름",
-    "address": "실제 주소",
-    "mapsUrl": "Google Maps URL 또는 null",
-    "description": "카페 분위기 및 특징 설명 (2-3문장)",
-    "moodTags": ["#태그1", "#태그2", "#태그3"],
-    "matchScore": 85,
-    "reason": "이 카페를 추천하는 이유 (1-2문장 한국어)",
-    "rating": 4.3,
-    "reviewCount": null,
-    "hoursLabel": "10:00 - 22:00"
+  const kakaoApiKey = (process.env.KAKAO_REST_API_KEY || '').trim();
+  if (!kakaoApiKey) {
+    console.warn('[Gemini API] KAKAO_REST_API_KEY is missing for external region search.');
+    return { cafes: [], isRealAi: false, aiErrorMessage: 'KAKAO_REST_API_KEY missing' };
   }
-]
-`;
 
-  const models = GEMINI_MODELS;
-  let lastError = '';
+  try {
+    const allCafes: any[] = [];
+    const query = `${targetRegion} 카페`;
 
-  for (const model of models) {
-    try {
-      const step1Response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
+    // 1. Kakao API로 최대 50개 카페 가져오기 (Keyword Search)
+    for (let page = 1; page <= 4; page++) {
+      const res = await fetch(
+        `https://dapi.kakao.com/v2/local/search/keyword.json?query=${encodeURIComponent(query)}&category_group_code=CE7&sort=accuracy&size=15&page=${page}`,
         {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          signal: AbortSignal.timeout(12000),
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: step1Prompt }] }],
-            tools: [{ google_search: {} }],
-            generationConfig: { temperature: 0.1, maxOutputTokens: 1200 },
-          }),
+          headers: { Authorization: `KakaoAK ${kakaoApiKey}` },
         }
       );
-
-      if (!step1Response.ok) {
-        const errorData = await step1Response.json().catch(() => ({}));
-        lastError = (errorData as any).error?.message || `HTTP ${step1Response.status}`;
-        continue;
+      if (!res.ok) break;
+      const data = await res.json();
+      if (data.documents) {
+        allCafes.push(...data.documents);
       }
+      if (data.meta?.is_end || allCafes.length >= 50) break;
+    }
 
-      const step1Data = await step1Response.json();
-      const groundedText: string =
-        (step1Data as any).candidates?.[0]?.content?.parts?.[0]?.text || '';
+    if (allCafes.length === 0) {
+      return { cafes: [], isRealAi: false, aiErrorMessage: 'No cafes found in Kakao API' };
+    }
 
-      if (!groundedText || groundedText.length < 50) {
-        lastError = 'Insufficient grounding result';
-        continue;
-      }
-
-      const step2Response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          signal: AbortSignal.timeout(10000),
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: buildStep2Prompt(groundedText) }] }],
-            generationConfig: { temperature: 0.1, maxOutputTokens: 1200 },
-          }),
-        }
-      );
-
-      if (!step2Response.ok) {
-        const errorData = await step2Response.json().catch(() => ({}));
-        lastError = (errorData as any).error?.message || `HTTP ${step2Response.status}`;
-        continue;
-      }
-
-      const step2Data = await step2Response.json();
-      const rawJson: string =
-        (step2Data as any).candidates?.[0]?.content?.parts?.[0]?.text || '';
-      const cleanJson = rawJson.replace(/```json/gi, '').replace(/```/g, '').trim();
-
-      let groundedItems: GroundedCafeItem[] = JSON.parse(cleanJson);
-      if (!Array.isArray(groundedItems) || groundedItems.length === 0) {
-        lastError = 'Empty recommendations from Step2';
-        continue;
-      }
-
-      groundedItems = groundedItems.filter((item) => {
-        const nameSlice = item.name.replace(/\s/g, '').slice(0, 3);
-        return groundedText.includes(nameSlice);
-      });
-
-      if (groundedItems.length === 0) {
-        lastError = 'All recommended cafes not verified in grounding';
-        continue;
-      }
-
-      const imageResults = await Promise.allSettled(
-        groundedItems.map(async (item) => {
-          const [rep, interior, exterior, realMenuInfos] = await Promise.all([
-            fetchCafeImageWithGrounding(apiKey, model, item.name, item.address),
-            fetchCafeInteriorImagesWithGrounding(apiKey, model, item.name, item.address),
-            fetchCafeExteriorImagesWithGrounding(apiKey, model, item.name, item.address),
-            fetchCafeRealMenuWithGrounding(apiKey, model, item.name, item.address),
-          ]);
-
-          const menuItemsWithImages = await Promise.all(
-            realMenuInfos.map(async (m, mIdx) => {
-              const imgData = await fetchMenuItemImageWithGrounding(apiKey, model, item.name, item.address, m.name);
-              return {
-                id: `menu-real-${mIdx}-${Date.now()}`,
-                name: m.name,
-                price: m.price,
-                desc: m.desc || `${item.name}의 대표 메뉴`,
-                image: imgData?.imageUrl || '/assets/cafe_calm_forest.jpg',
-                imageSourceUrl: imgData?.sourceUrl || undefined,
-              };
-            })
-          );
-
-          return { rep, interior, exterior, menuItems: menuItemsWithImages };
-        })
-      );
-
-      const results: Cafe[] = groundedItems.map((item, idx) => {
-        const imgResult = imageResults[idx];
-        const spaceData = imgResult.status === 'fulfilled' ? imgResult.value : null;
-
-        return buildGroundedCafe(
-          item,
-          idx,
-          targetRegion,
-          spaceData?.rep,
-          spaceData?.interior,
-          spaceData?.exterior,
-          spaceData?.menuItems
-        );
-      });
-
-      results.sort((a, b) => b.match - a.match);
-
+    // 2. 받아온 데이터를 Cafe 인터페이스로 매핑
+    const mappedCafes: any[] = allCafes.slice(0, 50).map((place: any, index: number) => {
       return {
-        cafes: results,
-        isRealAi: true,
-        isExternalRegion: true,
-        targetRegion,
+        id: `kakao-ext-${place.id}`,
+        name: place.place_name || '카페',
+        address: place.road_address_name || place.address_name || '주소 없음',
+        description: 'Kakao Local 검색으로 발견된 카페입니다.',
+        photos: ['/assets/caffe_001.jpg'],
+        tags: [{ icon: 'warm', label: place.category_name?.split(' > ').pop() || '카페' }],
+        coords: [Number(place.y), Number(place.x)],
+        phone: place.phone || '',
+        placeUrl: place.place_url || '',
+        location: place.road_address_name || place.address_name,
+        mood: [],
+        detail: {
+          description: '',
+          menu: [],
+          detailTags: [],
+        }
       };
-    } catch (err: any) {
-      lastError = err?.message || 'Network error';
-    }
+    });
+
+    // 3. Gemini에게 분석 및 랭킹 요청
+    return await searchLocalCafes(moodIds, description, mappedCafes, geminiApiKey, targetRegion);
+
+  } catch (err: any) {
+    console.error('searchExternalRegionWithKakao error:', err);
+    return { cafes: [], isRealAi: false, aiErrorMessage: err.message };
   }
-
-  return { cafes: [], isRealAi: false, aiErrorMessage: lastError };
-}
-
-async function fetchCafeImageWithGrounding(
-  apiKey: string,
-  model: string,
-  cafeName: string,
-  cafeAddress: string
-): Promise<{ imageUrl: string; sourceUrl: string } | null> {
-  const { branchName, mainRegion, cityRegion } = extractSearchKeywords(cafeName, cafeAddress);
-  const regionLabel = [cityRegion, mainRegion].filter(Boolean).join(' ');
-
-  const query1 = `${cafeName} ${cafeAddress}`.trim();
-  const query2 = `${cafeName} ${regionLabel} cafe`.trim();
-  const query3 = branchName ? `${cafeName} ${branchName}`.trim() : `${cafeName} ${mainRegion}`.trim();
-
-  const searchPrompt = `
-카페 대표 이미지 1장 검색:
-대상 카페: "${cafeName}"
-주소: "${cafeAddress}"
-
-다음 순차적 검색 쿼리를 활용해 이 정확한 카페의 실제 대표 이미지(외관/인테리어) URL을 찾아주세요:
-1. ${query1}
-2. ${query2}
-3. ${query3}
-
-규칙:
-1. 다른 지역이나 다른 지점의 이미지는 절대 사용하지 마세요.
-2. 이미지 URL은 .jpg, .jpeg, .png, .webp 확장자여야 합니다.
-3. 정확히 일치하는 실제 이미지를 찾은 경우에만 해당 이미지 URL을 작성하세요.
-4. 불확실하면 NOT_FOUND를 출력하세요. 절대 이미지를 스스로 생성하지 마세요.
-
-형식:
-IMAGE_URL: https://...
-`;
-
-  try {
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        signal: AbortSignal.timeout(8000),
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: searchPrompt }] }],
-          tools: [{ google_search: {} }],
-          generationConfig: { temperature: 0.0, maxOutputTokens: 300 },
-        }),
-      }
-    );
-
-    if (!response.ok) return null;
-
-    const data = await response.json();
-    const candidate = (data as any).candidates?.[0];
-    const text: string = candidate?.content?.parts?.[0]?.text || '';
-    const chunks: any[] = candidate?.groundingMetadata?.groundingChunks || [];
-
-    if (!verifyImageLocationMatch(cafeName, cafeAddress, chunks, text)) return null;
-
-    const chunkResult = extractImageUrlsFromChunks(chunks);
-    if (chunkResult && chunkResult.imageUrl) return chunkResult;
-
-    if (!text.includes('NOT_FOUND')) {
-      const parsedUrl = parseImageUrlFromText(text);
-      if (parsedUrl && parsedUrl.startsWith('http')) {
-        return { imageUrl: parsedUrl, sourceUrl: chunkResult?.sourceUrl || parsedUrl };
-      }
-    }
-
-    if (chunkResult && chunkResult.sourceUrl) {
-      return { imageUrl: '', sourceUrl: chunkResult.sourceUrl };
-    }
-
-    return null;
-  } catch {
-    return null;
-  }
-}
-
-async function fetchCafeInteriorImagesWithGrounding(
-  apiKey: string,
-  model: string,
-  cafeName: string,
-  cafeAddress: string
-): Promise<{ images: string[]; sourceUrls: string[] }> {
-  const { branchName, mainRegion, cityRegion } = extractSearchKeywords(cafeName, cafeAddress);
-  const regionLabel = [cityRegion, mainRegion].filter(Boolean).join(' ');
-
-  const query1 = `${cafeName} ${regionLabel} interior`.trim();
-  const query2 = branchName ? `${cafeName} ${branchName} 내부` : `${cafeName} 내부 공간`;
-  const query3 = `${cafeName} ${cafeAddress} 인테리어`.trim();
-
-  const prompt = `
-"${cafeName}" 카페의 실제 실내/인테리어/좌석 공간 사진 검색:
-위치: "${cafeAddress}"
-
-다음 쿼리를 참조하여 이 카페의 실제 내부 공간 사진 URL을 찾아주세요:
-1. ${query1}
-2. ${query2}
-3. ${query3}
-
-규칙:
-1. 반드시 실내/인테리어/좌석 사진만 선택하세요.
-2. 음식, 디저트, 커피잔, 메뉴판 단독 사진은 절대 제외하세요.
-3. 다른 지역이나 다른 지점의 사진은 절대 제외하세요.
-4. 실제 확인된 사진만 최대 2개까지 알려주세요.
-5. 없거나 불확실하면 NOT_FOUND라고 답하세요.
-
-출력 형식:
-INTERIOR_URL: https://...
-`;
-
-  try {
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        signal: AbortSignal.timeout(8000),
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
-          tools: [{ google_search: {} }],
-          generationConfig: { temperature: 0.0, maxOutputTokens: 300 },
-        }),
-      }
-    );
-
-    if (!response.ok) return { images: [], sourceUrls: [] };
-
-    const data = await response.json();
-    const candidate = (data as any).candidates?.[0];
-    const text: string = candidate?.content?.parts?.[0]?.text || '';
-    const chunks: any[] = candidate?.groundingMetadata?.groundingChunks || [];
-
-    if (!verifyImageLocationMatch(cafeName, cafeAddress, chunks, text)) {
-      return { images: [], sourceUrls: [] };
-    }
-
-    const imgUrls: string[] = [];
-    const srcUrls: string[] = [];
-
-    for (const chunk of chunks) {
-      const uri = chunk?.web?.uri;
-      if (uri && isDirectImageUrl(uri) && imgUrls.length < 2) {
-        imgUrls.push(uri);
-        srcUrls.push(uri);
-      }
-    }
-
-    if (imgUrls.length < 2 && !text.includes('NOT_FOUND')) {
-      const imgPattern = /https?:\/\/[^\s"'<>]+\.(?:jpg|jpeg|png|webp)(?:\?[^\s"'<>]*)?/gi;
-      const matches = text.match(imgPattern) || [];
-      for (const m of matches) {
-        if (!imgUrls.includes(m) && imgUrls.length < 2) {
-          imgUrls.push(m);
-          srcUrls.push(chunks[0]?.web?.uri || m);
-        }
-      }
-    }
-
-    return { images: imgUrls, sourceUrls: srcUrls };
-  } catch {
-    return { images: [], sourceUrls: [] };
-  }
-}
-
-async function fetchCafeExteriorImagesWithGrounding(
-  apiKey: string,
-  model: string,
-  cafeName: string,
-  cafeAddress: string
-): Promise<{ images: string[]; sourceUrls: string[] }> {
-  const { branchName, mainRegion, cityRegion } = extractSearchKeywords(cafeName, cafeAddress);
-  const regionLabel = [cityRegion, mainRegion].filter(Boolean).join(' ');
-
-  const query1 = `${cafeName} ${regionLabel} exterior`.trim();
-  const query2 = branchName ? `${cafeName} ${branchName} 외관` : `${cafeName} 매장 외관`;
-  const query3 = `${cafeName} ${cafeAddress} entrance`.trim();
-
-  const prompt = `
-"${cafeName}" 카페의 실제 외관/건물/출입구 사진 검색:
-위치: "${cafeAddress}"
-
-다음 쿼리를 참조하여 이 카페의 실제 외관 사진 URL을 찾아주세요:
-1. ${query1}
-2. ${query2}
-3. ${query3}
-
-규칙:
-1. 반드시 매장 외관, 건물 전경, 출입구, 간판 사진만 선택하세요.
-2. 실내, 음식, 메뉴판 사진은 제외하세요.
-3. 다른 지역이나 다른 지점의 외관 사진은 절대 제외하세요.
-4. 실제 확인된 사진만 최대 1개 알려주세요.
-5. 없거나 불확실하면 NOT_FOUND라고 답하세요.
-
-출력 형식:
-EXTERIOR_URL: https://...
-`;
-
-  try {
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        signal: AbortSignal.timeout(8000),
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
-          tools: [{ google_search: {} }],
-          generationConfig: { temperature: 0.0, maxOutputTokens: 300 },
-        }),
-      }
-    );
-
-    if (!response.ok) return { images: [], sourceUrls: [] };
-
-    const data = await response.json();
-    const candidate = (data as any).candidates?.[0];
-    const text: string = candidate?.content?.parts?.[0]?.text || '';
-    const chunks: any[] = candidate?.groundingMetadata?.groundingChunks || [];
-
-    if (!verifyImageLocationMatch(cafeName, cafeAddress, chunks, text)) {
-      return { images: [], sourceUrls: [] };
-    }
-
-    const imgUrls: string[] = [];
-    const srcUrls: string[] = [];
-
-    for (const chunk of chunks) {
-      const uri = chunk?.web?.uri;
-      if (uri && isDirectImageUrl(uri) && imgUrls.length < 1) {
-        imgUrls.push(uri);
-        srcUrls.push(uri);
-      }
-    }
-
-    if (imgUrls.length < 1 && !text.includes('NOT_FOUND')) {
-      const imgPattern = /https?:\/\/[^\s"'<>]+\.(?:jpg|jpeg|png|webp)(?:\?[^\s"'<>]*)?/gi;
-      const matches = text.match(imgPattern) || [];
-      for (const m of matches) {
-        if (!imgUrls.includes(m) && imgUrls.length < 1) {
-          imgUrls.push(m);
-          srcUrls.push(chunks[0]?.web?.uri || m);
-        }
-      }
-    }
-
-    return { images: imgUrls, sourceUrls: srcUrls };
-  } catch {
-    return { images: [], sourceUrls: [] };
-  }
-}
-
-interface GroundedMenuItemInfo {
-  name: string;
-  price: string | null;
-  desc: string;
-}
-
-async function fetchCafeRealMenuWithGrounding(
-  apiKey: string,
-  model: string,
-  cafeName: string,
-  cafeAddress: string
-): Promise<GroundedMenuItemInfo[]> {
-  const prompt = `
-"${cafeName}" (${cafeAddress}) 카페의 실제 확인 가능한 대표 메뉴 2~3개를 찾아주세요.
-
-규칙:
-1. 실제로 판매가 확인되는 대표 메뉴만 2~3개 추출하세요.
-2. 메뉴명을 임의로 생성하지 마세요. 불확실하면 출력하지 마세요.
-3. 가격은 실제 확인된 경우만 "6,000원" 형식으로 적고, 확인할 수 없으면 null로 처리하세요. 가격을 지어내지 마세요.
-4. 반드시 JSON 배열로만 출력하세요 (마크다운 없이).
-
-형식:
-[
-  { "name": "실제 메뉴명", "price": "6,000원 또는 null", "desc": "메뉴 간단 설명" }
-]
-`;
-
-  try {
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        signal: AbortSignal.timeout(8000),
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
-          tools: [{ google_search: {} }],
-          generationConfig: { temperature: 0.0, maxOutputTokens: 300 },
-        }),
-      }
-    );
-
-    if (!response.ok) return [];
-
-    const data = await response.json();
-    const candidate = (data as any).candidates?.[0];
-    const text: string = candidate?.content?.parts?.[0]?.text || '';
-    const cleanJson = text.replace(/```json/gi, '').replace(/```/g, '').trim();
-
-    const parsed: GroundedMenuItemInfo[] = JSON.parse(cleanJson);
-    if (Array.isArray(parsed) && parsed.length > 0) {
-      return parsed.slice(0, 3);
-    }
-    return [];
-  } catch {
-    return [];
-  }
-}
-
-async function fetchMenuItemImageWithGrounding(
-  apiKey: string,
-  model: string,
-  cafeName: string,
-  cafeAddress: string,
-  menuName: string
-): Promise<{ imageUrl: string; sourceUrl: string } | null> {
-  const { branchName, mainRegion, cityRegion } = extractSearchKeywords(cafeName, cafeAddress);
-  const regionLabel = [cityRegion, mainRegion].filter(Boolean).join(' ');
-
-  const query1 = branchName ? `${cafeName} ${branchName} ${menuName}` : `${cafeName} ${mainRegion} ${menuName}`;
-  const query2 = `${cafeName} ${regionLabel} ${menuName}`;
-  const query3 = `${cafeName} ${menuName} menu`;
-
-  const prompt = `
-"${cafeName}" 카페의 실제 메뉴 "${menuName}" 사진 검색:
-위치: "${cafeAddress}"
-
-다음 쿼리를 순차 참조하여 실제 "${menuName}" 음식/음료 사진 URL을 찾아주세요:
-1. ${query1}
-2. ${query2}
-3. ${query3}
-
-규칙:
-1. 반드시 해당 메뉴("${menuName}")의 음식/음료 사진만 선택하세요.
-2. 실내 공간, 매장 외관, 메뉴판 전체, 사람 얼굴, AI 생성 이미지는 절대 제외하세요.
-3. 타 카페나 타 브랜드의 메뉴 사진은 절대 제외하세요.
-4. 이미지 URL(.jpg, .png, .webp)이 확인되면 1개만 출력하고, 없으면 NOT_FOUND라고 답하세요.
-
-형식:
-MENU_IMAGE_URL: https://...
-`;
-
-  try {
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        signal: AbortSignal.timeout(8000),
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
-          tools: [{ google_search: {} }],
-          generationConfig: { temperature: 0.0, maxOutputTokens: 300 },
-        }),
-      }
-    );
-
-    if (!response.ok) return null;
-
-    const data = await response.json();
-    const candidate = (data as any).candidates?.[0];
-    const text: string = candidate?.content?.parts?.[0]?.text || '';
-    const chunks: any[] = candidate?.groundingMetadata?.groundingChunks || [];
-
-    if (!verifyImageLocationMatch(cafeName, cafeAddress, chunks, text)) return null;
-
-    const chunkResult = extractImageUrlsFromChunks(chunks);
-    if (chunkResult && chunkResult.imageUrl) return chunkResult;
-
-    if (!text.includes('NOT_FOUND')) {
-      const parsedUrl = parseImageUrlFromText(text);
-      if (parsedUrl && parsedUrl.startsWith('http')) {
-        return { imageUrl: parsedUrl, sourceUrl: chunkResult?.sourceUrl || parsedUrl };
-      }
-    }
-
-    if (chunkResult && chunkResult.sourceUrl) {
-      return { imageUrl: '', sourceUrl: chunkResult.sourceUrl };
-    }
-
-    return null;
-  } catch {
-    return null;
-  }
-}
-
-function buildGroundedCafe(
-  item: GroundedCafeItem,
-  idx: number,
-  targetRegion: string,
-  imgData?: { imageUrl: string; sourceUrl: string } | null,
-  interiorData?: { images: string[]; sourceUrls: string[] } | null,
-  exteriorData?: { images: string[]; sourceUrls: string[] } | null,
-  menuItems?: Array<{ id: string; name: string; price: string | null; desc: string; image: string; imageSourceUrl?: string }> | null
-): Cafe {
-  const gradients = [
-    { from: '#e0c3fc', to: '#8ec5fc', emoji: '☕' },
-    { from: '#fbc531', to: '#e1b12c', emoji: '🍰' },
-    { from: '#487eb0', to: '#40739e', emoji: '🌿' },
-    { from: '#e84118', to: '#c23616', emoji: '✨' },
-  ];
-
-  const g = gradients[idx % gradients.length];
-  const cafeId = item.id || `grounded-${idx}-${Date.now()}`;
-  const cafeName = item.name || '추천 카페';
-  const cafeAddr = item.address || targetRegion;
-
-  const resolvedImageUrl =
-    imgData && imgData.imageUrl && imgData.imageUrl.length > 10
-      ? imgData.imageUrl
-      : getPlaceholder(idx);
-
-  const imageSourceUrl = imgData?.sourceUrl || undefined;
-
-  const safeRating: number | null =
-    item.rating != null && typeof item.rating === 'number' && item.rating > 0
-      ? item.rating
-      : null;
-
-  const safeReviewCount: number | null =
-    item.reviewCount != null && typeof item.reviewCount === 'number' && item.reviewCount > 0
-      ? item.reviewCount
-      : null;
-
-  const safeHoursLabel: string | null =
-    item.hoursLabel &&
-    item.hoursLabel.trim() !== '' &&
-    item.hoursLabel !== '정보 없음' &&
-    item.hoursLabel !== 'null'
-      ? item.hoursLabel
-      : null;
-
-  return {
-    id: cafeId,
-    name: cafeName,
-    location: cafeAddr,
-    description: item.description || `${cafeName}의 분위기 있는 공간입니다.`,
-    match: typeof item.matchScore === 'number' ? item.matchScore : 85 - idx * 3,
-    tags: Array.isArray(item.moodTags) ? item.moodTags : ['#AI추천', '#지역명소'],
-    mood: ['cozy'],
-    bookmarked: false,
-    hero: idx === 0,
-    photo: {
-      type: 'image',
-      image: resolvedImageUrl,
-      from: g.from,
-      to: g.to,
-      emoji: g.emoji,
-    },
-    aiReason: item.reason || `${cafeName}은(는) ${targetRegion}에서 추천하는 카페입니다.`,
-    isExternalRegion: true,
-    targetRegion,
-    mapsUrl: item.mapsUrl || undefined,
-    imageSourceUrl,
-    interiorImages: interiorData?.images || [],
-    interiorSourceUrls: interiorData?.sourceUrls || [],
-    exteriorImages: exteriorData?.images || [],
-    exteriorSourceUrls: exteriorData?.sourceUrls || [],
-    detail: {
-      detailTags: Array.isArray(item.moodTags) ? item.moodTags : ['#AI추천', '#지역명소'],
-      description: item.description || `${cafeName}은(는) ${targetRegion}에서 분위기와 커피로 사랑받는 카페입니다.`,
-      rating: safeRating,
-      hoursLabel: safeHoursLabel,
-      reviewCount: safeReviewCount,
-      menu: menuItems && menuItems.length > 0 ? menuItems : [],
-      reviews: [],
-      reservation: {
-        rating: safeRating,
-        reviewCountLabel: safeReviewCount ? `리뷰 ${safeReviewCount}+` : '상세 정보 확인',
-        description: `${cafeName}의 정보입니다. 방문 전 Google Maps에서 최신 정보를 확인하세요.`,
-        facilities: ['wifi'],
-        notice: '• 영업시간 및 주차 정보는 방문 전 Google Maps에서 확인을 추천합니다.',
-      },
-    },
-  };
 }
