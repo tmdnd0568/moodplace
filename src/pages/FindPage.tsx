@@ -186,8 +186,7 @@ export const FindPage: React.FC = () => {
   const startYRef = React.useRef<number>(0);
 
   // Search States
-  const [isSearchActive, setIsSearchActive] = useState<boolean>(false);
-  const [searchQuery, setSearchQuery] = useState<string>(window.localStorage.getItem('searchQuery') || '');
+  const searchQuery = window.localStorage.getItem('searchQuery') || '';
 
   // 위치 탐색 (GPS 및 IP 기반 감지)
   React.useEffect(() => {
@@ -816,41 +815,18 @@ export const FindPage: React.FC = () => {
     <PageContainer id="screen-find" className="screen is-active">
       {/* 1) Header */}
       <FindHeader className="find-header">
-        {!isSearchActive ? (
-          <>
-            <FindIconBtn type="button" onClick={() => setIsMenuOpen(true)} aria-label="메뉴">
-              <Icon name="menu" className="icon" />
-            </FindIconBtn>
+        <FindIconBtn type="button" onClick={() => setIsMenuOpen(true)} aria-label="메뉴">
+          <Icon name="menu" className="icon" />
+        </FindIconBtn>
 
-            {/* 메뉴 버튼과 검색 버튼 사이에 정렬된 km 반경 검색 필터 */}
-            <RadiusInfoFloatingBar>
-              <RadiusFilterChips>
-                <RadiusChipBtn type="button" $active={distanceFilter === '1km'} onClick={() => setDistanceFilter('1km')}>1km</RadiusChipBtn>
-                <RadiusChipBtn type="button" $active={distanceFilter === '3km'} onClick={() => setDistanceFilter('3km')}>3km</RadiusChipBtn>
-                <RadiusChipBtn type="button" $active={distanceFilter === 'all'} onClick={() => setDistanceFilter('all')}>전체</RadiusChipBtn>
-              </RadiusFilterChips>
-            </RadiusInfoFloatingBar>
-
-            <FindIconBtn type="button" onClick={() => setIsSearchActive(true)} aria-label="검색">
-              <Icon name="search" className="icon" />
-            </FindIconBtn>
-          </>
-        ) : (
-          <SearchWrapper>
-            <SearchInput
-              type="text"
-              placeholder="장소 이름 또는 주소 검색..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              autoFocus
-            />
-            <FindIconBtn type="button" onClick={() => { setIsSearchActive(false); setSearchQuery(''); }} aria-label="검색 닫기">
-              <Icon name="close" className="icon" />
-            </FindIconBtn>
-          </SearchWrapper>
-        )}
-
-        {/* 검색 결과 드롭다운 박스 제거 - 지도 마커 자동 필터링만 사용 */}
+        {/* 메뉴 버튼 옆에 정렬된 km 반경 검색 필터 */}
+        <RadiusInfoFloatingBar>
+          <RadiusFilterChips>
+            <RadiusChipBtn type="button" $active={distanceFilter === '1km'} onClick={() => setDistanceFilter('1km')}>1km</RadiusChipBtn>
+            <RadiusChipBtn type="button" $active={distanceFilter === '3km'} onClick={() => setDistanceFilter('3km')}>3km</RadiusChipBtn>
+            <RadiusChipBtn type="button" $active={distanceFilter === 'all'} onClick={() => setDistanceFilter('all')}>전체</RadiusChipBtn>
+          </RadiusFilterChips>
+        </RadiusInfoFloatingBar>
       </FindHeader>
 
       {/* 2) Map Canvas */}
@@ -1706,41 +1682,7 @@ const MenuLinkItem = styled.button`
   }
 `;
 
-const SearchWrapper = styled.div`
-  display: flex;
-  align-items: center;
-  gap: ${({ theme }) => theme.space[2]};
-  flex: 1;
-  background: rgba(255, 255, 255, 0.95);
-  border-radius: 99px;
-  padding: 2px 4px 2px 14px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  border: 1px solid ${({ theme }) => theme.colors.border};
-`;
 
-const SearchInput = styled.input`
-  flex: 1;
-  border: none;
-  background: none;
-  font-size: 16px; /* Prevent iOS & Mobile browser auto-zoom on input focus */
-  color: #1a1a1a;
-  outline: none;
-  padding: 4px 0;
-  font-family: inherit;
-
-  &:focus,
-  &:focus-visible,
-  &:active {
-    outline: none !important;
-    border: none !important;
-    box-shadow: none !important;
-  }
-
-  &::placeholder {
-    color: #999999;
-    font-size: 14px;
-  }
-`;
 
 
 
