@@ -459,17 +459,23 @@ export const FindPage: React.FC = () => {
     setIsDragging(true);
   };
 
+  const rafIdRef = React.useRef<number | null>(null);
+
   const handleDragMove = (clientY: number) => {
     if (!isDragging) return;
     const deltaY = clientY - startYRef.current;
     if (deltaY > 0) {
-      // 최대 120px까지만 드래그 허용 - 네비바와 시트 사이 빈 공간 방지
-      setDragOffset(Math.min(deltaY, 120));
+      // requestAnimationFrame으로 드래그 프레임 스케줄링 (60fps 최적화)
+      if (rafIdRef.current) cancelAnimationFrame(rafIdRef.current);
+      rafIdRef.current = requestAnimationFrame(() => {
+        setDragOffset(Math.min(deltaY, 120));
+      });
     }
   };
 
   const handleDragEnd = () => {
     if (!isDragging) return;
+    if (rafIdRef.current) cancelAnimationFrame(rafIdRef.current);
     setIsDragging(false);
     if (dragOffset > 80) {
       setIsSheetOpen(false);
@@ -487,6 +493,7 @@ export const FindPage: React.FC = () => {
     if (!L) return;
 
     const map = L.map('find-map-api', {
+      preferCanvas: true,
       zoomControl: false,
       attributionControl: false,
       fadeAnimation: true,
@@ -649,55 +656,70 @@ export const FindPage: React.FC = () => {
     }
   }, [showBicycle]);
 
-  // 2. 3km 반경 원(Circle) 및 마커 생성 (반경 변경 시에만 고성능 재렌더링)
+  // 2. 반경 원(Circle) 및 마커 디핑 관리 (기존 마커 재활용으로 DOM 재생성 최소화 및 렉 완전 제거)
   const userCoordsKey = userCoords.join(',');
   React.useEffect(() => {
     const L = (window as any).L;
     const map = mapRef.current;
     if (!L || !map) return;
 
-    // 기존 원 및 마커 제거
-    if (circleRef.current) circleRef.current.remove();
-    Object.values(markersRef.current).forEach((m: any) => m.remove());
-    markersRef.current = {};
-
-    // 반경 원 오버레이 렌더링
+    // 반경 원 오버레이 업데이트 (기존 Circle 재활용)
     const radiusMeters = distanceFilter === '1km' ? 1000 : distanceFilter === '3km' ? 3000 : 5000;
-    const circle = L.circle(userCoords, {
-      color: '#ff6b6b',
-      fillColor: '#ff6b6b',
-      fillOpacity: 0.05,
-      radius: radiusMeters,
-      weight: 1,
-      dashArray: '6, 6'
-    }).addTo(map);
-    circleRef.current = circle;
+    if (circleRef.current) {
+      circleRef.current.setLatLng(userCoords);
+      circleRef.current.setRadius(radiusMeters);
+    } else {
+      const circle = L.circle(userCoords, {
+        color: '#ff6b6b',
+        fillColor: '#ff6b6b',
+        fillOpacity: 0.05,
+        radius: radiusMeters,
+        weight: 1,
+        dashArray: '6, 6'
+      }).addTo(map);
+      circleRef.current = circle;
+    }
 
-    // 마커 생성 및 핑 등록
-    filteredCafes.forEach((place) => {
-      const pinSvg = `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>`;
+    const currentPlaceIds = new Set(filteredCafes.map((p) => p.id));
+    const existingMarkers = markersRef.current;
 
-      const customIcon = L.divIcon({
-        className: 'leaflet-custom-marker-container',
-        html: `
-          <div class="custom-marker ${place.id === selectedPlaceId ? 'is-active' : ''}">
-            <span class="marker-label">${place.name} (${place.distText})</span>
-            <span class="marker-pin">${pinSvg}</span>
-          </div>
-        `,
-        iconSize: [140, 50],
-        iconAnchor: [70, 48]
-      });
-
-      const marker = L.marker(place.coords, { icon: customIcon }).addTo(map);
-      marker.on('click', () => {
-        handlePlaceSelect(place.id);
-        map.panTo(place.coords, { animate: true, duration: 0.25 });
-      });
-
-      markersRef.current[place.id] = marker;
+    // 1) 제거된 카페 마커만 지도에서 삭제
+    Object.keys(existingMarkers).forEach((id) => {
+      if (!currentPlaceIds.has(id)) {
+        existingMarkers[id].remove();
+        delete existingMarkers[id];
+      }
     });
 
+    // 2) 새로 추가되거나 기존에 있던 마커 고성능 유지
+    const pinSvg = `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>`;
+
+    filteredCafes.forEach((place) => {
+      if (existingMarkers[place.id]) {
+        // 이미 존재하는 마커는 latlng만 업데이트
+        existingMarkers[place.id].setLatLng(place.coords);
+      } else {
+        // 신규 마커만 DOM 생성
+        const customIcon = L.divIcon({
+          className: 'leaflet-custom-marker-container',
+          html: `
+            <div class="custom-marker ${place.id === selectedPlaceId ? 'is-active' : ''}">
+              <span class="marker-label">${place.name} (${place.distText})</span>
+              <span class="marker-pin">${pinSvg}</span>
+            </div>
+          `,
+          iconSize: [140, 50],
+          iconAnchor: [70, 48]
+        });
+
+        const marker = L.marker(place.coords, { icon: customIcon }).addTo(map);
+        marker.on('click', () => {
+          handlePlaceSelect(place.id);
+        });
+
+        existingMarkers[place.id] = marker;
+      }
+    });
   }, [userCoordsKey, distanceFilter, filteredCafes]);
 
   // 3. 선택된 카페 핀 클래스 토글 (전체 마커 파괴 없이 0ms 즉시 하이라이트)
@@ -1024,11 +1046,15 @@ const FindHeader = styled.header`
   z-index: 5;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
   padding: ${({ theme }) => theme.space[4]} ${({ theme }) => theme.space[4]};
+  pointer-events: none;
 `;
 
 const FindIconBtn = styled.button`
+  position: absolute;
+  left: ${({ theme }) => theme.space[4]};
+  pointer-events: auto;
   width: 40px;
   height: 40px;
   border: none;
@@ -1060,6 +1086,8 @@ const MapCanvas = styled.div`
   bottom: 0;
   z-index: 1;
   background: #e9efe4;
+  will-change: transform;
+  transform: translateZ(0);
 
   .leaflet-container {
     width: 100%;
@@ -1151,8 +1179,8 @@ const MapCanvas = styled.div`
 `;
 
 const RadiusInfoFloatingBar = styled.div`
-  position: static;
-  transform: none;
+  pointer-events: auto;
+  position: relative;
   z-index: 10;
   background: rgba(255, 255, 255, 0.92);
   backdrop-filter: blur(10px);
