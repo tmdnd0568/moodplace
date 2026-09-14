@@ -41,8 +41,32 @@ export default async function handler(req: any, res: any) {
       }
     }
 
-    // 중복 제거 (place ID 기준)
-    const uniqueCafes = Array.from(new Map(allCafes.map((c: any) => [c.id, c])).values());
+    // 중복 제거 (1. Kakao place id, 2. 이름 + 주소, 3. 이름 + 좌표)
+    const seenIds = new Set<string>();
+    const seenNameAddr = new Set<string>();
+    const seenNameCoords = new Set<string>();
+    const uniqueCafes: any[] = [];
+
+    for (const c of allCafes) {
+      const id = String(c.id || '');
+      const name = (c.place_name || '').trim();
+      const addr = (c.road_address_name || c.address_name || '').trim();
+      const x = String(c.x || '');
+      const y = String(c.y || '');
+
+      const nameAddrKey = `${name}|${addr}`;
+      const nameCoordsKey = `${name}|${y},${x}`;
+
+      if (id && seenIds.has(id)) continue;
+      if (addr && seenNameAddr.has(nameAddrKey)) continue;
+      if (x && y && seenNameCoords.has(nameCoordsKey)) continue;
+
+      if (id) seenIds.add(id);
+      if (addr) seenNameAddr.add(nameAddrKey);
+      if (x && y) seenNameCoords.add(nameCoordsKey);
+
+      uniqueCafes.push(c);
+    }
 
     // 정확히 최대 50개 제한
     const slicedCafes = uniqueCafes.slice(0, 50);

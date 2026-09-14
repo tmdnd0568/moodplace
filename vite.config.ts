@@ -38,11 +38,35 @@ const apiFallbackPlugin = () => ({
               }
               break;
             }
-            const data = await apiRes.json();
+            const data = await apiRes.json() as any;
             if (data.documents) allCafes.push(...data.documents);
             if (data.meta?.is_end || allCafes.length >= 50) break;
           }
-          const uniqueCafes = Array.from(new Map(allCafes.map((c: any) => [c.id, c])).values());
+          const seenIds = new Set<string>();
+          const seenNameAddr = new Set<string>();
+          const seenNameCoords = new Set<string>();
+          const uniqueCafes: any[] = [];
+
+          for (const c of allCafes) {
+            const id = String(c.id || '');
+            const name = (c.place_name || '').trim();
+            const addr = (c.road_address_name || c.address_name || '').trim();
+            const x = String(c.x || '');
+            const y = String(c.y || '');
+
+            const nameAddrKey = `${name}|${addr}`;
+            const nameCoordsKey = `${name}|${y},${x}`;
+
+            if (id && seenIds.has(id)) continue;
+            if (addr && seenNameAddr.has(nameAddrKey)) continue;
+            if (x && y && seenNameCoords.has(nameCoordsKey)) continue;
+
+            if (id) seenIds.add(id);
+            if (addr) seenNameAddr.add(nameAddrKey);
+            if (x && y) seenNameCoords.add(nameCoordsKey);
+
+            uniqueCafes.push(c);
+          }
           res.statusCode = 200;
           res.end(JSON.stringify({ cafes: uniqueCafes.slice(0, 50) }));
         } catch (e: any) {

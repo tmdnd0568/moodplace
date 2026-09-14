@@ -22,6 +22,18 @@ export function rootReducer(state: AppState, action: AppAction): AppState {
       };
     }
 
+    case 'SELECT_CAFE_ENTITY': {
+      // Kakao 카페 전체 객체를 보존 (실제 좌표를 MapPage까지 전달하기 위해)
+      const cafe = action.payload;
+      const updatedVisited = Array.from(new Set([...(state.visitedCafeIds || []), cafe.id]));
+      return {
+        ...state,
+        selectedCafeId: cafe.id,
+        selectedCafe: cafe,
+        visitedCafeIds: updatedVisited,
+      };
+    }
+
     case 'RECORD_VISIT': {
       const cafeId = action.payload;
       const updatedVisited = Array.from(new Set([...(state.visitedCafeIds || []), cafeId]));
@@ -92,7 +104,7 @@ export function rootReducer(state: AppState, action: AppAction): AppState {
       const allNewItems = [
         ...(action.payload || []),
         ...((action.allKakaoCafes || []).map((c: any) => ({
-          // Kakao 데이터를 Cafe 현환 (기존 필드만 사용)
+          // Kakao 데이터를 Cafe 변환 - 실제 좌표/전화번호/URL 보존
           id: c.id,
           name: c.name,
           location: c.address || c.location || '',
@@ -104,6 +116,11 @@ export function rootReducer(state: AppState, action: AppAction): AppState {
           hero: false,
           photo: { type: 'color', from: '#2D5244', to: '#4a7c5e', emoji: '☕️', image: (c.photos || ['/assets/caffe_001.jpg'])[0] },
           detail: c.detail || { detailTags: [], description: '', rating: null, hoursLabel: null, reviewCount: null, menu: [], reviews: [] },
+          // Kakao 실제 장소 데이터 보존 (coords는 길찾기에 필수)
+          coords: c.coords,
+          phone: c.phone,
+          placeUrl: c.placeUrl,
+          kakaoPlaceId: c.kakaoPlaceId || (c.id?.startsWith('kakao-') ? c.id.replace('kakao-ext-', '').replace('kakao-', '') : undefined),
         })))
       ];
       const newCafes = allNewItems.filter((c) => !existingIds.has(c.id));

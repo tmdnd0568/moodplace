@@ -85,6 +85,12 @@ export interface Cafe {
   interiorSourceUrls?: string[]; // interior 이미지 웹 출처 URL
   exteriorImages?: string[];   // 실제 카페 외부/전경 공간 이미지 (최대 1장)
   exteriorSourceUrls?: string[]; // exterior 이미지 웹 출처 URL
+  coords?: [number, number];  // [latitude, longitude]
+  phone?: string;             // 전화번호
+  placeUrl?: string;          // 카카오맵 장소 URL
+  kakaoPlaceId?: string;      // Kakao 고유 ID
+  address?: string;           // 지번 주소
+  roadAddress?: string;       // 도로명 주소
 }
 
 export interface NearbyPlace {
@@ -111,6 +117,7 @@ export interface AppState {
   screen: 'splash' | 'main' | 'review' | 'reservation' | 'map' | 'find' | 'my' | 'keep';
   isSearchModalOpen: boolean;
   selectedCafeId: string | null;
+  selectedCafe: Cafe | null;  // 선택된 카페 전체 객체 (Kakao 카페 데이터 보존용)
   selectedMoods: string[];
   modalSelectedMoods: string[];
   userLocation: [number, number] | null;
@@ -134,6 +141,7 @@ export interface AppState {
 export type AppAction =
   | { type: 'GO_TO_SCREEN'; payload: 'splash' | 'main' | 'review' | 'reservation' | 'map' | 'find' | 'my' | 'keep' }
   | { type: 'SELECT_CAFE'; payload: string }
+  | { type: 'SELECT_CAFE_ENTITY'; payload: Cafe }  // 카페 전체 객체 저장 (Kakao 카페 데이터 보존용)
   | { type: 'RECORD_VISIT'; payload: string }
   | { type: 'SET_TRAVEL_MODE'; payload: 'walk' | 'transit' | 'taxi' }
   | { type: 'SET_USER_LOCATION'; payload: [number, number] | null }
@@ -145,7 +153,7 @@ export type AppAction =
   | { type: 'TOGGLE_MODAL_MOOD'; payload: string }
   | { type: 'SET_MOOD_DESCRIPTION'; payload: string }
   | { type: 'START_MOOD_SEARCH' }
-  | { type: 'RECEIVE_MOOD_SEARCH_RESULT'; payload: Cafe[]; allKakaoCafes?: any[] }
+  | { type: 'RECEIVE_MOOD_SEARCH_RESULT'; payload: Cafe[]; allKakaoCafes?: Cafe[] }
   | { type: 'TOGGLE_BOOKMARK'; payload: string; cafe?: Cafe }
   | { type: 'SET_ACTIVE_TAB'; payload: string }
   | { type: 'TOGGLE_THEME'; payload: string }

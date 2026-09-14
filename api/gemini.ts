@@ -2,7 +2,7 @@ import type { Cafe } from '../src/store/types';
 
 export interface GeminiSearchResult {
   cafes: Cafe[];          // Gemini AI 추천 결과 (= 사용자 무드에 적합한 상위 카페)
-  allKakaoCafes?: any[];  // Kakao API가 확보한 전체 실제 카페 (지도 마커용)
+  allKakaoCafes?: Cafe[]; // Kakao API가 확보한 전체 실제 카페 (지도 마커용)
   isRealAi: boolean;
   aiErrorMessage?: string;
   isExternalRegion?: boolean;
@@ -49,6 +49,36 @@ const PLACEHOLDER_IMAGES = [
 
 function getPlaceholder(idx: number): string {
   return PLACEHOLDER_IMAGES[idx % PLACEHOLDER_IMAGES.length];
+}
+
+function deduplicateKakaoCafes(rawCafes: any[]): any[] {
+  const seenIds = new Set<string>();
+  const seenNameAddr = new Set<string>();
+  const seenNameCoords = new Set<string>();
+  const result: any[] = [];
+
+  for (const c of rawCafes) {
+    const id = String(c.id || c.kakaoPlaceId || '');
+    const name = (c.place_name || c.name || '').trim();
+    const addr = (c.road_address_name || c.address_name || c.address || c.location || '').trim();
+    const x = String(c.x || (c.coords ? c.coords[1] : ''));
+    const y = String(c.y || (c.coords ? c.coords[0] : ''));
+
+    const nameAddrKey = `${name}|${addr}`;
+    const nameCoordsKey = `${name}|${y},${x}`;
+
+    if (id && seenIds.has(id)) continue;
+    if (addr && seenNameAddr.has(nameAddrKey)) continue;
+    if (x && y && seenNameCoords.has(nameCoordsKey)) continue;
+
+    if (id) seenIds.add(id);
+    if (addr) seenNameAddr.add(nameAddrKey);
+    if (x && y) seenNameCoords.add(nameCoordsKey);
+
+    result.push(c);
+  }
+
+  return result;
 }
 
 function isDirectImageUrl(url: string): boolean {
@@ -337,34 +367,36 @@ async function searchExternalRegionWithKakao(
       if (data.meta?.is_end || allCafes.length >= 50) break;
     }
 
+
     if (allCafes.length === 0) {
       return { cafes: [], allKakaoCafes: [], isRealAi: false, aiErrorMessage: 'No cafes found in Kakao API' };
     }
 
-    // 중복 제거 (Kakao place ID 기준)
-    const uniqueRaw = Array.from(new Map(allCafes.map((c: any) => [c.id, c])).values());
+    // 중복 제거 (1. Kakao place id, 2. 이름 + 주소, 3. 이름 + 좌표)
+    const uniqueRaw = deduplicateKakaoCafes(allCafes);
 
-    // 2. 받아온 데이터를 FindPage가 인식하는 형식으로 매핑 (전체 리스트)
+    // FindPage/Store가 인식하는 형식으로 매핑 (전체 리스트)
     const allKakaoCafes: any[] = uniqueRaw.slice(0, 50).map((place: any) => ({
       id: `kakao-ext-${place.id}`,
       name: place.place_name || '카페',
       address: place.road_address_name || place.address_name || '주소 없음',
+      roadAddress: place.road_address_name || '',
       description: place.category_name || 'Kakao Local 검색으로 발견된 카페입니다.',
       photos: ['/assets/caffe_001.jpg'],
       tags: [{ icon: 'warm', label: place.category_name?.split(' > ').pop() || '카페' }],
       coords: [Number(place.y), Number(place.x)],
       phone: place.phone || '',
       placeUrl: place.place_url || '',
+      kakaoPlaceId: String(place.id || ''),
       location: place.road_address_name || place.address_name,
       distance: Number(place.distance || 0),
       mood: [],
       detail: { description: '', menu: [], detailTags: [] },
     }));
 
-    // 3. Gemini에게 분석 및 랭킹 요청 (전체 목록 전달)
     const aiResult = await searchLocalCafes(moodIds, description, allKakaoCafes, geminiApiKey, targetRegion);
 
-    // 4. Gemini 추천 결과를 Kakao 원본 기준으로 검증 (없는 카페 제거)
+    // Gemini 추천 결과를 Kakao 원본 기준으로 검증 (없는 카페 제거)
     const kakaoIdSet = new Set(allKakaoCafes.map((c) => c.id));
     const verifiedAiCafes = aiResult.cafes.filter((c) => kakaoIdSet.has(c.id));
 

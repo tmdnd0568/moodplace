@@ -730,8 +730,26 @@ export const FindPage: React.FC = () => {
   };
 
   const handleGoToRoute = () => {
-    const cafeId = selectedPlace?.id || 'forest-lounge';
-    dispatch({ type: 'SELECT_CAFE', payload: cafeId });
+    if (!selectedPlace) return;
+    const cafeId = selectedPlace.id || 'forest-lounge';
+    // Kakao 카페 전체 객체(실제 coords 포함)를 state에 보존한 뒤 MapPage로 이동
+    const cafeEntity = {
+      id: cafeId,
+      name: selectedPlace.name,
+      location: selectedPlace.address || '',
+      description: selectedPlace.description || '',
+      match: 80,
+      tags: (selectedPlace.tags || []).map((t: any) => t.label || t),
+      mood: [],
+      bookmarked: false,
+      hero: false,
+      photo: { type: 'color', from: '#2D5244', to: '#4a7c5e', emoji: '☕️', image: (selectedPlace.photos || ['/assets/caffe_001.jpg'])[0] },
+      detail: { detailTags: [], description: selectedPlace.description || '', rating: null, hoursLabel: null, reviewCount: null, menu: [], reviews: [] },
+      coords: selectedPlace.coords,  // Kakao 실제 좌표 보존
+      phone: (selectedPlace as any).phone,
+      placeUrl: (selectedPlace as any).placeUrl,
+    };
+    dispatch({ type: 'SELECT_CAFE_ENTITY', payload: cafeEntity });
     dispatch({ type: 'SET_TRAVEL_MODE', payload: 'walk' });
     navigate(`/map/${cafeId}`);
   };

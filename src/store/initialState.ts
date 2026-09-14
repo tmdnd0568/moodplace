@@ -41,6 +41,7 @@ export const initialState: AppState = {
   screen: 'splash',
   isSearchModalOpen: false,
   selectedCafeId: null,
+  selectedCafe: null,
   selectedMoods: ['cozy'],
   modalSelectedMoods: [],
   moodDescription: '',

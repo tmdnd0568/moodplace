@@ -3,7 +3,7 @@ import { mockAiSearch } from '../data/mockData';
 
 export interface GeminiSearchResult {
   cafes: Cafe[];          // Gemini AI 추천 결과
-  allKakaoCafes?: any[];  // Kakao 전체 카페 (지도 마커용)
+  allKakaoCafes?: Cafe[]; // Kakao 전체 카페 (지도 마커용)
   isRealAi: boolean;
   aiErrorMessage?: string;
   isExternalRegion?: boolean;

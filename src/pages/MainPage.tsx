@@ -60,7 +60,8 @@ export const MainPage: React.FC = () => {
     dispatch({ type: 'START_MOOD_SEARCH' });
     try {
       const res = await searchCafesWithGemini([], query, state.cafes);
-      dispatch({ type: 'RECEIVE_MOOD_SEARCH_RESULT', payload: res.cafes });
+      // AI 추천(cafes) + Kakao 전체(allKakaoCafes) 분리 전달 (SearchModal과 동일한 패턴)
+      dispatch({ type: 'RECEIVE_MOOD_SEARCH_RESULT', payload: res.cafes, allKakaoCafes: res.allKakaoCafes || [] });
       setSelectedRecommendTab('all');
       dispatch({
         type: 'SHOW_TOAST',

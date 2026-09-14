@@ -34,6 +34,7 @@ export const MapPage: React.FC = () => {
   const { state, dispatch } = useStore();
 
   const cafe =
+    state.selectedCafe?.id === cafeId ? state.selectedCafe :  // 1순위: 저장된 전체 객체 (Kakao 실제 좌표 보존)
     state.cafes.find((c) => c.id === cafeId) ||
     state.searchResults.find((c) => c.id === cafeId) ||
     getCafeById(cafeId);
@@ -167,8 +168,15 @@ export const MapPage: React.FC = () => {
     // 지도가 이미 생성되어 있다면 재사용 후 위치 업데이트
     let map = mapRef.current;
     
-    // 유효하지 않은 목적지 좌표(NaN) 방어
-    const destination: [number, number] = getCoords(cafeId, cafe?.location);
+    // 목적지 좌표 우선순위:
+    // 1순위: cafe.coords (실제 Kakao 좌표)
+    // 2순위: getCoords() (주소/지역 기반 추정)
+    const cafeCoords = (cafe as any)?.coords;
+    const destination: [number, number] = (
+      cafeCoords && Array.isArray(cafeCoords) && !isNaN(cafeCoords[0]) && !isNaN(cafeCoords[1])
+        ? cafeCoords
+        : getCoords(cafeId, cafe?.location)
+    ) as [number, number];
     if (isNaN(destination[0]) || isNaN(destination[1])) {
        dispatch({ type: 'SHOW_TOAST', payload: '카페의 정확한 위치 정보가 없습니다.' });
        return;
