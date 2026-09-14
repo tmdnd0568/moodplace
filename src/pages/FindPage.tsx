@@ -164,6 +164,12 @@ export const FindPage: React.FC = () => {
   const [radiusKm, setRadiusKm] = useState<number>(3.0); // 반경 3km (기본)
   const [previewPhotoUrl, setPreviewPhotoUrl] = useState<string | null>(null);
 
+  // API Fetched Cafes & Map Center Tracking
+  const [fetchedCafes, setFetchedCafes] = useState<any[]>([]);
+  const [mapCenter, setMapCenter] = useState<[number, number]>([36.3537, 127.3872]);
+  const searchAbortControllerRef = React.useRef<AbortController | null>(null);
+  const lastFetchCenter = React.useRef<[number, number] | null>(null);
+
   // Drag Gesture States for Bottom Sheet
   const [dragOffset, setDragOffset] = useState<number>(0);
   const [isDragging, setIsDragging] = useState<boolean>(false);
@@ -181,9 +187,15 @@ export const FindPage: React.FC = () => {
           const lat = pos.coords.latitude;
           const lng = pos.coords.longitude;
           setUserCoords([lat, lng]);
+          setMapCenter([lat, lng]);
+          dispatch({ type: 'SET_USER_LOCATION', payload: [lat, lng] });
+          if (mapRef.current) {
+            mapRef.current.setView([lat, lng], 14);
+          }
         },
         () => {
           setUserCoords([36.3537, 127.3872]);
+          setMapCenter([36.3537, 127.3872]);
         },
         { enableHighAccuracy: true, timeout: 5000 }
       );
@@ -339,8 +351,22 @@ export const FindPage: React.FC = () => {
       });
     });
 
+    // 5. 실시간 API(Overpass)로 검색된 주변 카페 추가
+    fetchedCafes.forEach((c) => {
+      if (isDuplicate(c.id, c.name)) return;
+      list.push({
+        id: c.id,
+        name: c.name,
+        address: c.address,
+        description: c.description,
+        photos: c.photos,
+        tags: c.tags,
+        coords: c.coords,
+      });
+    });
+
     return list;
-  }, [state.cafes, state.searchResults, EXTRA_LOCAL_CAFES, userCoords, searchQuery]);
+  }, [state.cafes, state.searchResults, EXTRA_LOCAL_CAFES, userCoords, searchQuery, fetchedCafes]);
 
   // 내 위치 기준 모든 카페 거리 계산
   const cafesWithDistance = React.useMemo(() => {
@@ -455,8 +481,19 @@ export const FindPage: React.FC = () => {
 
     mapRef.current = map;
 
+    // 지도 이동 끝난 후 중심 좌표 업데이트 (debounce 처리용 타이머)
+    let moveTimer: any = null;
+    map.on('moveend', () => {
+      if (moveTimer) clearTimeout(moveTimer);
+      moveTimer = setTimeout(() => {
+        const center = map.getCenter();
+        setMapCenter([center.lat, center.lng]);
+      }, 500);
+    });
+
     return () => {
       if (mapRef.current) {
+        if (moveTimer) clearTimeout(moveTimer);
         try {
           mapRef.current.remove();
         } catch (e) {
@@ -466,6 +503,84 @@ export const FindPage: React.FC = () => {
       }
     };
   }, []);
+
+  // Overpass API로 주변 카페 실시간 가져오기
+  React.useEffect(() => {
+    // 반경 20km(전체)일 경우 부하 방지를 위해 5km로 제한
+    const searchRadius = radiusKm >= 20 ? 5000 : radiusKm * 1000;
+    
+    // 이전 검색 중심과 너무 가까우면(예: 300m 이내) 재검색 생략
+    if (lastFetchCenter.current) {
+      const dist = getDistanceFromLatLonInKm(
+        lastFetchCenter.current[0], lastFetchCenter.current[1],
+        mapCenter[0], mapCenter[1]
+      );
+      if (dist < 0.3 && fetchedCafes.length > 0) return;
+    }
+
+    if (searchAbortControllerRef.current) {
+      searchAbortControllerRef.current.abort();
+    }
+    const abortController = new AbortController();
+    searchAbortControllerRef.current = abortController;
+
+    const fetchCafesFromOSM = async () => {
+      try {
+        const query = `
+          [out:json][timeout:10];
+          node["amenity"="cafe"](around:${searchRadius},${mapCenter[0]},${mapCenter[1]});
+          out body;
+        `;
+        const url = `https://overpass-api.de/api/interpreter?data=${encodeURIComponent(query)}`;
+        const res = await fetch(url, { signal: abortController.signal });
+        if (!res.ok) throw new Error('API fetch failed');
+        const data = await res.json();
+        
+        if (data && data.elements) {
+          const newCafes = data.elements
+            .filter((el: any) => el.lat && el.lon && !isNaN(el.lat) && !isNaN(el.lon))
+            .map((el: any) => {
+              const name = el.tags?.name || el.tags?.['name:ko'] || el.tags?.['name:en'] || '주변 카페';
+              const id = `osm-${el.id}`;
+              return {
+                id,
+                name,
+                address: el.tags?.['addr:street'] ? `${el.tags['addr:street']} ${el.tags['addr:housenumber'] || ''}` : '상세 주소 없음',
+                description: '실시간 지도 탐색으로 발견된 카페입니다.',
+                photos: ['/assets/caffe_001.jpg'],
+                tags: [{ icon: 'warm', label: '주변 탐색' }],
+                coords: [el.lat, el.lon] as [number, number],
+              };
+            });
+          
+          setFetchedCafes(prev => {
+            const existingIds = new Set(prev.map(c => c.id));
+            const existingCoords = new Set(prev.map(c => `${c.coords[0].toFixed(4)},${c.coords[1].toFixed(4)}`));
+            
+            const filteredNew = newCafes.filter((c: any) => {
+              if (existingIds.has(c.id)) return false;
+              const coordKey = `${c.coords[0].toFixed(4)},${c.coords[1].toFixed(4)}`;
+              if (existingCoords.has(coordKey)) return false;
+              return true;
+            });
+            
+            return [...prev, ...filteredNew];
+          });
+          lastFetchCenter.current = mapCenter;
+        }
+      } catch (err: any) {
+        if (err.name !== 'AbortError') {
+          console.warn('Overpass API error:', err);
+        }
+      }
+    };
+
+    fetchCafesFromOSM();
+
+    return () => {
+      abortController.abort();
+    };
+  }, [mapCenter, radiusKm]);
 
   // 지도 유형 (기본 지도 / 위성 지도 / 지형 지도) 실시간 레이어 스위칭
   React.useEffect(() => {

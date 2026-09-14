@@ -10,7 +10,9 @@ export function rootReducer(state: AppState, action: AppAction): AppState {
       const cafeId = action.payload;
       const updatedVisited = Array.from(new Set([...(state.visitedCafeIds || []), cafeId]));
       try {
-        localStorage.setItem('moodplace_visited_cafe_ids', JSON.stringify(updatedVisited));
+        const userEmail = sessionStorage.getItem('moodplace_user_email') || '';
+        const suffix = userEmail ? `_${userEmail}` : '';
+        localStorage.setItem(`moodplace_visited_cafe_ids${suffix}`, JSON.stringify(updatedVisited));
       } catch (e) {}
       return {
         ...state,
@@ -24,7 +26,9 @@ export function rootReducer(state: AppState, action: AppAction): AppState {
       const cafeId = action.payload;
       const updatedVisited = Array.from(new Set([...(state.visitedCafeIds || []), cafeId]));
       try {
-        localStorage.setItem('moodplace_visited_cafe_ids', JSON.stringify(updatedVisited));
+        const userEmail = sessionStorage.getItem('moodplace_user_email') || '';
+        const suffix = userEmail ? `_${userEmail}` : '';
+        localStorage.setItem(`moodplace_visited_cafe_ids${suffix}`, JSON.stringify(updatedVisited));
       } catch (e) {}
       return {
         ...state,
@@ -121,8 +125,10 @@ export function rootReducer(state: AppState, action: AppAction): AppState {
       }
 
       try {
-        localStorage.setItem('moodplace_bookmarked_ids', JSON.stringify(nextBookmarks));
-        localStorage.setItem('moodplace_saved_cafe_entities', JSON.stringify(nextEntities));
+        const userEmail = sessionStorage.getItem('moodplace_user_email') || '';
+        const suffix = userEmail ? `_${userEmail}` : '';
+        localStorage.setItem(`moodplace_bookmarked_ids${suffix}`, JSON.stringify(nextBookmarks));
+        localStorage.setItem(`moodplace_saved_cafe_entities${suffix}`, JSON.stringify(nextEntities));
       } catch (e) {}
 
       return {
@@ -131,6 +137,9 @@ export function rootReducer(state: AppState, action: AppAction): AppState {
         savedCafeEntities: nextEntities,
       };
     }
+
+    case 'SET_USER_LOCATION':
+      return { ...state, userLocation: action.payload };
 
     case 'SET_ACTIVE_TAB':
       return { ...state, activeTab: action.payload };

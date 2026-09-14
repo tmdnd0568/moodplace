@@ -110,8 +110,8 @@ export const MapPage: React.FC = () => {
   // 1. Real-time HTML5 Geolocation Tracking
   React.useEffect(() => {
     if (!navigator.geolocation) {
-      setUserGpsCoords([36.3524, 127.3789]);
-      setUserLocationLabel('기본 출발지 · 대전 둔산동');
+      setUserGpsCoords(state.userLocation || [36.3524, 127.3789]);
+      setUserLocationLabel(state.userLocation ? '내 현재 위치' : '기본 출발지 · 대전 둔산동');
       return;
     }
 
@@ -119,6 +119,7 @@ export const MapPage: React.FC = () => {
       const lat = position.coords.latitude;
       const lng = position.coords.longitude;
       setUserGpsCoords([lat, lng]);
+      dispatch({ type: 'SET_USER_LOCATION', payload: [lat, lng] });
 
       if (lat >= 36.2 && lat <= 36.5 && lng >= 127.2 && lng <= 127.5) {
         setUserLocationLabel('내 현재 위치 (대전광역시)');
@@ -133,8 +134,13 @@ export const MapPage: React.FC = () => {
 
     const handleGpsError = (err: any) => {
       console.warn('GPS location request error or denied:', err);
-      setUserGpsCoords([36.3524, 127.3789]);
-      setUserLocationLabel('위치 권한 없음 · 기본 위치 사용');
+      if (state.userLocation) {
+        setUserGpsCoords(state.userLocation);
+        setUserLocationLabel('내 현재 위치 (이전 저장됨)');
+      } else {
+        setUserGpsCoords([36.3524, 127.3789]);
+        setUserLocationLabel('위치 권한 없음 · 기본 위치 사용');
+      }
     };
 
     navigator.geolocation.getCurrentPosition(handleGpsSuccess, handleGpsError, {
@@ -158,13 +164,19 @@ export const MapPage: React.FC = () => {
     const L = (window as any).L;
     if (!L) return;
 
-    // 출발지: 둔산동 오라클 빌딩 좌표 [36.3524, 127.3789] 적용
-    const defaultOriginCoords: [number, number] = [36.3524, 127.3789];
-    const origin: [number, number] = userGpsCoords || defaultOriginCoords;
-    const destination: [number, number] = getCoords(cafeId, cafe?.location);
-
     // 지도가 이미 생성되어 있다면 재사용 후 위치 업데이트
     let map = mapRef.current;
+    
+    // 유효하지 않은 목적지 좌표(NaN) 방어
+    const destination: [number, number] = getCoords(cafeId, cafe?.location);
+    if (isNaN(destination[0]) || isNaN(destination[1])) {
+       dispatch({ type: 'SHOW_TOAST', payload: '카페의 정확한 위치 정보가 없습니다.' });
+       return;
+    }
+
+    // 출발지: 1순위 state, 2순위 GPS state, 3순위 기본
+    const defaultOriginCoords: [number, number] = [36.3524, 127.3789];
+    const origin: [number, number] = state.userLocation || userGpsCoords || defaultOriginCoords;
     if (!map) {
       const container = document.getElementById('route-map-api');
       if (!container) return;
@@ -333,8 +345,8 @@ export const MapPage: React.FC = () => {
     return R * c;
   };
 
-  const currentOriginCoords: [number, number] = userGpsCoords || [36.3524, 127.3789];
   const destinationCoords: [number, number] = getCoords(cafeId, cafe?.location);
+  const currentOriginCoords: [number, number] = state.userLocation || userGpsCoords || [36.3524, 127.3789];
 
   const realDistanceKm = calculateDistanceKm(
     currentOriginCoords[0],

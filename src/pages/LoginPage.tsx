@@ -81,7 +81,7 @@ export const LoginPage: React.FC = () => {
       sessionStorage.setItem('moodplace_user_name', '게스트');
       sessionStorage.setItem('moodplace_onboarded', 'true');
       setIsLoading(false);
-      navigate('/main');
+      window.location.href = '/main';
     }, 600);
   };
 
@@ -109,7 +109,7 @@ export const LoginPage: React.FC = () => {
       setIsLoading(false);
       if (hasOnboarded) {
         sessionStorage.setItem('moodplace_onboarded', 'true');
-        navigate('/main');
+        window.location.href = '/main';
       } else {
         if (!existingUser) {
           const newUser: UserProfile = {
@@ -118,7 +118,7 @@ export const LoginPage: React.FC = () => {
           };
           localStorage.setItem('moodplace_users', JSON.stringify([...users, newUser]));
         }
-        navigate('/onboarding');
+        window.location.href = '/onboarding';
       }
     } catch (err: any) {
       console.error(`${providerType} Login Error:`, err);
@@ -175,9 +175,9 @@ export const LoginPage: React.FC = () => {
       setIsLoading(false);
       if (hasOnboarded) {
         sessionStorage.setItem('moodplace_onboarded', 'true');
-        navigate('/main');
+        window.location.href = '/main';
       } else {
-        navigate('/onboarding');
+        window.location.href = '/onboarding';
       }
     } catch (err: any) {
       console.error('Email Login Error:', err);
@@ -237,7 +237,7 @@ export const LoginPage: React.FC = () => {
         sessionStorage.setItem('moodplace_user_email', newProfile.email);
         sessionStorage.setItem('moodplace_user_name', newProfile.name);
         setIsSignUpSuccess(false);
-        navigate('/onboarding');
+        window.location.href = '/onboarding';
       }, 1500);
     } catch (err: any) {
       console.error('Email SignUp Error:', err);

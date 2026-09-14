@@ -113,6 +113,7 @@ export interface AppState {
   selectedCafeId: string | null;
   selectedMoods: string[];
   modalSelectedMoods: string[];
+  userLocation: [number, number] | null;
   moodDescription: string;
   searchPhase: 'idle' | 'loading' | 'result';
   cafes: Cafe[];
@@ -135,6 +136,7 @@ export type AppAction =
   | { type: 'SELECT_CAFE'; payload: string }
   | { type: 'RECORD_VISIT'; payload: string }
   | { type: 'SET_TRAVEL_MODE'; payload: 'walk' | 'transit' | 'taxi' }
+  | { type: 'SET_USER_LOCATION'; payload: [number, number] | null }
   | { type: 'SELECT_ROUTE'; payload: string }
   | { type: 'SELECT_NEARBY_PLACE'; payload: string }
   | { type: 'OPEN_SEARCH_MODAL' }
