@@ -10,13 +10,15 @@ export default async function handler(req: any, res: any) {
     return res.status(400).json({ error: 'lat and lng parameters are required' });
   }
 
-  const KAKAO_API_URL = `https://dapi.kakao.com/v2/local/search/category.json?category_group_code=CE7&x=${lng}&y=${lat}&sort=distance&size=15`;
+  const TARGET_CAFE_COUNT = 30;
+  const MAX_SINGLE_SEARCH_COUNT = 45;
+  const KAKAO_API_URL = `https://dapi.kakao.com/v2/local/search/category.json?category_group_code=CE7&x=${lng}&y=${lat}&radius=20000&sort=distance&size=15`;
 
   try {
     const allCafes: any[] = [];
     
-    // 최대 4페이지 조회 (최대 60개 중 50개 확보)
-    for (let page = 1; page <= 4; page++) {
+    // Kakao Local Category Search max pageable_count is 45 (15 items x 3 pages)
+    for (let page = 1; page <= 3; page++) {
       const response = await fetch(`${KAKAO_API_URL}&page=${page}`, {
         headers: {
           Authorization: `KakaoAK ${KAKAO_REST_API_KEY}`,
@@ -24,9 +26,8 @@ export default async function handler(req: any, res: any) {
       });
 
       if (!response.ok) {
-        // 첫 페이지에서 실패하면 에러 반환, 중간 페이지에서 실패하면 확보된 것만 반환
         if (page === 1) {
-           return res.status(response.status).json({ error: `Kakao API fetch failed: ${response.statusText}` });
+          return res.status(response.status).json({ error: `Kakao API fetch failed: ${response.statusText}` });
         }
         break;
       }
@@ -36,7 +37,7 @@ export default async function handler(req: any, res: any) {
         allCafes.push(...data.documents);
       }
 
-      if (data.meta?.is_end || allCafes.length >= 50) {
+      if (data.meta?.is_end || allCafes.length >= MAX_SINGLE_SEARCH_COUNT) {
         break;
       }
     }
@@ -68,8 +69,8 @@ export default async function handler(req: any, res: any) {
       uniqueCafes.push(c);
     }
 
-    // 정확히 최대 50개 제한
-    const slicedCafes = uniqueCafes.slice(0, 50);
+    // 정확히 최대 45개 제한 (Kakao Local 단일 검색 최대치)
+    const slicedCafes = uniqueCafes.slice(0, MAX_SINGLE_SEARCH_COUNT);
 
     return res.status(200).json({ cafes: slicedCafes });
   } catch (error: any) {

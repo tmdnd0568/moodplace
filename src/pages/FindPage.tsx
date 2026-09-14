@@ -256,13 +256,18 @@ export const FindPage: React.FC = () => {
     }> = [];
 
     const seenIds = new Set<string>();
-    const seenNames = new Set<string>();
+    const seenNameAddr = new Set<string>();
 
-    const isDuplicate = (id: string, name: string) => {
+    const isDuplicate = (id: string, name: string, address: string = '') => {
       const cleanName = (name || '').trim().toLowerCase();
-      if (seenIds.has(id) || (cleanName && seenNames.has(cleanName))) return true;
-      seenIds.add(id);
-      if (cleanName) seenNames.add(cleanName);
+      const cleanAddr = (address || '').trim().toLowerCase();
+      const nameAddrKey = `${cleanName}|${cleanAddr}`;
+
+      if (seenIds.has(id)) return true;
+      if (cleanAddr && seenNameAddr.has(nameAddrKey)) return true;
+
+      if (id) seenIds.add(id);
+      if (cleanAddr) seenNameAddr.add(nameAddrKey);
       return false;
     };
 
@@ -277,7 +282,7 @@ export const FindPage: React.FC = () => {
       if (!isExplicitExternalSearch && !isDaejeonCafe(p)) {
         return;
       }
-      if (isDuplicate(p.id, p.name)) return;
+      if (isDuplicate(p.id, p.name, p.address)) return;
 
       const coords = getRealCafeCoords(p.id, p.name, p.address);
 
@@ -300,9 +305,9 @@ export const FindPage: React.FC = () => {
       if (!isKakaoCafe && !isExplicitExternalSearch && !isDaejeonCafe(c)) {
         return;
       }
-      if (isDuplicate(c.id, c.name)) return;
-
       const address = c.location || c.detail?.description || '카페';
+      if (isDuplicate(c.id, c.name, address)) return;
+
       // Kakao 카페는 기존에 coords가 있으면 재사용, 없으면 주소 기반으로 좌표 추정
       const coords: [number, number] = (c as any).coords || getRealCafeCoords(c.id, c.name, address);
 
@@ -324,7 +329,7 @@ export const FindPage: React.FC = () => {
       if (!isExplicitExternalSearch && !isDaejeonCafe(c)) {
         return;
       }
-      if (isDuplicate(c.id, c.name)) return;
+      if (isDuplicate(c.id, c.name, c.address)) return;
 
       const coords = getRealCafeCoords(c.id, c.name, c.address);
 
@@ -349,9 +354,9 @@ export const FindPage: React.FC = () => {
         if (!isExplicitExternalSearch && !isDaejeonCafe(c)) {
           return;
         }
-        if (isDuplicate(c.id, c.name)) return;
-
         const address = c.location || `${regionName} 추천 카페`;
+        if (isDuplicate(c.id, c.name, address)) return;
+
         const coords = getRealCafeCoords(c.id, c.name, address);
 
         list.push({
@@ -366,9 +371,9 @@ export const FindPage: React.FC = () => {
       });
     });
 
-    // 5. 실시간 API(Overpass)로 검색된 주변 카페 추가
+    // 5. 실시간 API로 검색된 주변 카페 추가
     fetchedCafes.forEach((c) => {
-      if (isDuplicate(c.id, c.name)) return;
+      if (isDuplicate(c.id, c.name, c.address)) return;
       list.push({
         id: c.id,
         name: c.name,
@@ -418,7 +423,7 @@ export const FindPage: React.FC = () => {
       result = result.filter((c) => c.distFromCenterKm <= 3.0);
     }
 
-    return result.slice(0, 50);
+    return result.slice(0, 45);
   }, [cafesWithDistance, distanceFilter]);
 
   const selectedPlace = filteredCafes.find((p) => p.id === selectedPlaceId) || filteredCafes[0] || cafesWithDistance[0];

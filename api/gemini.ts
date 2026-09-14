@@ -351,8 +351,8 @@ async function searchExternalRegionWithKakao(
     const allCafes: any[] = [];
     const query = `${targetRegion} 카페`;
 
-    // 1. Kakao API로 최대 50개 카페 가져오기 (Keyword Search)
-    for (let page = 1; page <= 4; page++) {
+    // 1. Kakao API로 최대 45개 카페 가져오기 (Keyword Search, 15개 x 3페이지)
+    for (let page = 1; page <= 3; page++) {
       const res = await fetch(
         `https://dapi.kakao.com/v2/local/search/keyword.json?query=${encodeURIComponent(query)}&category_group_code=CE7&sort=accuracy&size=15&page=${page}`,
         {
@@ -364,9 +364,8 @@ async function searchExternalRegionWithKakao(
       if (data.documents) {
         allCafes.push(...data.documents);
       }
-      if (data.meta?.is_end || allCafes.length >= 50) break;
+      if (data.meta?.is_end || allCafes.length >= 45) break;
     }
-
 
     if (allCafes.length === 0) {
       return { cafes: [], allKakaoCafes: [], isRealAi: false, aiErrorMessage: 'No cafes found in Kakao API' };
@@ -376,7 +375,7 @@ async function searchExternalRegionWithKakao(
     const uniqueRaw = deduplicateKakaoCafes(allCafes);
 
     // FindPage/Store가 인식하는 형식으로 매핑 (전체 리스트)
-    const allKakaoCafes: any[] = uniqueRaw.slice(0, 50).map((place: any) => ({
+    const allKakaoCafes: any[] = uniqueRaw.slice(0, 45).map((place: any) => ({
       id: `kakao-ext-${place.id}`,
       name: place.place_name || '카페',
       address: place.road_address_name || place.address_name || '주소 없음',

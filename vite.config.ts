@@ -27,8 +27,8 @@ const apiFallbackPlugin = () => ({
 
         try {
           const allCafes: any[] = [];
-          for (let page = 1; page <= 4; page++) {
-            const apiRes = await fetch(`https://dapi.kakao.com/v2/local/search/category.json?category_group_code=CE7&x=${lng}&y=${lat}&sort=distance&size=15&page=${page}`, {
+          for (let page = 1; page <= 3; page++) {
+            const apiRes = await fetch(`https://dapi.kakao.com/v2/local/search/category.json?category_group_code=CE7&x=${lng}&y=${lat}&radius=20000&sort=distance&size=15&page=${page}`, {
               headers: { Authorization: `KakaoAK ${apiKey}` }
             });
             if (!apiRes.ok) {
@@ -40,7 +40,7 @@ const apiFallbackPlugin = () => ({
             }
             const data = await apiRes.json() as any;
             if (data.documents) allCafes.push(...data.documents);
-            if (data.meta?.is_end || allCafes.length >= 50) break;
+            if (data.meta?.is_end || allCafes.length >= 45) break;
           }
           const seenIds = new Set<string>();
           const seenNameAddr = new Set<string>();
@@ -68,7 +68,7 @@ const apiFallbackPlugin = () => ({
             uniqueCafes.push(c);
           }
           res.statusCode = 200;
-          res.end(JSON.stringify({ cafes: uniqueCafes.slice(0, 50) }));
+          res.end(JSON.stringify({ cafes: uniqueCafes.slice(0, 45) }));
         } catch (e: any) {
           res.statusCode = 500;
           res.end(JSON.stringify({ error: 'Failed to fetch cafes' }));
